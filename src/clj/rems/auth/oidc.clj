@@ -119,6 +119,12 @@
     (save-user-mappings! user-data (:userid user))
     user))
 
+(def redirect-to-cadre-frontend (http/put "https://cadre5safes-staging.ada.edu.au/server/api/rems"
+                                          {:as :json
+                                           :content-type :json
+                                           :form-params {:name "Vikas Chinchansur"}
+                                           :throw-exceptions false}))
+
 (defn oidc-callback [request]
   (let [error (get-in request [:params :error])
         code (get-in request [:params :code])]
@@ -168,7 +174,8 @@
                 user (find-or-create-user! user-data)]
             (when (:log-authentication-details env)
               (log/info "logged in" user-data user))
-            (-> (redirect "/redirect")
+            (-> (redirect-to-cadre-frontend)
+                ;; (redirect "/redirect")
                 (assoc :session (:session request))
                 (assoc-in [:session :access-token] access-token)
                 (assoc-in [:session :identity] user))))))
