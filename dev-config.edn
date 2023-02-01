@@ -83,4 +83,5 @@
  :enable-duo true
  :enable-catalogue-tree true
  :enable-save-compaction true
- :enable-autosave true}
+ :enable-autosave true
+ :cadre-proxy-server-url "https://cadre5safes-staging.ada.edu.au/server/api/rems/"}
