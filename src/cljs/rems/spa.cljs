@@ -182,7 +182,7 @@
          (roles/show-reviews? roles) (navigate! "/actions")
          (roles/show-admin-pages? roles) (navigate! "/administration")
          ;;:else (navigate! "/catalogue")) 
-         :else (set-location! "https://cadre5safes-staging.ada.edu.au/dashboard?status=200"))
+         :else (set-location! "https://cadre5safes-staging.ada.edu.au/server/api/rems"))
        {})
      ;; else dispatch the same event again while waiting for set-identity (happens especially with Firefox)
      {:dispatch [:landing-page-redirect!]})))
