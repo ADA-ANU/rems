@@ -54,3 +54,19 @@
 (use-fixtures
   :once
   api-fixture)
+
+(deftest test-redirection-to-cadre-frontend-proxy-url-after-successful-login
+  (with-special-setup {:id-data {:sub "user" :name "User" :email "user@example.com"}}
+    (fn []
+      (let [request {}
+            response (oidc/oidc-callback request)]
+
+        (let [request {:params {:code "special-case-code"}}
+              response (oidc/oidc-callback request)]
+          (is (= 302 (get response :status)) "status matched")
+          
+          (is (= "Found. Redirecting to https://cadre5safes-staging.ada.edu.au/dashboard"
+                 (get response :body))
+              "body matched: Redirecting to the CADRE Dashboard URL.")
+          
+          )))))
