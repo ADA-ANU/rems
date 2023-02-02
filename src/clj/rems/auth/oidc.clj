@@ -168,10 +168,10 @@
                 user (find-or-create-user! user-data)]
             (when (:log-authentication-details env)
               (log/info "logged in" user-data user))
-            (-> (http/get (getx env :cadre-proxy-server-url) {:headers {"Authorization" (str "Bearer " access-token)}})
-                :body
-                json/parse-string
-                )))))
+            (-> (redirect "/redirect")
+                (assoc :session (:session request))
+                (assoc-in [:session :access-token] access-token)
+                (assoc-in [:session :identity] user))))))
 
 (defn- oidc-revoke [token]
   (when token
