@@ -3,4 +3,5 @@
  :search-index-path "/tmp/rems-search-index"
  :authentication :fake
  :public-url "http://localhost:3000/"
+ :cadre-proxy-server-url "https://cadre5safes-staging.ada.edu.au/server/api/rems/"
  :extra-stylesheets {:root "./" :files ["/example-theme/extra-styles.css"]}}
