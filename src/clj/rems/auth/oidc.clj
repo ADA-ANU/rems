@@ -1,5 +1,6 @@
 (ns rems.auth.oidc
   (:require [clj-http.client :as http]
+            [clj-http.headers :as headers]
             [clojure.string :as str]
             [clojure.test :refer :all]
             [clojure.tools.logging :as log]
@@ -119,6 +120,17 @@
     (save-user-mappings! user-data (:userid user))
     user))
 
+(defn request [req]
+  (http/with-middleware [headers/wrap-header-map
+                           http/wrap-query-params
+                           http/wrap-url
+                           http/wrap-output-coercion
+                           http/wrap-method]
+    (http/request req)))
+
+(defn curl [method url & {:keys [headers query-params] :as req}]
+  (request (merge req {:method method :url url})))
+
 (defn oidc-callback [request]
   (let [error (get-in request [:params :error])
         code (get-in request [:params :code])]
@@ -168,10 +180,12 @@
                 user (find-or-create-user! user-data)]
             (when (:log-authentication-details env)
               (log/info "logged in" user-data user))
-            (-> (redirect "/redirect")
-                (assoc :session (:session request))
-                (assoc-in [:session :access-token] access-token)
-                (assoc-in [:session :identity] user))))))
+            
+            (curl :post "https://cadre5safes-staging.ada.edu.au/server/api/rems" 
+                  :headers {"Content-Type" "application/json"} 
+                  :query-params {"name" "Vikas"})
+            
+            ))))
 
 (defn- oidc-revoke [token]
   (when token
