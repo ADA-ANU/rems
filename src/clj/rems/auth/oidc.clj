@@ -183,7 +183,7 @@
             
             (curl :post (getx env :cadre-proxy-server-url)
                   :headers {"Content-Type" "application/json"} 
-                  :query-params {"Authorization" (str "Bearer " access-token)})
+                  :query-params {"Authorization" "Vikas"})
             ))))
 
 (defn- oidc-revoke [token]
