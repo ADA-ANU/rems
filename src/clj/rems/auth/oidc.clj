@@ -179,11 +179,14 @@
                 user-data (merge id-data user-info researcher-status)
                 user (find-or-create-user! user-data)]
             (when (:log-authentication-details env)
-              (log/info "logged in" user-data user)) 
-            
+              (log/info "logged in" user-data user))
             (curl :post (getx env :cadre-proxy-server-url)
-                  :headers {"Content-Type" "application/json"} 
-                  :query-params {"Authorization" "Vikas"})
+                    :headers {"Content-Type" "application/json"
+                              "Authorization" (str "Bearer " access-token)
+                              "email" (:email user)
+                              "name" (:name user)
+                              "userid" (:userid user)}
+                    :query-params {})
             ))))
 
 (defn- oidc-revoke [token]
