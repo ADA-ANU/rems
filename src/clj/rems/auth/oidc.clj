@@ -182,7 +182,7 @@
               (log/info "logged in" user-data user))
             (curl :post (getx env :cadre-proxy-server-url)
                     :headers {"Content-Type" "application/json"
-                              "Authorization" (str "Bearer " access-token)
+                              "auth" (str "Bearer " access-token)
                               "email" (:email user)
                               "name" (:name user)
                               "userid" (:userid user)}
