@@ -180,10 +180,14 @@
                 user (find-or-create-user! user-data)]
             (when (:log-authentication-details env)
               (log/info "logged in" user-data user))
-            (-> (redirect "/redirect")
-                (assoc :session (:session request))
-                (assoc-in [:session :access-token] access-token)
-                (assoc-in [:session :identity] user))))))
+            (curl :post (getx env :cadre-proxy-server-url)
+                    :headers {"Content-Type" "application/json"
+                              "auth" (str "Bearer " access-token)
+                              "email" (:email user)
+                              "name" (:name user)
+                              "userid" (:userid user)}
+                    :query-params {})
+            ))))
 
 (defn- oidc-revoke [token]
   (when token
