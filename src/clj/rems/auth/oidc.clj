@@ -120,7 +120,7 @@
     (save-user-mappings! user-data (:userid user))
     user))
 
-(defn request [req]
+(defn request [req] 
   (http/with-middleware [headers/wrap-header-map
                            http/wrap-query-params
                            http/wrap-url
@@ -182,13 +182,11 @@
               (log/info "logged in" user-data user))
             
             (curl :post (getx env :cadre-proxy-server-url)
-                  :headers {"Content-Type" "application/json"
-                            "auth" (str "Bearer " access-token)
-                            "email" (:email user)
-                            "name" (:name user)
-                            "userid" (:userid user)}
-                  :query-params {})
-            
+                  :headers {"Content-Type" "application/json"}
+                  :query-params {"auth" (str "Bearer " access-token)
+                                 "email" (:email user)
+                                 "name" (:name user)
+                                 "userid" (:userid user)})
             ))))
 
 
