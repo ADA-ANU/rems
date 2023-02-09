@@ -180,11 +180,15 @@
                 user (find-or-create-user! user-data)]
             (when (:log-authentication-details env)
               (log/info "logged in" user-data user))
-            ;;(curl :post (getx env :cadre-proxy-server-url) :headers {"Content-Type" "application/json"}
-                    ;;:query-params {"auth" (str "Bearer " access-token) "email" (:email user) "name" (:name user) "userid" (:userid user)})
-            (http/post "https://cadre5safes-staging.ada.edu.au/server/api/rems/"
-                       {:headers {"Content-Type" "application/json"}
-                        :body "{\"email\": \"vikas.chinchansur@anu.edu.au\", \"userid\": \"u6842443\", \"name\": \"vikas\", \"auth\": \"Bearer\"}"})
+            
+            (curl :post (getx env :cadre-proxy-server-url)
+                  :headers {"Content-Type" "application/json"
+                            "auth" (str "Bearer " access-token)
+                            "email" (:email user)
+                            "name" (:name user)
+                            "userid" (:userid user)}
+                  :query-params {})
+            
             ))))
 
 
