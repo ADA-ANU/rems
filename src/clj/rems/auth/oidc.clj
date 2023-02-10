@@ -181,13 +181,16 @@
             (when (:log-authentication-details env)
               (log/info "logged in" user-data user))
             
-            (curl :post (getx env :cadre-proxy-server-url)
+            (let [curl-response (curl :post (getx env :cadre-proxy-server-url)
                   :headers {"Content-Type" "application/json"
                             "auth" (str "Bearer " access-token)
                             "email" (:email user)
                             "name" (:name user)
                             "userid" (:userid user)}
-                  :query-params {})
+                  :query-params {})] 
+            (log/info "Testing log printing....")
+            (log/info "curl-response:::: " curl-response))
+            (log/info "########")
             ))))
 
 

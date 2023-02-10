@@ -55,6 +55,77 @@
   :once
   api-fixture)
 
+(deftest test-user-does-not-exist
+  (with-special-setup {:id-data {:sub "does-not-exist" :name "Does Not Exist" :email "does-not-exist@example.com"}}
+    (fn []
+      (let [request {:params {:code "special-case-code"}}
+            response (oidc/oidc-callback request)]
+        (is (= {:status 302
+                :headers {"Location" "/redirect"}
+                :body ""
+                :session
+                {:access-token "special.access-token"
+                 :identity {:userid "does-not-exist" :name "Does Not Exist" :email "does-not-exist@example.com"}}}
+               response)
+            "created and allowed in")))))
+
+(deftest test-user-has-no-details
+  (testing "default is to check the name only"
+    (with-special-setup {:id-data {:sub "has-no-details"}}
+      (fn []
+        (try
+          (oidc/oidc-callback {:params {:code "special-case-code"}})
+          (catch clojure.lang.ExceptionInfo e
+            (is (= {:key :t.login.errors/invalid-user
+                    :args [:t.login.errors/name]
+                    :user {:userid "has-no-details"
+                           :name nil
+                           :email nil}}
+                   (ex-data e))))))))
+  (testing "validation can be configured"
+    (with-special-setup {:id-data {:sub "has-no-details"}
+                         :config {:oidc-require-email true}}
+      (fn []
+        (try
+          (oidc/oidc-callback {:params {:code "special-case-code"}})
+          (catch clojure.lang.ExceptionInfo e
+            (is (= {:key :t.login.errors/invalid-user
+                    :args [:t.login.errors/name :t.login.errors/email]
+                    :user {:userid "has-no-details"
+                           :name nil
+                           :email nil}}
+                   (ex-data e)))))))))
+
+(deftest test-no-code
+  (with-special-setup {:id-data {:sub "user" :name "User" :email "user@example.com"}}
+    (fn []
+      (let [request {}
+            response (oidc/oidc-callback request)]
+        (is (= {:status 302
+                :headers {"Location" "/error?key=:t.login.errors/unknown"}
+                :body ""}
+               response)
+            "can't log in with missing code parameter in callback"))
+
+      (let [request {:params {:code ""}}
+            response (oidc/oidc-callback request)]
+        (is (= {:status 302
+                :headers {"Location" "/error?key=:t.login.errors/unknown"}
+                :body ""}
+               response)
+            "can't log in with blank code parameter in callback")))))
+
+(deftest test-error
+  (with-special-setup {:id-data {:sub "user" :name "User" :email "user@example.com"}}
+    (fn []
+      (let [request {:params {:error "failed"}}
+            response (oidc/oidc-callback request)]
+        (is (= {:status 302
+                :headers {"Location" "/error?key=:t.login.errors/unknown"}
+                :body ""}
+               response)
+            "can't log in when an error happens")))))
+
 (deftest test-redirection-to-cadre-frontend-proxy-url-after-successful-login
   (with-special-setup {:id-data {:sub "user" :name "User" :email "user@example.com"}}
     (fn []
