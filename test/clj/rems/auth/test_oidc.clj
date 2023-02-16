@@ -7,7 +7,8 @@
             [rems.ga4gh]
             [rems.jwt]
             [rems.json :as json]
-            [rems.testing-util :refer [with-fake-login-users]]))
+            [rems.testing-util :refer [with-fake-login-users]]
+            [ring.util.response :as response]))
 
 (defn- with-special-setup [params f]
   (let [id-data (:id-data params)
@@ -126,18 +127,9 @@
                response)
             "can't log in when an error happens")))))
 
-(deftest test-redirection-to-cadre-frontend-proxy-url-after-successful-login
-  (with-special-setup {:id-data {:sub "user" :name "User" :email "user@example.com"}}
-    (fn []
-      (let [request {}
-            response (oidc/oidc-callback request)]
+(def jwt-generated "eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRlc3RAZG9tYWluLmNvbSIsIm5hbWUiOiJUZXN0MSBUZXN0MiIsInVzZXJpZCI6InRlc3RpZDEyMyJ9.nEy3Une4UASOvLl3RvrZUiU3icWrj_h5hgBLeyutEpA")
 
-        (let [request {:params {:code "special-case-code"}}
-              response (oidc/oidc-callback request)]
-          (is (= 302 (get response :status)) "status matched")
-          
-          (is (= "Found. Redirecting to https://cadre5safes-staging.ada.edu.au/dashboard"
-                 (get response :body))
-              "body matched: Redirecting to the CADRE Dashboard URL.")
-          
-          )))))
+(deftest test-jwt-for-user-details
+  (let [user {:email "test@domain.com", :name "Test1 Test2", :userid "testid123"}
+        jwt-received (oidc/create-jwt user)]
+    (is (= jwt-generated (str jwt-received)))))

@@ -131,6 +131,15 @@
 (defn curl [method url & {:keys [headers query-params] :as req}]
   (request (merge req {:method method :url url})))
 
+(defn post-response [] 
+  (let [proxy-response (http/post (getx env :cadre-proxy-server-url))]
+    (proxy-response :status)
+    )
+  )
+
+ (defn create-jwt [user]
+   (jwt/sign {"email" (:email user), "name" (:name user), "userid" (:userid user)} (getx env :jwt-secret)))
+
 (defn oidc-callback [request]
   (let [error (get-in request [:params :error])
         code (get-in request [:params :code])]
@@ -181,16 +190,16 @@
             (when (:log-authentication-details env)
               (log/info "logged in" user-data user))
             
-            (let [curl-response (curl :post (getx env :cadre-proxy-server-url)
-                  :headers {"Content-Type" "application/json"
-                            "auth" (str "Bearer " access-token)
-                            "email" (:email user)
-                            "name" (:name user)
-                            "userid" (:userid user)}
-                  :query-params {})] 
-            (log/info "Testing log printing....")
-            (log/info "curl-response:::: " curl-response))
-            (log/info "########")
+            (let [user-jwt (create-jwt user)
+                  curl-response (curl :post (getx env :cadre-proxy-server-url)
+                                      :headers {"Content-Type" "application/json"
+                                                "jwt" user-jwt
+                                                "Authorization" (str "Bearer " user-jwt)
+                                                "email" (:email user)
+                                                "name" (:name user)
+                                                "userid" (:userid user)}
+                                      :query-params {})]
+              (log/info "curl-response:::: " curl-response))
             ))))
 
 

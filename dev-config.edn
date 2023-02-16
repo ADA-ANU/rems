@@ -84,4 +84,6 @@
  :enable-catalogue-tree true
  :enable-save-compaction true
  :enable-autosave true
- :cadre-proxy-server-url "https://cadre5safes-staging.ada.edu.au/server/api/rems/"}
+ :cadre-proxy-server-url "https://cadre5safes-staging.ada.edu.au/server/api/rems/"
+ :userinfo_endpoint "https://cilogon.org/oauth2/userinfo"
+ :jwt-secret nil}
