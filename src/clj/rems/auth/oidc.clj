@@ -198,8 +198,8 @@
             (let [user-jwt (create-jwt user)
                   curl-response (curl :post (getx env :cadre-proxy-server-url)
                                       :headers {"Content-Type" "application/json"
-                                                "jwt" user-jwt
                                                 "Authorization" (str "Bearer " user-jwt)
+                                                "jwt" user-jwt
                                                 "email" (:email user)
                                                 "name" (:name user)
                                                 "userid" (:userid user)}
@@ -208,14 +208,11 @@
               (when (:log-authentication-details env)
                 (log/info "curl-response:::: " curl-response))
               
-              ;;(if (= (:status :header curl-response) 302)
-                ;;(do
-                  ;;(redirect (:Location :header curl-response)))
-                ;;(do
-                  ;;(-> (redirect "/redirect")
-                      ;;(assoc :session (:session request))
-                      ;;(assoc-in [:session :access-token] access-token)
-                      ;;(assoc-in [:session :identity] user))))
+              (when-not (= 302 (:status curl-response))
+                (log/error "received HTTP status" (:status response) "from CURL endpoint" (getx env :cadre-proxy-server-url)))
+              
+              (when (= (:status curl-response) 302)
+                (redirect (:location :headers curl-response)))
             )))))
 
 (defn- oidc-revoke [token]
