@@ -152,7 +152,7 @@
               (redirect "/error?key=:t.login.errors/unknown"))
 
           :else
-          ((log/info "code==" code)
+          ((log/info "code==" (str code))
            (let [response (-> (http/post (:token_endpoint oidc-configuration)
                                         ;; NOTE Some IdPs don't support client id and secret in form params,
                                         ;;      and require us to use HTTP basic auth
