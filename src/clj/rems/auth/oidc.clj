@@ -206,8 +206,16 @@
                                       :query-params {})]
               
               (when (:log-authentication-details env)
-                (log/info "curl-response:::: " curl-response)
-              )
+                (log/info "curl-response:::: " curl-response))
+              
+              ;;(if (= (:status :header curl-response) 302)
+                ;;(do
+                  ;;(redirect (:Location :header curl-response)))
+                ;;(do
+                  ;;(-> (redirect "/redirect")
+                      ;;(assoc :session (:session request))
+                      ;;(assoc-in [:session :access-token] access-token)
+                      ;;(assoc-in [:session :identity] user))))
             )))))
 
 (defn- oidc-revoke [token]
