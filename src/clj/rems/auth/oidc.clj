@@ -152,44 +152,47 @@
               (redirect "/error?key=:t.login.errors/unknown"))
 
           :else
-          (let [response (-> (http/post (:token_endpoint oidc-configuration)
+          ((log/info "code==" code)
+           (let [response (-> (http/post (:token_endpoint oidc-configuration)
                                         ;; NOTE Some IdPs don't support client id and secret in form params,
                                         ;;      and require us to use HTTP basic auth
-                                        {:basic-auth [(str (getx env :oidc-client-id))
-                                                      (getx env :oidc-client-secret)]
-                                         :form-params {:grant_type "authorization_code"
-                                                       :code code
-                                                       :redirect_uri (str (getx env :public-url) "oidc-callback")}
+                                         {:basic-auth [(str (getx env :oidc-client-id))
+                                                       (getx env :oidc-client-secret)]
+                                          :form-params {:grant_type "authorization_code"
+                                                        :code code
+                                                        :redirect_uri (str (getx env :public-url) "oidc-callback")}
                                          ;; Setting these will cause the exceptions raised by http/post to contain
                                          ;; the request body, useful for debugging failures.
-                                         :save-request? (getx env :log-authentication-details)
-                                         :debug-body (getx env :log-authentication-details)})
+                                          :save-request? (getx env :log-authentication-details)
+                                          :debug-body (getx env :log-authentication-details)})
                              ;; FIXME Complains about Invalid cookie header in logs
                              ;; TODO Unhandled responses for token endpoint:
                              ;;      403 {\"error\":\"invalid_grant\",\"error_description\":\"Invalid authorization code\"} when reusing codes
-                             (:body)
-                             (json/parse-string))
-                access-token (:access_token response)
-                id-token (:id_token response)
-                issuer (:issuer oidc-configuration)
-                audience (getx env :oidc-client-id)
-                now (Instant/now)
+                              (:body)
+                              (json/parse-string))
+                 access-token (:access_token response)
+                 id-token (:id_token response)
+                 issuer (:issuer oidc-configuration)
+                 audience (getx env :oidc-client-id)
+                 now (Instant/now)
                 ;; id-data has keys:
                 ;; sub – unique ID
                 ;; name - non-unique name
                 ;; locale – could be used to set preferred lang on first login
                 ;; email – non-unique (!) email
-                id-data (jwt/validate id-token issuer audience now)
-                user-info (when-let [url (:userinfo_endpoint oidc-configuration)]
-                            (-> (http/get url {:headers {"Authorization" (str "Bearer " access-token)}})
-                                :body
-                                json/parse-string))
-                researcher-status (ga4gh/passport->researcher-status-by user-info)
-                user-data (merge id-data user-info researcher-status)
-                user (find-or-create-user! user-data)]
+                 id-data (jwt/validate id-token issuer audience now)
+                 user-info (when-let [url (:userinfo_endpoint oidc-configuration)]
+                             (-> (http/get url {:headers {"Authorization" (str "Bearer " access-token)}})
+                                 :body
+                                 json/parse-string))
+                 researcher-status (ga4gh/passport->researcher-status-by user-info)
+                 user-data (merge id-data user-info researcher-status)
+                 user (find-or-create-user! user-data)]
+            (log/info "response==" response)
             (when (:log-authentication-details env)
               (log/info "logged in" user-data user))
             
+            (log/info "Creating JWT..")
             (let [user-jwt (create-jwt user)
                   curl-response (curl :post (getx env :cadre-proxy-server-url)
                                       :headers {"Content-Type" "application/json"
@@ -200,7 +203,7 @@
                                                 "userid" (:userid user)}
                                       :query-params {})]
               (log/info "curl-response:::: " curl-response))
-            ))))
+            )))))
 
 
 
