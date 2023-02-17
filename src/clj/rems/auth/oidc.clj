@@ -152,8 +152,7 @@
               (redirect "/error?key=:t.login.errors/unknown"))
 
           :else
-          ((log/info "code==" (str code))
-           (let [response (-> (http/post (:token_endpoint oidc-configuration)
+          (let [response (-> (http/post (:token_endpoint oidc-configuration)
                                         ;; NOTE Some IdPs don't support client id and secret in form params,
                                         ;;      and require us to use HTTP basic auth
                                          {:basic-auth [(str (getx env :oidc-client-id))
@@ -189,10 +188,13 @@
                  user-data (merge id-data user-info researcher-status)
                  user (find-or-create-user! user-data)]
             (log/info "response==" response)
+            
             (when (:log-authentication-details env)
               (log/info "logged in" user-data user))
             
-            (log/info "Creating JWT..")
+            (when (:log-authentication-details env)
+              (log/info "Creating JWT..")
+              
             (let [user-jwt (create-jwt user)
                   curl-response (curl :post (getx env :cadre-proxy-server-url)
                                       :headers {"Content-Type" "application/json"
@@ -202,10 +204,11 @@
                                                 "name" (:name user)
                                                 "userid" (:userid user)}
                                       :query-params {})]
-              (log/info "curl-response:::: " curl-response))
-            )))))
-
-
+              
+              (when (:log-authentication-details env)
+                (log/info "curl-response:::: " curl-response)
+              )
+            ))))
 
 (defn- oidc-revoke [token]
   (when token
