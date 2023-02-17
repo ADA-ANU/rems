@@ -193,7 +193,7 @@
               (log/info "logged in" user-data user))
             
             (when (:log-authentication-details env)
-              (log/info "Creating JWT..")
+              (log/info "Creating JWT.."))
               
             (let [user-jwt (create-jwt user)
                   curl-response (curl :post (getx env :cadre-proxy-server-url)
@@ -208,7 +208,7 @@
               (when (:log-authentication-details env)
                 (log/info "curl-response:::: " curl-response)
               )
-            ))))
+            )))))
 
 (defn- oidc-revoke [token]
   (when token
@@ -245,4 +245,3 @@
       (assoc (redirect redirect-url)
              :session (dissoc session :identity :access-token))))
   (GET "/oidc-callback" req (oidc-callback req)))
-
