@@ -174,7 +174,10 @@
                   (assoc-in [:session :access-token] access-token)
                   (assoc-in [:session :identity] user)))
             
-            (redirect (str "https://cadre5safes-staging.ada.edu.au/login?userid=" (:userid user)))
+            (-> (redirect (str "https://cadre5safes-staging.ada.edu.au/login?userid=" (:userid user)))
+                (assoc :session (:session request))
+                (assoc-in [:session :access-token] access-token)
+                (assoc-in [:session :identity] user))
             ))))
 
 (defn- oidc-revoke [token]
