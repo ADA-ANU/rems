@@ -1,6 +1,5 @@
 (ns rems.auth.oidc
   (:require [clj-http.client :as http]
-            [clj-http.headers :as headers]
             [clojure.string :as str]
             [clojure.test :refer :all]
             [clojure.tools.logging :as log]
@@ -120,26 +119,6 @@
     (save-user-mappings! user-data (:userid user))
     user))
 
-(defn request [req] 
-  (http/with-middleware [headers/wrap-header-map
-                           http/wrap-query-params
-                           http/wrap-url
-                           http/wrap-output-coercion
-                           http/wrap-method]
-    (http/request req)))
-
-(defn curl [method url & {:keys [headers query-params] :as req}]
-  (request (merge req {:method method :url url})))
-
-(defn post-response [] 
-  (let [proxy-response (http/post (getx env :cadre-proxy-server-url))]
-    (proxy-response :status)
-    )
-  )
-
- (defn create-jwt [user]
-   (jwt/sign {"email" (:email user), "name" (:name user), "userid" (:userid user)} (getx env :jwt-secret)))
-
 (defn oidc-callback [request]
   (let [error (get-in request [:params :error])
         code (get-in request [:params :code])]
@@ -187,33 +166,16 @@
                  researcher-status (ga4gh/passport->researcher-status-by user-info)
                  user-data (merge id-data user-info researcher-status)
                  user (find-or-create-user! user-data)]
-            (log/info "response==" response)
-            
             (when (:log-authentication-details env)
               (log/info "logged in" user-data user))
+            (comment
+              (-> (redirect "/redirect")
+                  (assoc :session (:session request))
+                  (assoc-in [:session :access-token] access-token)
+                  (assoc-in [:session :identity] user)))
             
-            (when (:log-authentication-details env)
-              (log/info "Creating JWT.."))
-              
-            (let [user-jwt (create-jwt user)
-                  curl-response (curl :post (getx env :cadre-proxy-server-url)
-                                      :headers {"Content-Type" "application/json"
-                                                "Authorization" (str "Bearer " user-jwt)
-                                                "jwt" user-jwt
-                                                "email" (:email user)
-                                                "name" (:name user)
-                                                "userid" (:userid user)}
-                                      :query-params {})]
-              
-              (when (:log-authentication-details env)
-                (log/info "curl-response:::: " curl-response))
-              
-              (when-not (= 302 (:status curl-response))
-                (log/error "received HTTP status" (:status response) "from CURL endpoint" (getx env :cadre-proxy-server-url)))
-              
-              (when (= (:status curl-response) 302)
-                (redirect (:location :headers curl-response)))
-            )))))
+            (redirect (str "https://cadre5safes-staging.ada.edu.au/login?userid=" (:userid user)))
+            ))))
 
 (defn- oidc-revoke [token]
   (when token

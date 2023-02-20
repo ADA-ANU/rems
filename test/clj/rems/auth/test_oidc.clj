@@ -8,7 +8,8 @@
             [rems.jwt]
             [rems.json :as json]
             [rems.testing-util :refer [with-fake-login-users]]
-            [ring.util.response :as response]))
+            [rems.util :refer [getx]]
+            ))
 
 (defn- with-special-setup [params f]
   (let [id-data (:id-data params)
@@ -126,10 +127,3 @@
                 :body ""}
                response)
             "can't log in when an error happens")))))
-
-(def jwt-generated "eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRlc3RAZG9tYWluLmNvbSIsIm5hbWUiOiJUZXN0MSBUZXN0MiIsInVzZXJpZCI6InRlc3RpZDEyMyJ9.nEy3Une4UASOvLl3RvrZUiU3icWrj_h5hgBLeyutEpA")
-
-(deftest test-jwt-for-user-details
-  (let [user {:email "test@domain.com", :name "Test1 Test2", :userid "testid123"}
-        jwt-received (oidc/create-jwt user)]
-    (is (= jwt-generated (str jwt-received)))))
