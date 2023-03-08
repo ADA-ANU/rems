@@ -4,6 +4,8 @@
             [buddy.core.keys :as buddy-keys]
             [buddy.sign.jwe :as buddy-jwe]
             [buddy.sign.jwt :as buddy-jwt]
+            [buddy.core.hash :as buddy-hash]
+            [clj-time.core :as time]
             [clojure.tools.logging :as log]
             [clj-http.client :as http]
             [clojure.core.memoize]
@@ -88,3 +90,36 @@
                                              :now now}
                                             (when issuer {:iss issuer})
                                             (when audience {:aud audience})))))
+
+(def sha256-hashed-encryption-secret (buddy-hash/sha256 "cadre-secret-for-hashing"))
+(def sha512-hashed-encryption-secret (buddy-hash/sha512 "cadre-secret-for-hashing"))
+
+;;Read public and private keys from respective file, for use of asymetric algorithm in signing and unsigning process
+(def signing-privkey (buddy-keys/private-key "signing-privkey.pem" "cadre-signing-privkey"))
+(def signing-pubkey (buddy-keys/public-key "signing-pubkey.pem"))
+
+;;Read public and private keys from respective files, for use of asymetric algorithm in encryption and decyption process
+(def encryption-privkey (buddy-keys/private-key "encryption-privkey.pem" "cadre-encryption-privkey"))
+(def encryption-pubkey (buddy-keys/public-key "encryption-pubkey.pem"))
+
+(defn encrypt-data [payload]
+  ;; Hash your secret key with sha256 by create a byte array of 32 bytes because
+  ;; because it is a requirement for default content encryption algorithm: DIR
+  (let [encrypted-data (buddy-jwt/encrypt payload encryption-pubkey {:alg :rsa-oaep-256 :enc :a256cbc-hs512})]
+  (log/info "Encrypted Data: " (str encrypted-data))
+    encrypted-data))
+
+(defn decrypt-data [encrypted-data]
+   (log/info "Unsigned Token: " (str :header encrypted-data))
+  (let [decrypted-data (buddy-jwt/decrypt encrypted-data encryption-privkey {:alg :rsa-oaep-256 :enc :a256cbc-hs512})]
+        (log/info "Decrypted Data: " (str decrypted-data))
+        decrypted-data))
+
+(defn sign-token [encrypted-data]
+  (buddy-jwt/sign {:encrypted-data encrypted-data} signing-privkey {:alg :rs512}))
+
+;; Function "unsign-token" accepts JWT (signed & encrypted JWT),
+;;and returns unsigned Encrypted data.
+(defn unsign-token [signed-jwt]
+  ;; use timestamp in the past
+  (buddy-jwt/unsign signed-jwt signing-pubkey {:alg :rs512}))
