@@ -2,7 +2,6 @@
 
 ### To sync your forked repository with the original repository, you can follow these steps:
 <br>
-
 1. First, make sure you have a local copy of the forked repository on your computer. If you haven't cloned it yet, you can do so with the following command:
     ```
     git clone https://github.com/ADA-ANU/rems.git
@@ -35,7 +34,7 @@
     ```
 <br>
 
-## The alternative and easy way to sync the CADRE Backed application repository (https://github.com/CSCfi/rems.git) with the original REMS repository is by using GitHub website.
+## The alternative the easy way to sync the CADRE Backed application repository (https://github.com/CSCfi/rems.git) with the original REMS repository is by using GitHub website.
 
 ### Follow below steps to sync using GitHub website:
 
@@ -43,8 +42,6 @@
 2. Navigate to Organisation (ADA-ANU)
 3. In Repositories tab, select **rems** repository
 4. Click on **Sync fork** dropdown
-
-![alt text](https://github.com/ADA-ANU/rems/tree/master/cadre-docs/images/sync_forked_repo_in_github.png)
 
 ![alt text](https://github.com/ADA-ANU/rems/blob/master/cadre-docs/images/sync_forked_repo_in_github.png?raw=true)
 
