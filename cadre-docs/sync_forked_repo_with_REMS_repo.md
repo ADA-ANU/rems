@@ -3,9 +3,9 @@
 ### To sync your forked repository with the original repository, you can follow these steps:
 <br>
 1. First, make sure you have a local copy of the forked repository on your computer. If you haven't cloned it yet, you can do so with the following command:
-```
-git clone https://github.com/ADA-ANU/rems.git
-```
+    ```
+    git clone https://github.com/ADA-ANU/rems.git
+    ```
 
 2. Once you have a local copy of the forked repository, navigate to the repository directory in your terminal by using the command cd your-forked-repo.
 
