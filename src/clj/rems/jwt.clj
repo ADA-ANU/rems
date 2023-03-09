@@ -90,7 +90,7 @@
                                              :now now}
                                             (when issuer {:iss issuer})
                                             (when audience {:aud audience})))))
-
+(comment
 (def sha256-hashed-encryption-secret (buddy-hash/sha256 "cadre-secret-for-hashing"))
 (def sha512-hashed-encryption-secret (buddy-hash/sha512 "cadre-secret-for-hashing"))
 
@@ -123,3 +123,4 @@
 (defn unsign-token [signed-jwt]
   ;; use timestamp in the past
   (buddy-jwt/unsign signed-jwt signing-pubkey {:alg :rs512}))
+)

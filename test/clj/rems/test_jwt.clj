@@ -57,6 +57,7 @@
       (is (= {:name "Esko Luontola"}
              (select-keys (jwt/validate token nil nil now) [:name]))))))
 
+(comment
 (def playload {:userid 12345 :username "XYZ"})
 
 (deftest test-encryption-and-decyption
@@ -77,5 +78,4 @@
       (log/info "signed-jwt: " (str signed-jwt))
       (is (= playload decrypted-data)))
     ))
-
-
+)
