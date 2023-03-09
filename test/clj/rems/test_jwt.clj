@@ -75,7 +75,7 @@
           decrypted-data (jwt/decrypt-data (:encrypted-data unsigned-signed-jwt))]
       (log/info "encrypt-data: " (str encrypt-data))
       (log/info "signed-jwt: " (str signed-jwt))
-      (is (not= playload decrypted-data)))
+      (is (= playload decrypted-data)))
     ))
 
 
