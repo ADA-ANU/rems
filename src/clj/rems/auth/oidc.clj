@@ -221,7 +221,7 @@
 
             ;;(send-get-request (str "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=" (:userid user)))
 
-            (-> (redirect redirect-to-cadre-frontend)
+            (-> (redirect-to-cadre-frontend)
                 (assoc :session (:session request))
                 (assoc-in [:session :access-token] access-token)
                 (assoc-in [:session :identity] user))
