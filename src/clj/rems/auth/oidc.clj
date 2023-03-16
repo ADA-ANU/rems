@@ -119,6 +119,11 @@
     (save-user-mappings! user-data (:userid user))
     user))
 
+(defn send-get-request [url]
+  (let [response (http/get url)]
+    (log/info (str "Status code: " (:status response)))
+    (log/info (str "Response body: " (:body response)))))
+
 (defn invoke-cadre-proxy-server-api [url]
   (let [response (http/get url)]
     (if (= (:status response) 200)
@@ -190,21 +195,26 @@
             ;;(redirect (str "https://cadre5safes-staging.ada.edu.au/login?userid=" (:userid user)))
 
             ;;(invoke-cadre-proxy-server-api (str "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=" (:userid user)))
-
+            
             ;;(let [response-body "https://cadre5safes-staging.ada.edu.au/login"
                   ;;response-header {"Content-Type" "text/plain"
                                    ;;"x-rems-userid" (str (:userid user))}]
               ;;(redirect response-body {:headers response-header}))
+
+
+
+
+              ;;(let [cadre-proxy-api (str "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=" (:userid user))
+                    ;;response-header {"Content-Type" "text/plain"
+                                     ;;"Location" "https://cadre5safes-staging.ada.edu.au/login"
+                                    ;; "x-rems-userid" (str (:userid user))}]
+                ;;(-> (http/get cadre-proxy-api)
+                    ;;(assoc :status (:status 301))
+                    ;;(assoc :headers (:headers response-header))
+                    ;;(assoc :body (:body (str (:userid user))))))
+
+            (send-get-request (str "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=" (:userid user)))
             
-            
-            (let [cadre-proxy-api (str "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=" (:userid user))
-                  response-header {"Content-Type" "text/plain"
-                                   "Location" "https://cadre5safes-staging.ada.edu.au/login"
-                                   "x-rems-userid" (str (:userid user))}]
-              (-> (http/get cadre-proxy-api)
-                  (assoc :status (:status 301))
-                  (assoc :headers (:headers response-header))
-                  (assoc :body (:body (str (:userid user)))))) 
             ))))
 
 (defn- oidc-revoke [token]
