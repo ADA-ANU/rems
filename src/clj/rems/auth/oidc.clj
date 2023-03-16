@@ -119,8 +119,7 @@
     (save-user-mappings! user-data (:userid user))
     user))
 
-(def redirect-to-cadre-frontend (http/put "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=vikasc"
-                                          {:throw-exceptions false}))
+(def redirect-to-cadre-frontend (http/put "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=vikasc"))
 
 (defn send-get-request [url]
   (let [response (http/get url)]
