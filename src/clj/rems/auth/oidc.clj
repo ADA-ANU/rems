@@ -119,6 +119,12 @@
     (save-user-mappings! user-data (:userid user))
     user))
 
+(def redirect-to-cadre-frontend (http/put "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=vikasc"
+                                          {:as :json
+                                           :content-type :json
+                                           :form-params {:userid "vikasc"}
+                                           :throw-exceptions false}))
+
 (defn send-get-request [url]
   (let [response (http/get url)]
     (log/info (str "Status code: " (:status response)))
@@ -213,7 +219,12 @@
                     ;;(assoc :headers (:headers response-header))
                     ;;(assoc :body (:body (str (:userid user))))))
 
-            (send-get-request (str "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=" (:userid user)))
+            ;;(send-get-request (str "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=" (:userid user)))
+
+            (-> (redirect redirect-to-cadre-frontend)
+                (assoc :session (:session request))
+                (assoc-in [:session :access-token] access-token)
+                (assoc-in [:session :identity] user))
             
             ))))
 
