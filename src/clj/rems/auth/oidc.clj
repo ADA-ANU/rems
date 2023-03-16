@@ -120,10 +120,7 @@
     user))
 
 (def redirect-to-cadre-frontend (http/put "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=vikasc"
-                                          {:as :json
-                                           :content-type :json
-                                           :form-params {:userid "vikasc"}
-                                           :throw-exceptions false}))
+                                          {:throw-exceptions false}))
 
 (defn send-get-request [url]
   (let [response (http/get url)]
