@@ -124,7 +124,7 @@
     (if (= (:status response) 200)
       (do
         (log/info "status:" (:status response))
-        (:status response)) 
+        (:status response))
       (throw (Exception. (str "API to invoke CADRE Proxy server failed with status!" (:status response)))))))
 
 (defn oidc-callback [request]
@@ -142,56 +142,69 @@
           (let [response (-> (http/post (:token_endpoint oidc-configuration)
                                         ;; NOTE Some IdPs don't support client id and secret in form params,
                                         ;;      and require us to use HTTP basic auth
-                                         {:basic-auth [(str (getx env :oidc-client-id))
-                                                       (getx env :oidc-client-secret)]
-                                          :form-params {:grant_type "authorization_code"
-                                                        :code code
-                                                        :redirect_uri (str (getx env :public-url) "oidc-callback")}
+                                        {:basic-auth [(str (getx env :oidc-client-id))
+                                                      (getx env :oidc-client-secret)]
+                                         :form-params {:grant_type "authorization_code"
+                                                       :code code
+                                                       :redirect_uri (str (getx env :public-url) "oidc-callback")}
                                          ;; Setting these will cause the exceptions raised by http/post to contain
                                          ;; the request body, useful for debugging failures.
-                                          :save-request? (getx env :log-authentication-details)
-                                          :debug-body (getx env :log-authentication-details)})
+                                         :save-request? (getx env :log-authentication-details)
+                                         :debug-body (getx env :log-authentication-details)})
                              ;; FIXME Complains about Invalid cookie header in logs
                              ;; TODO Unhandled responses for token endpoint:
                              ;;      403 {\"error\":\"invalid_grant\",\"error_description\":\"Invalid authorization code\"} when reusing codes
-                              (:body)
-                              (json/parse-string))
-                 access-token (:access_token response)
-                 id-token (:id_token response)
-                 issuer (:issuer oidc-configuration)
-                 audience (getx env :oidc-client-id)
-                 now (Instant/now)
+                             (:body)
+                             (json/parse-string))
+                access-token (:access_token response)
+                id-token (:id_token response)
+                issuer (:issuer oidc-configuration)
+                audience (getx env :oidc-client-id)
+                now (Instant/now)
                 ;; id-data has keys:
                 ;; sub – unique ID
                 ;; name - non-unique name
                 ;; locale – could be used to set preferred lang on first login
                 ;; email – non-unique (!) email
-                 id-data (jwt/validate id-token issuer audience now)
-                 user-info (when-let [url (:userinfo_endpoint oidc-configuration)]
-                             (-> (http/get url {:headers {"Authorization" (str "Bearer " access-token)}})
-                                 :body
-                                 json/parse-string))
-                 researcher-status (ga4gh/passport->researcher-status-by user-info)
-                 user-data (merge id-data user-info researcher-status)
-                 user (find-or-create-user! user-data)]
+                id-data (jwt/validate id-token issuer audience now)
+                user-info (when-let [url (:userinfo_endpoint oidc-configuration)]
+                            (-> (http/get url {:headers {"Authorization" (str "Bearer " access-token)}})
+                                :body
+                                json/parse-string))
+                researcher-status (ga4gh/passport->researcher-status-by user-info)
+                user-data (merge id-data user-info researcher-status)
+                user (find-or-create-user! user-data)]
             (when (:log-authentication-details env)
               (log/info "logged in" user-data user)
               (log/info "access-token:" access-token)
               (log/info "id-token:" id-token)
               (log/info "audience:" audience)
               (log/info "id-data:" id-data)
-              (log/info "user-info:" user-info)
-              )
+              (log/info "user-info:" user-info))
             (comment
               (-> (redirect "/redirect")
                   (assoc :session (:session request))
                   (assoc-in [:session :access-token] access-token)
                   (assoc-in [:session :identity] user)))
-            
+
             ;;(redirect (str "https://cadre5safes-staging.ada.edu.au/login?userid=" (:userid user)))
 
-            (invoke-cadre-proxy-server-api (str "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=" (:userid user)))
-            (redirect (str "https://cadre5safes-staging.ada.edu.au/login"))
+            ;;(invoke-cadre-proxy-server-api (str "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=" (:userid user)))
+
+            ;;(let [response-body "https://cadre5safes-staging.ada.edu.au/login"
+                  ;;response-header {"Content-Type" "text/plain"
+                                   ;;"x-rems-userid" (str (:userid user))}]
+              ;;(redirect response-body {:headers response-header}))
+            
+            
+            (let [cadre-proxy-api (str "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=" (:userid user))
+                  response-header {"Content-Type" "text/plain"
+                                   "Location" "https://cadre5safes-staging.ada.edu.au/login"
+                                   "x-rems-userid" (str (:userid user))}]
+              (-> (http/get cadre-proxy-api)
+                  (assoc :status (:status 301))
+                  (assoc :headers (:headers response-header))
+                  (assoc :body (:body (str (:userid user)))))) 
             ))))
 
 (defn- oidc-revoke [token]
