@@ -119,6 +119,14 @@
     (save-user-mappings! user-data (:userid user))
     user))
 
+(defn invoke-cadre-proxy-server-api [url]
+  (let [response (http/get url)]
+    (if (= (:status response) 200)
+      (do
+        (log/info "status:" (:status response))
+        (:status response)) 
+      (throw (Exception. (str "API to invoke CADRE Proxy server failed with status!" (:status response)))))))
+
 (defn oidc-callback [request]
   (let [error (get-in request [:params :error])
         code (get-in request [:params :code])]
@@ -167,17 +175,22 @@
                  user-data (merge id-data user-info researcher-status)
                  user (find-or-create-user! user-data)]
             (when (:log-authentication-details env)
-              (log/info "logged in" user-data user))
+              (log/info "logged in" user-data user)
+              (log/info "access-token:" access-token)
+              (log/info "id-token:" id-token)
+              (log/info "audience:" audience)
+              (log/info "id-data:" id-data)
+              (log/info "user-info:" user-info)
+              )
             (comment
               (-> (redirect "/redirect")
                   (assoc :session (:session request))
                   (assoc-in [:session :access-token] access-token)
                   (assoc-in [:session :identity] user)))
             
-            (-> (redirect (str "https://cadre5safes-staging.ada.edu.au/login?userid=" (:userid user)))
-                (assoc :session (:session request))
-                (assoc-in [:session :access-token] access-token)
-                (assoc-in [:session :identity] user))
+            ;;(redirect (str "https://cadre5safes-staging.ada.edu.au/login?userid=" (:userid user)))
+
+            (invoke-cadre-proxy-server-api (str "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=" (:userid user)))
             ))))
 
 (defn- oidc-revoke [token]

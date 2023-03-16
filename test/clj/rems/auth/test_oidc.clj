@@ -127,3 +127,9 @@
                 :body ""}
                response)
             "can't log in when an error happens")))))
+
+(deftest test-proxy-server-api-after-successful-authentication
+  (testing "test proxy server api after successful authentication"
+    (let [url (str "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=vikasc")
+          response-status (oidc/invoke-cadre-proxy-server-api url)]
+      (is (= response-status 200)))))
