@@ -191,6 +191,7 @@
             ;;(redirect (str "https://cadre5safes-staging.ada.edu.au/login?userid=" (:userid user)))
 
             (invoke-cadre-proxy-server-api (str "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=" (:userid user)))
+            (redirect (str "https://cadre5safes-staging.ada.edu.au/login"))
             ))))
 
 (defn- oidc-revoke [token]
