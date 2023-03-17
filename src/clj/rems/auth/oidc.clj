@@ -186,12 +186,12 @@
             
             (let [url "https://cadre5safes-staging.ada.edu.au/server/api/rems"
                   headers {"Content-Type" "application/json"}
-                  encrypt-data (jwt/encrypt-data {:userid (:userid user) :apikey 42})
-                  body {"encrypt-data" encrypt-data}
+                  encrypteddata (jwt/encrypt-data {:userid (:userid user) :apikey 42})
+                  body {"encrypteddata" encrypteddata}
                   cadre-proxy-api-response (invoke-cadre-proxy-server-api url headers body)]
               
               (condp = (:status cadre-proxy-api-response)
-                     200 (redirect (str "https://cadre5safes-staging.ada.edu.au/login?data=" encrypt-data)))
+                     200 (redirect (str "https://cadre5safes-staging.ada.edu.au/login?data=" encrypteddata)))
                      (redirect (str "https://cadre5safes-staging.ada.edu.au/server-error"))
               )
             ))))
