@@ -90,13 +90,7 @@
                                              :now now}
                                             (when issuer {:iss issuer})
                                             (when audience {:aud audience})))))
-(comment
-(def sha256-hashed-encryption-secret (buddy-hash/sha256 "cadre-secret-for-hashing"))
-(def sha512-hashed-encryption-secret (buddy-hash/sha512 "cadre-secret-for-hashing"))
 
-;;Read public and private keys from respective file, for use of asymetric algorithm in signing and unsigning process
-(def signing-privkey (buddy-keys/private-key "signing-privkey.pem" "cadre-signing-privkey"))
-(def signing-pubkey (buddy-keys/public-key "signing-pubkey.pem"))
 
 ;;Read public and private keys from respective files, for use of asymetric algorithm in encryption and decyption process
 (def encryption-privkey (buddy-keys/private-key "encryption-privkey.pem" "cadre-encryption-privkey"))
@@ -114,6 +108,14 @@
   (let [decrypted-data (buddy-jwt/decrypt encrypted-data encryption-privkey {:alg :rsa-oaep-256 :enc :a256cbc-hs512})]
         (log/info "Decrypted Data: " (str decrypted-data))
         decrypted-data))
+
+(comment
+(def sha256-hashed-encryption-secret (buddy-hash/sha256 "cadre-secret-for-hashing"))
+(def sha512-hashed-encryption-secret (buddy-hash/sha512 "cadre-secret-for-hashing"))
+
+;;Read public and private keys from respective file, for use of asymetric algorithm in signing and unsigning process
+(def signing-privkey (buddy-keys/private-key "signing-privkey.pem" "cadre-signing-privkey"))
+(def signing-pubkey (buddy-keys/public-key "signing-pubkey.pem"))
 
 (defn sign-token [encrypted-data]
   (buddy-jwt/sign {:encrypted-data encrypted-data} signing-privkey {:alg :rs512}))

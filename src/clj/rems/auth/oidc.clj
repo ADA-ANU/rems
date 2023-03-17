@@ -119,20 +119,15 @@
     (save-user-mappings! user-data (:userid user))
     user))
 
-(def redirect-to-cadre-frontend (http/put "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=vikasc"))
+(defn invoke-cadre-proxy-server-api [url headers body]
+  (let [response (http/get url {:headers headers :body body :throw-exceptions false})]
+    
+    (when (= 200 (:status response))
+      (log/info "received response from CADRE Proxy API, status:" (:status response) " from " url))
 
-(defn send-get-request [url]
-  (let [response (http/get url)]
-    (log/info (str "Status code: " (:status response)))
-    (log/info (str "Response body: " (:body response)))))
-
-(defn invoke-cadre-proxy-server-api [url]
-  (let [response (http/get url)]
-    (if (= (:status response) 200)
-      (do
-        (log/info "status:" (:status response))
-        (:status response))
-      (throw (Exception. (str "API to invoke CADRE Proxy server failed with status!" (:status response)))))))
+    (when-not (= 200 (:status response))
+      (log/error "Error: received response from CADRE Proxy API, status:" (:status response) " from " url))
+    response))
 
 (defn oidc-callback [request]
   (let [error (get-in request [:params :error])
@@ -187,41 +182,18 @@
               (log/info "id-token:" id-token)
               (log/info "audience:" audience)
               (log/info "id-data:" id-data)
-              (log/info "user-info:" user-info))
-            (comment
-              (-> (redirect "/redirect")
-                  (assoc :session (:session request))
-                  (assoc-in [:session :access-token] access-token)
-                  (assoc-in [:session :identity] user)))
-
-            ;;(redirect (str "https://cadre5safes-staging.ada.edu.au/login?userid=" (:userid user)))
-
-            ;;(invoke-cadre-proxy-server-api (str "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=" (:userid user)))
+              (log/info "user-info:" user-info)) 
             
-            ;;(let [response-body "https://cadre5safes-staging.ada.edu.au/login"
-                  ;;response-header {"Content-Type" "text/plain"
-                                   ;;"x-rems-userid" (str (:userid user))}]
-              ;;(redirect response-body {:headers response-header}))
-
-
-
-
-              ;;(let [cadre-proxy-api (str "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=" (:userid user))
-                    ;;response-header {"Content-Type" "text/plain"
-                                     ;;"Location" "https://cadre5safes-staging.ada.edu.au/login"
-                                    ;; "x-rems-userid" (str (:userid user))}]
-                ;;(-> (http/get cadre-proxy-api)
-                    ;;(assoc :status (:status 301))
-                    ;;(assoc :headers (:headers response-header))
-                    ;;(assoc :body (:body (str (:userid user))))))
-
-            ;;(send-get-request (str "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=" (:userid user)))
-
-            (-> (redirect-to-cadre-frontend)
-                (assoc :session (:session request))
-                (assoc-in [:session :access-token] access-token)
-                (assoc-in [:session :identity] user))
-            
+            (let [url "https://cadre5safes-staging.ada.edu.au/server/api/rems"
+                  headers {"Content-Type" "application/json"}
+                  encrypt-data (jwt/encrypt-data {:userid (:userid user) :apikey 42})
+                  body {"encrypt-data" encrypt-data}
+                  cadre-proxy-api-response (invoke-cadre-proxy-server-api url headers body)]
+              
+              (condp = (:status cadre-proxy-api-response)
+                     200 (redirect (str "https://cadre5safes-staging.ada.edu.au/login?data=" encrypt-data)))
+                     (redirect (str "https://cadre5safes-staging.ada.edu.au/server-error"))
+              )
             ))))
 
 (defn- oidc-revoke [token]
