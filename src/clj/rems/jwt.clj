@@ -100,9 +100,9 @@
 
 ;;Read public and private keys from respective files, for use of asymetric algorithm in encryption and decyption process
 (defn encryption-privkey [] 
-  (buddy-keys/private-key (get-file-absolute-path "encryption-privkey.pem") "cadre-encryption-privkey"))
+  (buddy-keys/private-key "encryption-privkey.pem" "cadre-encryption-privkey"))
 (defn encryption-pubkey [] 
-  (buddy-keys/public-key (get-file-absolute-path "encryption-pubkey.pem")))
+  (buddy-keys/public-key "encryption-pubkey.pem"))
 
 
 (defn encrypt-data [payload]
