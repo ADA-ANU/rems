@@ -107,10 +107,14 @@
     (do
       (log/info "Public key File exists.")
       (log/info "Current working directory: " (System/getProperty "user.dir"))
+      (let [current-dir (java.io.File. ".")]
+        (log/info "java.io.File. ==== " (.getAbsolutePath current-dir)))
       (buddy-keys/public-key "encryption-pubkey.pem"))
     (do
       (log/info "Public key File does not exist.")
-      (log/info "Current working directory: " (System/getProperty "user.dir")))))
+      (log/info "Current working directory: " (System/getProperty "user.dir"))
+      (let [current-dir (java.io.File. ".")]
+        (log/info "java.io.File. ==== " (.getAbsolutePath current-dir))))))
 
 (def privkey-file-path "encryption-privkey.pem")
 (def privkey-file-object (io/file privkey-file-path))
@@ -119,10 +123,14 @@
   (if (.exists privkey-file-object)
     (do
       (log/info "Private key File exists.")
-      (buddy-keys/private-key "encryption-privkey.pem" "cadre-encryption-privkey"))
+      (buddy-keys/private-key "encryption-privkey.pem" "cadre-encryption-privkey")
+      (let [current-dir (java.io.File. ".")]
+        (log/info "java.io.File. ==== " (.getAbsolutePath current-dir))))
     (do
       (log/info "Private key File does not exist.")
-      (log/info "Current working directory: " (System/getProperty "user.dir")))
+      (log/info "Current working directory: " (System/getProperty "user.dir"))
+      (let [current-dir (java.io.File. ".")]
+        (log/info "java.io.File. ==== " (.getAbsolutePath current-dir))))
     ))
 
 (defn encrypt-data [payload]
