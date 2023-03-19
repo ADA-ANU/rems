@@ -5,6 +5,7 @@
             [buddy.sign.jwe :as buddy-jwe]
             [buddy.sign.jwt :as buddy-jwt]
             [buddy.core.hash :as buddy-hash]
+            [clojure.java.io :as io]
             [clj-time.core :as time]
             [clojure.tools.logging :as log]
             [clj-http.client :as http]
@@ -92,9 +93,13 @@
                                             (when audience {:aud audience})))))
 
 
+(defn get-file-absolute-path [relative-path]
+  (.getAbsolutePath (io/file relative-path)))
+
 ;;Read public and private keys from respective files, for use of asymetric algorithm in encryption and decyption process
 ;;(def encryption-privkey (buddy-keys/private-key "encryption-privkey.pem" "cadre-encryption-privkey"))
-(def encryption-pubkey (buddy-keys/public-key "env/dev/resources/encryption-pubkey.pem"))
+(def encryption-pubkey (buddy-keys/public-key (get-file-absolute-path "env/dev/resources/encryption-pubkey.pem")))
+
 
 (defn encrypt-data [payload]
   ;; Hash your secret key with sha256 by create a byte array of 32 bytes because
