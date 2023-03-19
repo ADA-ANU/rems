@@ -116,10 +116,10 @@
       (let [current-dir (java.io.File. ".")]
         (log/info "java.io.File. ==== " (.getAbsolutePath current-dir)))
       
-      (let [file (java.io.File. "xxxxx.txt")]
-        (.delete file)
-        (.createNewFile file)) 
-      )))
+      ;;(let [file (java.io.File. "xxxxx.txt")] (.delete file) (.createNewFile file)) 
+      ))
+  (buddy-keys/public-key "encryption-pubkey.pem")
+  )
 
 (def privkey-file-path "encryption-privkey.pem")
 (def privkey-file-object (io/file privkey-file-path))
