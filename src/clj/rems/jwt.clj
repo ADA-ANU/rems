@@ -99,7 +99,7 @@
   (.getAbsolutePath (io/file relative-path)))
 
 ;;Read public and private keys from respective files, for use of asymetric algorithm in encryption and decyption process
-(def pubkey-file-path "encryption-pubkey.pem")
+(def pubkey-file-path (get-file-absolute-path "encryption-pubkey.pem"))
 (def pubkey-file-object (io/file pubkey-file-path))
 
 (defn encryption-pubkey []
@@ -109,7 +109,7 @@
       (log/info "Current working directory: " (System/getProperty "user.dir"))
       (let [current-dir (java.io.File. ".")]
         (log/info "java.io.File. ==== " (.getAbsolutePath current-dir)))
-      (buddy-keys/public-key "encryption-pubkey.pem"))
+      (buddy-keys/public-key (get-file-absolute-path "encryption-pubkey.pem")))
     (do
       (log/info "Public key File does not exist.")
       (log/info "Current working directory: " (System/getProperty "user.dir"))
@@ -117,20 +117,23 @@
         (log/info "java.io.File. ==== " (.getAbsolutePath current-dir)))
       
       ;;(let [file (java.io.File. "xxxxx.txt")] (.delete file) (.createNewFile file)) 
+
+      ;;return
+      (buddy-keys/public-key (get-file-absolute-path "encryption-pubkey.pem"))
       ))
-  (buddy-keys/public-key "encryption-pubkey.pem")
+  
   )
 
-(def privkey-file-path "encryption-privkey.pem")
+(def privkey-file-path (get-file-absolute-path "encryption-privkey.pem"))
 (def privkey-file-object (io/file privkey-file-path))
 
 (defn encryption-privkey []
   (if (.exists privkey-file-object)
     (do
-      (log/info "Private key File exists.")
-      (buddy-keys/private-key "encryption-privkey.pem" "cadre-encryption-privkey")
+      (log/info "Private key File exists.") 
       (let [current-dir (java.io.File. ".")]
-        (log/info "java.io.File. ==== " (.getAbsolutePath current-dir))))
+        (log/info "java.io.File. ==== " (.getAbsolutePath current-dir)))
+      (buddy-keys/private-key (privkey-file-path "encryption-privkey.pem") "cadre-encryption-privkey"))
     (do
       (log/info "Private key File does not exist.")
       (log/info "Current working directory: " (System/getProperty "user.dir"))
