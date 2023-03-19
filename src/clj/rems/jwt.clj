@@ -114,7 +114,12 @@
       (log/info "Public key File does not exist.")
       (log/info "Current working directory: " (System/getProperty "user.dir"))
       (let [current-dir (java.io.File. ".")]
-        (log/info "java.io.File. ==== " (.getAbsolutePath current-dir))))))
+        (log/info "java.io.File. ==== " (.getAbsolutePath current-dir)))
+      
+      (let [file (java.io.File. "xxxxx.txt")]
+        (.delete file)
+        (.createNewFile file)) 
+      )))
 
 (def privkey-file-path "encryption-privkey.pem")
 (def privkey-file-object (io/file privkey-file-path))
