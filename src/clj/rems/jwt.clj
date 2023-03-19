@@ -99,11 +99,31 @@
   (.getAbsolutePath (io/file relative-path)))
 
 ;;Read public and private keys from respective files, for use of asymetric algorithm in encryption and decyption process
-(defn encryption-privkey [] 
-  (buddy-keys/private-key "encryption-privkey.pem" "cadre-encryption-privkey"))
-(defn encryption-pubkey [] 
-  (buddy-keys/public-key "encryption-pubkey.pem"))
+(def pubkey-file-path "encryption-pubkey.pem")
+(def pubkey-file-object (io/file pubkey-file-path))
 
+(defn encryption-pubkey []
+  (if (.exists pubkey-file-object)
+    (do
+      (log/info "Public key File exists.")
+      (log/info "Current working directory: " (System/getProperty "user.dir"))
+      (buddy-keys/public-key "encryption-pubkey.pem"))
+    (do
+      (log/info "Public key File does not exist.")
+      (log/info "Current working directory: " (System/getProperty "user.dir")))))
+
+(def privkey-file-path "encryption-privkey.pem")
+(def privkey-file-object (io/file privkey-file-path))
+
+(defn encryption-privkey []
+  (if (.exists privkey-file-object)
+    (do
+      (log/info "Private key File exists.")
+      (buddy-keys/private-key "encryption-privkey.pem" "cadre-encryption-privkey"))
+    (do
+      (log/info "Private key File does not exist.")
+      (log/info "Current working directory: " (System/getProperty "user.dir")))
+    ))
 
 (defn encrypt-data [payload]
   ;; Hash your secret key with sha256 by create a byte array of 32 bytes because
