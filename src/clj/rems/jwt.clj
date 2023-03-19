@@ -94,7 +94,7 @@
 
 ;;Read public and private keys from respective files, for use of asymetric algorithm in encryption and decyption process
 ;;(def encryption-privkey (buddy-keys/private-key "encryption-privkey.pem" "cadre-encryption-privkey"))
-(def encryption-pubkey (buddy-keys/public-key "/home/310/vc8580/rems/encryption-pubkey.pem"))
+(def encryption-pubkey (buddy-keys/public-key "encryption-pubkey.pem"))
 
 (defn encrypt-data [payload]
   ;; Hash your secret key with sha256 by create a byte array of 32 bytes because
@@ -105,7 +105,7 @@
 
 ;;(defn decrypt-data [encrypted-data]
    ;;(log/info "Unsigned Token: " (str :header encrypted-data))
-  ;;(let [decrypted-data (buddy-jwt/decrypt encrypted-data encryption-privkey {:alg :rsa-oaep-256 :enc :a256cbc-hs512})]
+   ;;(let [decrypted-data (buddy-jwt/decrypt encrypted-data encryption-privkey {:alg :rsa-oaep-256 :enc :a256cbc-hs512})]
         ;;(log/info "Decrypted Data: " (str decrypted-data))
         ;;decrypted-data))
 
