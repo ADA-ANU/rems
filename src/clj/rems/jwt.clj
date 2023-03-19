@@ -110,7 +110,7 @@
       (let [current-dir (java.io.File. ".")]
         (log/info "java.io.File. ==== " (.getAbsolutePath current-dir)))
         ;;(buddy-keys/public-key (get-file-absolute-path "encryption-pubkey.pem"))
-          (buddy-keys/public-key "/home/310/vc8580/rems/encryption-pubkey.pem"))
+          (buddy-keys/public-key "/home/310/vc8580/rems/env/dev/resources/encryption-pubkey.pem"))
     (do
       (log/info "Public key File does not exist.")
       (log/info "Current working directory: " (System/getProperty "user.dir"))
@@ -121,7 +121,7 @@
 
       ;;return
       ;;(buddy-keys/public-key (get-file-absolute-path "encryption-pubkey.pem"))
-      (buddy-keys/public-key "/home/310/vc8580/rems/encryption-pubkey.pem")
+      (buddy-keys/public-key "/home/310/vc8580/rems/env/dev/resources/encryption-pubkey.pem")
       ))
   
   )
@@ -136,14 +136,14 @@
       (let [current-dir (java.io.File. ".")]
         (log/info "java.io.File. ==== " (.getAbsolutePath current-dir)))
       ;;(buddy-keys/private-key (privkey-file-path "encryption-privkey.pem") "cadre-encryption-privkey")
-      (buddy-keys/private-key (privkey-file-path "/home/310/vc8580/rems/encryption-privkey.pem") "cadre-encryption-privkey")
+      (buddy-keys/private-key (privkey-file-path "/home/310/vc8580/rems/env/dev/resources/encryption-privkey.pem") "cadre-encryption-privkey")
       )
     (do
       (log/info "Private key File does not exist.")
       (log/info "Current working directory: " (System/getProperty "user.dir"))
       (let [current-dir (java.io.File. ".")]
         (log/info "java.io.File. ==== " (.getAbsolutePath current-dir)))
-      (buddy-keys/private-key (privkey-file-path "/home/310/vc8580/rems/encryption-privkey.pem") "cadre-encryption-privkey")
+      (buddy-keys/private-key (privkey-file-path "/home/310/vc8580/rems/env/dev/resources/encryption-privkey.pem") "cadre-encryption-privkey")
       )
     ))
 
