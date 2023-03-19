@@ -92,12 +92,15 @@
                                             (when issuer {:iss issuer})
                                             (when audience {:aud audience})))))
 
+;;(defn sha256-hashed-encryption-secret [] (buddy-hash/sha256 "cadre-secret-for-hashing"))
+;;(defn sha512-hashed-encryption-secret [] (buddy-hash/sha512 "cadre-secret-for-hashing"))
 
 (defn get-file-absolute-path [relative-path]
   (.getAbsolutePath (io/file relative-path)))
 
 ;;Read public and private keys from respective files, for use of asymetric algorithm in encryption and decyption process
-;;(def encryption-privkey (buddy-keys/private-key "encryption-privkey.pem" "cadre-encryption-privkey"))
+(defn encryption-privkey [] 
+  (buddy-keys/private-key (get-file-absolute-path "env/dev/resources/encryption-privkey.pem") "cadre-encryption-privkey"))
 (defn encryption-pubkey [] 
   (buddy-keys/public-key (get-file-absolute-path "env/dev/resources/encryption-pubkey.pem")))
 
@@ -105,19 +108,19 @@
 (defn encrypt-data [payload]
   ;; Hash your secret key with sha256 by create a byte array of 32 bytes because
   ;; because it is a requirement for default content encryption algorithm: DIR
-  (let [encrypted-data (buddy-jwt/encrypt payload encryption-pubkey {:alg :rsa-oaep-256 :enc :a256cbc-hs512})]
+  (let [encrypted-data (buddy-jwt/encrypt payload (encryption-pubkey) {:alg :rsa-oaep-256 :enc :a256cbc-hs512})]
+  ;;(let [encrypted-data (buddy-jwt/encrypt payload (sha256-hashed-encryption-secret) {:alg :dir :enc :a128cbc-hs256})]  
   (log/info "Encrypted Data: " (str encrypted-data))
     encrypted-data))
 
-;;(defn decrypt-data [encrypted-data]
-   ;;(log/info "Unsigned Token: " (str :header encrypted-data))
-   ;;(let [decrypted-data (buddy-jwt/decrypt encrypted-data encryption-privkey {:alg :rsa-oaep-256 :enc :a256cbc-hs512})]
-        ;;(log/info "Decrypted Data: " (str decrypted-data))
-        ;;decrypted-data))
+(defn decrypt-data [encrypted-data]
+   (log/info "Unsigned Token: " (str :header encrypted-data))
+   (let [decrypted-data (buddy-jwt/decrypt encrypted-data (encryption-privkey) {:alg :rsa-oaep-256 :enc :a256cbc-hs512})]
+   ;;(let [decrypted-data (buddy-jwt/decrypt encrypted-data (sha256-hashed-encryption-secret))]  
+        (log/info "Decrypted Data: " (str decrypted-data))
+        decrypted-data))
 
 (comment
-(def sha256-hashed-encryption-secret (buddy-hash/sha256 "cadre-secret-for-hashing"))
-(def sha512-hashed-encryption-secret (buddy-hash/sha512 "cadre-secret-for-hashing"))
 
 ;;Read public and private keys from respective file, for use of asymetric algorithm in signing and unsigning process
 (def signing-privkey (buddy-keys/private-key "signing-privkey.pem" "cadre-signing-privkey"))
