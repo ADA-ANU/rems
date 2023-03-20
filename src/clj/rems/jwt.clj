@@ -92,11 +92,20 @@
                                             (when issuer {:iss issuer})
                                             (when audience {:aud audience})))))
 
+;; Hash your secret key with sha256 by create a byte array of 32 bytes because
+;; because it is a requirement for default content encryption algorithm: DIR
+(def sha256-hashed-encryption-secret (buddy-hash/sha256 "cadre-secret-for-hashing"))
+(def sha512-hashed-encryption-secret (buddy-hash/sha512 "cadre-secret-for-hashing"))
+
+(defn encryption-pubkey-2 [payload]
+  (buddy-jwt/encrypt payload sha256-hashed-encryption-secret {:alg :dir :enc :a128cbc-hs256}))
+
+(defn decrypt-data-2 [encrypted-data]
+  (buddy-jwt/decrypt encrypted-data sha256-hashed-encryption-secret))
+
+
 ;; create a file object for a file in the current directory
 (def public-key-file (io/file "encryption-pubkey.pem"))
-
-;;(defn sha256-hashed-encryption-secret [] (buddy-hash/sha256 "cadre-secret-for-hashing"))
-;;(defn sha512-hashed-encryption-secret [] (buddy-hash/sha512 "cadre-secret-for-hashing"))
 
 (defn get-file-absolute-path [relative-path]
   (.getAbsolutePath (io/file relative-path)))
@@ -125,6 +134,8 @@
     
   (buddy-keys/public-key (get-file-absolute-path "encryption-pubkey.pem")))
 
+
+
 (def privkey-file-path (get-file-absolute-path "encryption-privkey.pem"))
 (def privkey-file-object (io/file privkey-file-path))
 
@@ -136,17 +147,15 @@
   )
 
 (defn encrypt-data [payload]
-  ;; Hash your secret key with sha256 by create a byte array of 32 bytes because
-  ;; because it is a requirement for default content encryption algorithm: DIR
-  (let [encrypted-data (buddy-jwt/encrypt payload (encryption-pubkey) {:alg :rsa-oaep-256 :enc :a256cbc-hs512})]
-  ;;(let [encrypted-data (buddy-jwt/encrypt payload (sha256-hashed-encryption-secret) {:alg :dir :enc :a128cbc-hs256})]  
+  ;;(let [encrypted-data (buddy-jwt/encrypt payload (encryption-pubkey) {:alg :rsa-oaep-256 :enc :a256cbc-hs512})]
+  (let [encrypted-data (encryption-pubkey-2 payload)]  
   (log/info "Encrypted Data: " (str encrypted-data))
     encrypted-data))
 
 (defn decrypt-data [encrypted-data]
    (log/info "Unsigned Token: " (str :header encrypted-data))
-   (let [decrypted-data (buddy-jwt/decrypt encrypted-data (encryption-privkey) {:alg :rsa-oaep-256 :enc :a256cbc-hs512})]
-   ;;(let [decrypted-data (buddy-jwt/decrypt encrypted-data (sha256-hashed-encryption-secret))]  
+   ;;(let [decrypted-data (buddy-jwt/decrypt encrypted-data (encryption-privkey) {:alg :rsa-oaep-256 :enc :a256cbc-hs512})]
+   (let [decrypted-data (decrypt-data-2 encrypted-data)]  
         (log/info "Decrypted Data: " (str decrypted-data))
         decrypted-data))
 
