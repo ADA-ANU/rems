@@ -92,6 +92,9 @@
                                             (when issuer {:iss issuer})
                                             (when audience {:aud audience})))))
 
+;; create a file object for a file in the current directory
+(def public-key-file (io/file "encryption-pubkey.pem"))
+
 ;;(defn sha256-hashed-encryption-secret [] (buddy-hash/sha256 "cadre-secret-for-hashing"))
 ;;(defn sha512-hashed-encryption-secret [] (buddy-hash/sha512 "cadre-secret-for-hashing"))
 
@@ -103,49 +106,34 @@
 (def pubkey-file-object (io/file pubkey-file-path))
 
 (defn encryption-pubkey []
-  (if (.exists pubkey-file-object)
-    (do
-      (log/info "Public key File exists.")
-      (log/info "Current working directory: " (System/getProperty "user.dir"))
-      (let [current-dir (java.io.File. ".")]
-        (log/info "java.io.File. ==== " (.getAbsolutePath current-dir)))
-        ;;(buddy-keys/public-key (get-file-absolute-path "encryption-pubkey.pem"))
-          (buddy-keys/public-key "/home/310/vc8580/rems/env/dev/resources/encryption-pubkey.pem"))
-    (do
-      (log/info "Public key File does not exist.")
-      (log/info "Current working directory: " (System/getProperty "user.dir"))
-      (let [current-dir (java.io.File. ".")]
-        (log/info "java.io.File. ==== " (.getAbsolutePath current-dir)))
-      
-      ;;(let [file (java.io.File. "xxxxx.txt")] (.delete file) (.createNewFile file)) 
-
-      ;;return
-      ;;(buddy-keys/public-key (get-file-absolute-path "encryption-pubkey.pem"))
-      (buddy-keys/public-key "/home/310/vc8580/rems/env/dev/resources/encryption-pubkey.pem")
-      ))
+  ;; check if the file exists and is a regular file
+        (if (.isFile public-key-file)
+          (log/info "The file encryption-pubkey.pem exists and is a regular file.")
+          (log/info "The file encryption-pubkey.pem does not exist or is not a regular file."))
   
-  )
+  ;;print current directory
+  (let [current-dir (java.io.File. ".")]
+    (log/info "java.io.File. ==== " (.getAbsolutePath current-dir))
+    (log/info "Current working directory: " (System/getProperty "user.dir")))
+  
+  ;;create a file
+  ;;(let [file (java.io.File. "xxxxx.txt")] (.delete file) (.createNewFile file)) 
+
+  (if (.exists pubkey-file-object)
+    (log/info "Public key File exists.")
+    (log/info "Public key File does not exist."))
+    
+  (buddy-keys/public-key (get-file-absolute-path "encryption-pubkey.pem")))
 
 (def privkey-file-path (get-file-absolute-path "encryption-privkey.pem"))
 (def privkey-file-object (io/file privkey-file-path))
 
 (defn encryption-privkey []
   (if (.exists privkey-file-object)
-    (do
-      (log/info "Private key File exists.") 
-      (let [current-dir (java.io.File. ".")]
-        (log/info "java.io.File. ==== " (.getAbsolutePath current-dir)))
-      ;;(buddy-keys/private-key (privkey-file-path "encryption-privkey.pem") "cadre-encryption-privkey")
-      (buddy-keys/private-key (privkey-file-path "/home/310/vc8580/rems/env/dev/resources/encryption-privkey.pem") "cadre-encryption-privkey")
-      )
-    (do
-      (log/info "Private key File does not exist.")
-      (log/info "Current working directory: " (System/getProperty "user.dir"))
-      (let [current-dir (java.io.File. ".")]
-        (log/info "java.io.File. ==== " (.getAbsolutePath current-dir)))
-      (buddy-keys/private-key (privkey-file-path "/home/310/vc8580/rems/env/dev/resources/encryption-privkey.pem") "cadre-encryption-privkey")
-      )
-    ))
+    (log/info "Private key File exists.")
+    (log/info "Private key File does not exist."))
+  (buddy-keys/private-key (privkey-file-path (get-file-absolute-path "encryption-privkey.pem")) "cadre-encryption-privkey")
+  )
 
 (defn encrypt-data [payload]
   ;; Hash your secret key with sha256 by create a byte array of 32 bytes because
