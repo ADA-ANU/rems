@@ -147,15 +147,15 @@
   )
 
 (defn encrypt-data [payload]
-  ;;(let [encrypted-data (buddy-jwt/encrypt payload (encryption-pubkey) {:alg :rsa-oaep-256 :enc :a256cbc-hs512})]
-  (let [encrypted-data (encryption-pubkey-2 payload)]  
+  (let [encrypted-data (buddy-jwt/encrypt payload (encryption-pubkey) {:alg :rsa-oaep-256 :enc :a256cbc-hs512})]
+  ;;(let [encrypted-data (encryption-pubkey-2 payload)]  
   (log/info "Encrypted Data: " (str encrypted-data))
     encrypted-data))
 
 (defn decrypt-data [encrypted-data]
    (log/info "Unsigned Token: " (str :header encrypted-data))
-   ;;(let [decrypted-data (buddy-jwt/decrypt encrypted-data (encryption-privkey) {:alg :rsa-oaep-256 :enc :a256cbc-hs512})]
-   (let [decrypted-data (decrypt-data-2 encrypted-data)]  
+   (let [decrypted-data (buddy-jwt/decrypt encrypted-data (encryption-privkey) {:alg :rsa-oaep-256 :enc :a256cbc-hs512})]
+   ;;(let [decrypted-data (decrypt-data-2 encrypted-data)]  
         (log/info "Decrypted Data: " (str decrypted-data))
         decrypted-data))
 
