@@ -10,6 +10,7 @@
             [rems.db.users :as users]
             [rems.ga4gh :as ga4gh]
             [rems.json :as json]
+            [cheshire.core :as cheshire-json]
             [rems.jwt :as jwt]
             [rems.util :refer [getx]]
             [ring.util.response :refer [redirect]])
@@ -187,7 +188,7 @@
             (let [url "https://cadre5safes-staging.ada.edu.au/server/api/rems"
                   headers {"Content-Type" "application/json"}
                   encrypteddata (jwt/encrypt-data {:userid (:userid user) :apikey 42})
-                  body {"encrypteddata" encrypteddata}
+                  body (cheshire-json/generate-string {:encrypteddata encrypteddata})
                   cadre-proxy-api-response (invoke-cadre-proxy-server-api url headers body)]
               
               (condp = (:status cadre-proxy-api-response)

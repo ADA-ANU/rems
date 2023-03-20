@@ -9,6 +9,7 @@
             [rems.json :as json]
             [rems.testing-util :refer [with-fake-login-users]]
             [rems.util :refer [getx]]
+            [cheshire.core :as cheshire-json]
             ))
 
 (defn- with-special-setup [params f]
@@ -130,6 +131,9 @@
 
 (deftest test-proxy-server-api-after-successful-authentication
   (testing "test proxy server api after successful authentication"
-    (let [url (str "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=vikasc")
-          response-status (oidc/invoke-cadre-proxy-server-api url)]
+    (let [url "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=vikasc"
+          headers {"Content-Type" "application/json"}
+          encrypteddata (rems.jwt/encrypt-data {:userid (:userid "1234567890") :apikey 42})
+          body (cheshire-json/generate-string {:encrypteddata encrypteddata})
+          response-status (oidc/invoke-cadre-proxy-server-api url headers body)]
       (is (= response-status 200)))))
