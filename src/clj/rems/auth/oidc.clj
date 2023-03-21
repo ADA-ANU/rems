@@ -188,16 +188,16 @@
             (let [url "https://cadre5safes-staging.ada.edu.au/server/api/rems"
                   headers {"Content-Type" "application/json"}
                   encrypteddata (jwt/encrypt-data {:userid (:userid user) :apikey 42})
+                  encrypteddata-without-api (jwt/encrypt-data {:userid (:userid user)})
                   body (cheshire-json/generate-string {:encrypteddata encrypteddata})
                   cadre-proxy-api-response (invoke-cadre-proxy-server-api url headers body)]
               
               (when (= 200 (:status cadre-proxy-api-response))
                 (log/info "Received HTTP status " (:status cadre-proxy-api-response) " from " url)
-                (redirect (str "https://cadre5safes-staging.ada.edu.au/login?data=" encrypteddata)))
+                (redirect (str "https://cadre5safes-staging.ada.edu.au/login?data=" encrypteddata-without-api)))
 
               (when-not (= 200 (:status cadre-proxy-api-response))
-                (log/error "ERROR: Received HTTP status " (:status cadre-proxy-api-response) " from " url))
-              )
+                (log/error "ERROR: Received HTTP status " (:status cadre-proxy-api-response) " from " url)))
             ))))
 
 (defn- oidc-revoke [token]
