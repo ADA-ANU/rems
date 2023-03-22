@@ -195,17 +195,9 @@
               (when-not (= 200 (:status cadre-proxy-api-response))
                 (log/error "ERROR: Received HTTP status " (:status cadre-proxy-api-response) " from " url))
               
-              (when (= 200 (:status cadre-proxy-api-response)) 
-                ;;{:status 302, :headers {"Location" (str "https://cadre5safes-staging.ada.edu.au/login?data=" encrypteddata-without-api)}, :body ""}
-                (log/info "Received HTTP status " (:status cadre-proxy-api-response) " from " url)
-                (redirect (str "https://cadre5safes-staging.ada.edu.au/login?data=" encrypteddata-without-api)))
-              
-              (log/info "Outside when..")
-              (redirect (str "https://cadre5safes-staging.ada.edu.au/login?data=xyz")))
-            ;;(log/info "Outside let")
-            ;;(redirect (str "https://cadre5safes-staging.ada.edu.au/login?data=abc"))
-            )
-            )))
+              (log/info "Received HTTP status " (:status cadre-proxy-api-response) " from " url)
+              (redirect (str "https://cadre5safes-staging.ada.edu.au/login?data=" encrypteddata-without-api)))
+            ))))
 
 (defn- oidc-revoke [token]
   (when token
