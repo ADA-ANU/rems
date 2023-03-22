@@ -202,8 +202,9 @@
               
               (log/info "Outside when..")
               (redirect (str "https://cadre5safes-staging.ada.edu.au/login?data=xyz")))
-            (log/info "Outside let")
-            (redirect (str "https://cadre5safes-staging.ada.edu.au/login?data=abc")))
+            ;;(log/info "Outside let")
+            ;;(redirect (str "https://cadre5safes-staging.ada.edu.au/login?data=abc"))
+            )
             )))
 
 (defn- oidc-revoke [token]
