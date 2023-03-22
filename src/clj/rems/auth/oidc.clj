@@ -185,22 +185,25 @@
               (log/info "id-data:" id-data)
               (log/info "user-info:" user-info)) 
             
-            (let [url "https://cadre5safes-staging.ada.edu.au/server/api/rems"
+            (let [url (getx env :cadre-frontend-proxy-server-url)
                   headers {"Content-Type" "application/json"}
                   encrypteddata (jwt/encrypt-data {:userid (:userid user) :apikey 42})
                   encrypteddata-without-api (jwt/encrypt-data {:userid (:userid user)})
                   body (cheshire-json/generate-string {:encrypteddata encrypteddata})
                   cadre-proxy-api-response (invoke-cadre-proxy-server-api url headers body)]
               
-              (when (= 200 (:status cadre-proxy-api-response))
-                (log/info "Received HTTP status " (:status cadre-proxy-api-response) " from " url)
-                ;;(redirect (str "https://cadre5safes-staging.ada.edu.au/login?data=" encrypteddata-without-api))
-                {:status 302, :headers {"Location" (str "https://cadre5safes-staging.ada.edu.au/login?data=" encrypteddata-without-api)}, :body ""}
-                )
-
               (when-not (= 200 (:status cadre-proxy-api-response))
-                (log/error "ERROR: Received HTTP status " (:status cadre-proxy-api-response) " from " url)))
-            ))))
+                (log/error "ERROR: Received HTTP status " (:status cadre-proxy-api-response) " from " url))
+              
+              (when (= 200 (:status cadre-proxy-api-response)) 
+                ;;{:status 302, :headers {"Location" (str "https://cadre5safes-staging.ada.edu.au/login?data=" encrypteddata-without-api)}, :body ""}
+                (redirect (str "https://cadre5safes-staging.ada.edu.au/login?data=" encrypteddata-without-api)))
+              
+              (log/info "Outside when..")
+              (redirect (str "https://cadre5safes-staging.ada.edu.au/login?data=xyz")))
+            (log/info "Outside let")
+            (redirect (str "https://cadre5safes-staging.ada.edu.au/login?data=abc")))
+            )))
 
 (defn- oidc-revoke [token]
   (when token
