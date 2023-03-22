@@ -194,7 +194,9 @@
               
               (when (= 200 (:status cadre-proxy-api-response))
                 (log/info "Received HTTP status " (:status cadre-proxy-api-response) " from " url)
-                (redirect (str "https://cadre5safes-staging.ada.edu.au/login?data=" encrypteddata-without-api)))
+                ;;(redirect (str "https://cadre5safes-staging.ada.edu.au/login?data=" encrypteddata-without-api))
+                {:status 302, :headers {"Location" (str "https://cadre5safes-staging.ada.edu.au/login?data=" encrypteddata-without-api)}, :body ""}
+                )
 
               (when-not (= 200 (:status cadre-proxy-api-response))
                 (log/error "ERROR: Received HTTP status " (:status cadre-proxy-api-response) " from " url)))
