@@ -92,58 +92,25 @@
                                             (when issuer {:iss issuer})
                                             (when audience {:aud audience})))))
 
-;; Hash your secret key with sha256 by create a byte array of 32 bytes because
-;; because it is a requirement for default content encryption algorithm: DIR
-(def sha256-hashed-encryption-secret (buddy-hash/sha256 "cadre-secret-for-hashing"))
-(def sha512-hashed-encryption-secret (buddy-hash/sha512 "cadre-secret-for-hashing"))
-
-(defn encryption-pubkey-2 [payload]
-  (buddy-jwt/encrypt payload sha256-hashed-encryption-secret {:alg :dir :enc :a128cbc-hs256}))
-
-(defn decrypt-data-2 [encrypted-data]
-  (buddy-jwt/decrypt encrypted-data sha256-hashed-encryption-secret))
-
-
-;; create a file object for a file in the current directory
-(def public-key-file (io/file "encryption-pubkey.pem"))
-
 (defn get-file-absolute-path [relative-path]
   (.getAbsolutePath (io/file relative-path)))
 
 ;;Read public and private keys from respective files, for use of asymetric algorithm in encryption and decyption process
-(def pubkey-file-path (get-file-absolute-path "encryption-pubkey.pem"))
-(def pubkey-file-object (io/file pubkey-file-path))
+(def pubkey-file-object (io/file (get-file-absolute-path "encryption-pubkey.pem")))
+(def privkey-file-object (io/file (get-file-absolute-path "encryption-privkey.pem")))
 
 (defn encryption-pubkey []
-  ;; check if the file exists and is a regular file
-        (if (.isFile public-key-file)
-          (log/info "The file encryption-pubkey.pem exists and is a regular file.")
-          (log/info "The file encryption-pubkey.pem does not exist or is not a regular file."))
-  
-  ;;print current directory
-  (let [current-dir (java.io.File. ".")]
-    (log/info "java.io.File. ==== " (.getAbsolutePath current-dir))
-    (log/info "Current working directory: " (System/getProperty "user.dir")))
-  
-  ;;create a file
-  ;;(let [file (java.io.File. "xxxxx.txt")] (.delete file) (.createNewFile file)) 
-
   (if (.exists pubkey-file-object)
     (log/info "Public key File exists.")
     (log/info "Public key File does not exist."))
     
   (buddy-keys/public-key (get-file-absolute-path "encryption-pubkey.pem")))
 
-
-
-(def privkey-file-path (get-file-absolute-path "encryption-privkey.pem"))
-(def privkey-file-object (io/file privkey-file-path))
-
 (defn encryption-privkey []
   (if (.exists privkey-file-object)
     (log/info "Private key File exists.")
     (log/info "Private key File does not exist."))
-  (buddy-keys/private-key (privkey-file-path (get-file-absolute-path "encryption-privkey.pem")) "cadre-encryption-privkey")
+  (buddy-keys/private-key (get-file-absolute-path "encryption-privkey.pem") (getx env :encryption-private-key-passphrase))
   )
 
 (defn encrypt-data [payload]
@@ -162,7 +129,7 @@
 (comment
 
 ;;Read public and private keys from respective file, for use of asymetric algorithm in signing and unsigning process
-(def signing-privkey (buddy-keys/private-key "signing-privkey.pem" "cadre-signing-privkey"))
+(def signing-privkey (buddy-keys/private-key "signing-privkey.pem" (getx env :signing-private-key-passphrase)))
 (def signing-pubkey (buddy-keys/public-key "signing-pubkey.pem"))
 
 (defn sign-token [encrypted-data]

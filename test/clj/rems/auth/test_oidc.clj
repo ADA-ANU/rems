@@ -8,7 +8,6 @@
             [rems.jwt]
             [rems.json :as json]
             [rems.testing-util :refer [with-fake-login-users]]
-            [rems.util :refer [getx]]
             [cheshire.core :as cheshire-json]
             ))
 

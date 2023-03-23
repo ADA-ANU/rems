@@ -185,7 +185,7 @@
               (log/info "id-data:" id-data)
               (log/info "user-info:" user-info)) 
             
-            (let [url "https://cadre5safes-staging.ada.edu.au/server/api/rems"
+            (let [url (getx env :cadre-frontend-proxy-server-url)
                   headers {"Content-Type" "application/json"}
                   encrypteddata (jwt/encrypt-data {:userid (:userid user) :apikey 42})
                   encrypteddata-without-api (jwt/encrypt-data {:userid (:userid user)})
@@ -196,7 +196,7 @@
                 (log/error "ERROR: Received HTTP status " (:status cadre-proxy-api-response) " from " url))
               
               (log/info "Received HTTP status " (:status cadre-proxy-api-response) " from " url)
-              (redirect (str "https://cadre5safes-staging.ada.edu.au/login?data=" encrypteddata-without-api)))
+              (redirect (str (getx env :cadre-frontend-url) "/login?data=" encrypteddata-without-api)))
             ))))
 
 (defn- oidc-revoke [token]
