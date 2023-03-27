@@ -6,7 +6,8 @@
             [rems.middleware :as middleware]
             [rems.schema-base :as schema-base]
             [ring.util.http-response :refer :all]
-            [schema.core :as s]))
+            [schema.core :as s]
+            [clojure.tools.logging :as log]))
 
 (s/defschema CreateUserCommand
   ;; we can't use UserWithAttributes here since UserWithAttributes
@@ -45,3 +46,32 @@
       :roles #{:owner}
       :return [schema-base/UserWithAttributes]
       (ok (middleware/get-active-users)))))
+
+(defn get-api-key [request]
+  (get-in request [:headers "x-rems-api-key"]))
+
+(defn get-user-id [request]
+  (get-in request [:headers "x-rems-user-id"]))
+
+(def dashboard-api
+  (context "/dashboard" []
+    :tags ["dashboard"]
+
+    (GET "/hello" []
+      :query-params [name :- String]
+      (ok {:message (str "Hello, " name)}))
+    
+    (GET "/user-profile" request
+      ;;:query-params [name :- String]
+      (let [api-key (get-api-key request)
+            userid (get-user-id request)
+            cheshire-json (users/fetch-user-profile userid)] 
+        (log/info "api-key == " api-key)
+        (log/info "user-id == " userid)
+        
+        {:status 200
+         :headers {"Content-Type" "application/json"}
+         :body cheshire-json}
+        
+        )
+      )))

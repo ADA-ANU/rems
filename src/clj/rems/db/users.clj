@@ -4,7 +4,9 @@
             [rems.config :refer [env]]
             [rems.db.core :as db]
             [rems.db.user-settings :as user-settings]
-            [rems.json :as json]))
+            [rems.json :as json]
+            [clojure.tools.logging :as log]
+            [cheshire.core :as cheshire-json]))
 
 ;; TODO: remove format/unformat, there should be no need
 ;; - attributes are the same in db
@@ -141,3 +143,19 @@
 (defn remove-user! [userid]
   (assert userid)
   (db/remove-user! {:user userid}))
+
+;; Append new key-value pair to the map
+(defn new-map [existing-map]
+  (assoc existing-map :avatar "" :number_projects 10 :number_dsrs 1 :number_dsas 0 :affiliations "" :orcid ""))
+
+(defn fetch-user-profile
+  "fetch dashboard user profile"
+  [userid]
+  (assert userid)
+  (log/info "userid == " userid) 
+  (when-let [json (:userattrs (db/get-user-profile {:userid userid}))]
+    (log/info "json == " json) 
+    (log/info "new-map == " (new-map (json/parse-string json)))
+    (log/info "cheshire-json == " (cheshire-json/generate-string (new-map (json/parse-string json))))
+    (cheshire-json/generate-string (new-map (json/parse-string json))))
+  )

@@ -813,3 +813,8 @@ DO NOTHING;
 -- :name delete-user-mapping! :!
 DELETE FROM user_mappings
 WHERE userId = :userid;
+
+-- :name get-user-profile :? :1
+SELECT userAttrs::TEXT
+FROM users
+WHERE userId = :userid;

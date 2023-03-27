@@ -23,7 +23,7 @@
             [rems.api.public :as public]
             [rems.api.resources :refer [resources-api]]
             [rems.api.user-settings :refer [user-settings-api]]
-            [rems.api.users :refer [users-api]]
+            [rems.api.users :refer [users-api dashboard-api]]
             [rems.api.workflows :refer [workflows-api]]
             [rems.auth.auth :as auth]
             [rems.db.core :as db]
@@ -219,6 +219,9 @@
       user-settings-api
       users-api
       workflows-api
+      dashboard-api
+
+      
 
       ;; keep this last
       (undocumented not-found-handler)))))
