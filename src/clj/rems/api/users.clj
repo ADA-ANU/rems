@@ -56,10 +56,6 @@
 (def dashboard-api
   (context "/dashboard" []
     :tags ["dashboard"]
-
-    (GET "/hello" []
-      :query-params [name :- String]
-      (ok {:message (str "Hello, " name)}))
     
     (GET "/user-profile" request
       ;;:query-params [name :- String]
