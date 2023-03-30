@@ -145,7 +145,7 @@
   (db/remove-user! {:user userid}))
 
 ;; Append new key-value pair to the map
-(defn new-map [existing-map]
+(defn append-remaining-key-value-pairs-to-json [existing-map]
   (assoc existing-map :avatar "" :number_projects 10 :number_dsrs 1 :number_dsas 0 :affiliations "" :orcid ""))
 
 (defn fetch-user-profile
@@ -154,10 +154,14 @@
   ;;(assert userid "userid cannot be NULL")
   (log/info "userid == " userid) 
   (let [userattrs-json (:userattrs (db/get-user-profile {:userid userid}))]
-    (when userattrs-json
+    (when (:log-authentication-details env)
       (log/info "userattrs-json == " userattrs-json)
-      (log/info "new-map == " (new-map (json/parse-string userattrs-json)))
-      (log/info "cheshire-json == " (cheshire-json/generate-string (new-map (json/parse-string userattrs-json))))
-      (cheshire-json/generate-string (new-map (json/parse-string userattrs-json)))) 
+      (log/info "json/parse-string == " (json/parse-string userattrs-json))
+      (log/info "json/generate-string == " (json/generate-string userattrs-json))
+      (log/info "append-remaining-key-value-pairs-to-json == " (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json)))
+      (log/info "cheshire-json/parse-string == " (cheshire-json/parse-string userattrs-json))
+      (log/info "cheshire-json/encode == " (cheshire-json/encode (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json))))
+      (log/info "cheshire-json/generate-string == " (cheshire-json/generate-string (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json)))))
+    (cheshire-json/generate-string (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json)))
     )
   )

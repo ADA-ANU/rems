@@ -3,6 +3,7 @@
             [rems.api.schema :as schema]
             [rems.api.util] ; required for route :roles
             [rems.db.users :as users]
+            [rems.config :refer [env]]
             [rems.middleware :as middleware]
             [rems.schema-base :as schema-base]
             [ring.util.http-response :refer :all]
@@ -58,8 +59,10 @@
       (let [user-id-header (get-in request [:headers "x-rems-user-id"])
             api-key-header (get-in request [:headers "x-rems-api-key"])]
         
-        (log/info "x-rems-user-id === " user-id-header)
-        (log/info "x-rems-api-key === " api-key-header)
+        (when (:log-authentication-details env)
+          (log/info "x-rems-user-id === " user-id-header)
+          (log/info "x-rems-api-key === " api-key-header)
+          )
         
         (cond
           (empty? user-id-header)
