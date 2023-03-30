@@ -818,3 +818,16 @@ WHERE userId = :userid;
 SELECT userAttrs::TEXT
 FROM users
 WHERE userId = :userid;
+
+-- :name get-dsr-count-for-userprofile :? :1
+SELECT COUNT(*) AS dsr_count
+FROM application_event
+WHERE eventdata ->> 'event/actor' = :userid 
+AND eventdata ->> 'event/type' = 'application.event/created';
+
+-- :name get-dsa-count-for-userprofile :? :1
+SELECT COUNT(*) AS dsa_count
+FROM entitlement
+WHERE userid = :userid
+AND endt IS NULL 
+AND revokedby IS NULL;

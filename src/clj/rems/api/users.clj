@@ -48,12 +48,6 @@
       :return [schema-base/UserWithAttributes]
       (ok (middleware/get-active-users)))))
 
-(defn get-api-key [request]
-  (get-in request [:headers "x-rems-api-key"]))
-
-(defn get-user-id [request]
-  (get-in request [:headers "x-rems-user-id"]))
-
 (def dashboard-api
   (context "/dashboard" []
     :tags ["dashboard"]
@@ -88,6 +82,12 @@
 
           :else
           (let [response-json (users/fetch-user-profile user-id-header)]
-                {:status 200
-                 :headers {"Content-Type" "application/json"}
-                 :body response-json}))))))
+            (if (empty? response-json) 
+              {:status 404
+               :headers {"Content-Type" "application/json"}
+               :body (cheshire-json/encode {:error {:code "Not Found"
+                                                    :message (str "x-rems-user-id with value " user-id-header " not found.")}})}
+              {:status 200
+                :headers {"Content-Type" "application/json"}
+                :body response-json}
+              )))))))
