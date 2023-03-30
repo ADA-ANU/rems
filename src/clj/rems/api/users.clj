@@ -9,7 +9,8 @@
             [ring.util.http-response :refer :all]
             [schema.core :as s]
             [clojure.tools.logging :as log]
-            [cheshire.core :as cheshire-json]))
+            [cheshire.core :as cheshire-json]
+            [rems.json :as json]))
 
 (s/defschema CreateUserCommand
   ;; we can't use UserWithAttributes here since UserWithAttributes
@@ -85,7 +86,7 @@
 
           :else
           (let [response-json (users/fetch-user-profile user-id-header)]
-            (if (empty? response-json) 
+            (if (json/empty-json? response-json) 
               {:status 404
                :headers {"Content-Type" "application/json"}
                :body (cheshire-json/encode {:error {:code "Not Found"

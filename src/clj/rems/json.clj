@@ -6,7 +6,8 @@
             [jsonista.core :as j]
             [muuntaja.core :as muuntaja]
             [schema.coerce :as coerce]
-            [schema.core :as s])
+            [schema.core :as s]
+            [cheshire.core :as cheshire-json])
   (:import [com.fasterxml.jackson.datatype.joda JodaModule]
            [org.joda.time DateTime ReadableInstant DateTimeZone]
            [org.joda.time.format ISODateTimeFormat]))
@@ -98,3 +99,7 @@
             :time (time/date-time 2019 03 04 10)}
            (coercer {:type "foo"
                      :time "2019-03-04T10:00:00.000Z"})))))
+
+(defn empty-json? [json-str]
+  (let [json-object (cheshire-json/parse-string json-str true)]
+    (empty? json-object)))
