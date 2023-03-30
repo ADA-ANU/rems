@@ -151,11 +151,13 @@
 (defn fetch-user-profile
   "fetch dashboard user profile"
   [userid]
-  (assert userid)
+  ;;(assert userid "userid cannot be NULL")
   (log/info "userid == " userid) 
-  (when-let [json (:userattrs (db/get-user-profile {:userid userid}))]
-    (log/info "json == " json) 
-    (log/info "new-map == " (new-map (json/parse-string json)))
-    (log/info "cheshire-json == " (cheshire-json/generate-string (new-map (json/parse-string json))))
-    (cheshire-json/generate-string (new-map (json/parse-string json))))
+  (let [userattrs-json (:userattrs (db/get-user-profile {:userid userid}))]
+    (when userattrs-json
+      (log/info "userattrs-json == " userattrs-json)
+      (log/info "new-map == " (new-map (json/parse-string userattrs-json)))
+      (log/info "cheshire-json == " (cheshire-json/generate-string (new-map (json/parse-string userattrs-json))))
+      (cheshire-json/generate-string (new-map (json/parse-string userattrs-json)))) 
+    )
   )

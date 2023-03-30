@@ -7,7 +7,8 @@
             [rems.schema-base :as schema-base]
             [ring.util.http-response :refer :all]
             [schema.core :as s]
-            [clojure.tools.logging :as log]))
+            [clojure.tools.logging :as log]
+            [cheshire.core :as cheshire-json]))
 
 (s/defschema CreateUserCommand
   ;; we can't use UserWithAttributes here since UserWithAttributes
@@ -59,15 +60,34 @@
     
     (GET "/user-profile" request
       ;;:query-params [name :- String]
-      (let [api-key (get-api-key request)
-            userid (get-user-id request)
-            cheshire-json (users/fetch-user-profile userid)] 
-        (log/info "api-key == " api-key)
-        (log/info "user-id == " userid)
+      
+      (let [user-id-header (get-in request [:headers "x-rems-user-id"])
+            api-key-header (get-in request [:headers "x-rems-api-key"])]
         
-        {:status 200
-         :headers {"Content-Type" "application/json"}
-         :body cheshire-json}
+        (log/info "x-rems-user-id === " user-id-header)
+        (log/info "x-rems-api-key === " api-key-header)
         
-        )
-      )))
+        (cond
+          (empty? user-id-header)
+          (do
+            ;; x-rems-user-id is either missing or empty
+            (log/info "x-rems-user-id is missing or empty")
+            {:status 400
+             :headers {"Content-Type" "application/json"}
+             :body (cheshire-json/encode {:error {:code "invalid_request"
+                                                  :message "The request is missing a required header: x-rems-user-id"}})})
+
+          (empty? api-key-header)
+          (do
+            ;; api-key-header is either missing or empty
+            (log/info "api-key-header is missing or empty")
+            {:status 400
+             :headers {"Content-Type" "application/json"}
+             :body (cheshire-json/encode {:error {:code "invalid_request"
+                                                  :message "The request is missing a required header: api-key-header"}})})
+
+          :else
+          (let [response-json (users/fetch-user-profile user-id-header)]
+                {:status 200
+                 :headers {"Content-Type" "application/json"}
+                 :body response-json}))))))
