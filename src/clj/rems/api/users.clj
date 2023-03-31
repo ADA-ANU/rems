@@ -55,6 +55,8 @@
     :tags ["dashboard"]
     
     (GET "/user-profile" request
+      :summary "Fetches the details of the current logged-in user for dashboard purpose"
+      :roles #{:logged-in}
       ;;:query-params [name :- String]
       
       (let [user-id-header (get-in request [:headers "x-rems-user-id"])
