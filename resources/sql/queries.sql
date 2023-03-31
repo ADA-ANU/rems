@@ -831,3 +831,11 @@ FROM entitlement
 WHERE userid = :userid
 AND endt IS NULL 
 AND revokedby IS NULL;
+
+-- :name get-projects-count-for-userprofile :? :1
+SELECT COUNT(*) AS projects_count 
+FROM projects 
+WHERE created_by = :userid;
+
+-- :name create-project! :!
+INSERT INTO projects (created_by) VALUES (:userid);

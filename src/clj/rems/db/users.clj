@@ -145,8 +145,8 @@
   (db/remove-user! {:user userid}))
 
 ;; Append new key-value pair to the map
-(defn append-remaining-key-value-pairs-to-json [existing-map dsr_count dsa_count]
-  (assoc existing-map :avatar "" :number_projects 10 :number_dsrs dsr_count :number_dsas dsa_count :affiliations "" :orcid ""))
+(defn append-remaining-key-value-pairs-to-json [existing-map dsr_count dsa_count projects_count]
+  (assoc existing-map :avatar "" :number_projects projects_count :number_dsrs dsr_count :number_dsas dsa_count :affiliations "" :orcid ""))
 
 (defn fetch-user-profile
   "fetch dashboard user profile"
@@ -155,15 +155,17 @@
   (log/info "userid == " userid) 
   (let [userattrs-json (:userattrs (db/get-user-profile {:userid userid}))
         dsr_count (:dsr_count (db/get-dsr-count-for-userprofile {:userid userid}))
-        dsa_count (:dsa_count (db/get-dsa-count-for-userprofile {:userid userid}))]
+        dsa_count (:dsa_count (db/get-dsa-count-for-userprofile {:userid userid}))
+        projects_count (:projects_count (db/get-projects-count-for-userprofile {:userid userid}))]
     (when (:log-authentication-details env)
       (log/info "userattrs-json == " userattrs-json)
       (log/info "json/parse-string == " (json/parse-string userattrs-json))
       (log/info "json/generate-string == " (json/generate-string userattrs-json))
-      (log/info "append-remaining-key-value-pairs-to-json == " (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json) dsr_count dsa_count))
+      (log/info "append-remaining-key-value-pairs-to-json == " (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json) dsr_count dsa_count projects_count))
       (log/info "cheshire-json/parse-string == " (cheshire-json/parse-string userattrs-json))
-      (log/info "cheshire-json/encode == " (cheshire-json/encode (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json) dsr_count dsa_count)))
-      (log/info "cheshire-json/generate-string == " (cheshire-json/generate-string (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json) dsr_count dsa_count))))
+      (log/info "cheshire-json/encode == " (cheshire-json/encode (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json) dsr_count dsa_count projects_count)))
+      (log/info "cheshire-json/generate-string == " (cheshire-json/generate-string (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json) dsr_count dsa_count projects_count)))
+      (log/info "projects_count == " projects_count))
     (if (seq userattrs-json)
-      (cheshire-json/generate-string (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json) dsr_count dsa_count))
+      (cheshire-json/generate-string (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json) dsr_count dsa_count projects_count))
       (cheshire-json/generate-string {}))))
