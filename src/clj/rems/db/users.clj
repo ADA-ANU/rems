@@ -171,14 +171,23 @@
       (cheshire-json/generate-string {}))))
 
 ;; Append new key-value pair to the user dashboard mapping
-(defn form-dashboard-reponse-json [existing-map projects dsrs dsas ]
-  (assoc existing-map :projects projects :dsrs dsrs :dsas dsas))
+(defn form-dashboard-reponse-json [existing-map name datasets_count projects_count dsrs_count dsas_count projects dsrs dsas ]
+  (assoc existing-map
+         :name name
+         :datasets_count datasets_count
+         :projects_count projects_count 
+         :dsr_count dsrs_count
+         :dsa_count dsas_count
+         :projects projects 
+         :dsrs dsrs 
+         :dsas dsas))
 
 (defn get-user-dashboard-data
   "fetch dashboard data"
   [userid]
   (log/info "userid == " userid)
-  (let [dsr_count (:dsr_count (db/get-dsr-count-for-userprofile {:userid userid}))
+  (let [userattrs-json (:userattrs (db/get-user-profile {:userid userid}))
+        dsr_count (:dsr_count (db/get-dsr-count-for-userprofile {:userid userid}))
         dsa_count (:dsa_count (db/get-dsa-count-for-userprofile {:userid userid}))
         projects_count (:projects_count (db/get-projects-count-for-userprofile {:userid userid}))
         ;;datasets_count (:datasets_count (db/get-datasets-count-for-userprofile {:userid userid}))
@@ -186,21 +195,23 @@
         projects []
         dsas []
         dsrs []
-        return-json {:dsr_count dsr_count :dsa_count dsa_count :projects_count projects_count :datasets_count datasets_count}]
+        ]
     (when (:log-authentication-details env)
+      (log/info "userattrs-json == " userattrs-json)
+      (log/info "name == " (:name (json/parse-string userattrs-json)))
       (log/info "DSRs Count == " dsr_count)
       (log/info "DSAs Count == " dsa_count)
       (log/info "Projects Count == " projects_count)
       ;;(log/info "Datasets Count == " datasets_count)
-      (log/info "return-json == " return-json)
+      (log/info "userattrs-json == " userattrs-json)
       )
-    (if (seq return-json)
+    (if (seq userattrs-json)
       (do
         (log/info "success..")
-        (cheshire-json/generate-string (form-dashboard-reponse-json return-json projects dsrs dsas))
+        (cheshire-json/generate-string (form-dashboard-reponse-json {} (:name (json/parse-string userattrs-json)) datasets_count projects_count dsr_count dsa_count projects dsrs dsas))
         )
       (do
         (log/info "Fail..")
-        (cheshire-json/generate-string return-json)
+        (cheshire-json/generate-string {})
         )
       )))
