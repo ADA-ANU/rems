@@ -839,3 +839,38 @@ WHERE created_by = :userid;
 
 -- :name create-project! :!
 INSERT INTO projects (created_by) VALUES (:userid);
+
+-- :name get-dashboard-dsrs-tabular-data :? :*
+SELECT t.eventdata ->> 'application/id' as reqid,
+t.eventdata ->> 'event/time' as createddate,
+t.eventdata ->> 'event/actor' as createdby,
+SPLIT_PART(t.eventdata ->> 'event/type', '/', 2) as status
+FROM application_event t
+INNER JOIN (
+    SELECT appid, MAX(id) AS max_id
+    FROM application_event
+	WHERE eventdata ->> 'event/actor' = :userid
+    GROUP BY appid
+) grouped_t ON t.appid = grouped_t.appid 
+AND t.id = grouped_t.max_id;
+
+-- :name get-dashboard-projects-tabular-data :? :*
+select project_id as projectid,
+NULL as name,
+created_by as createdby,
+created_date as createddate,
+NULL as collaborators
+from projects
+where created_by = :userid;
+
+-- :name get-dashboard-dsas-tabular-data :? :*
+select id as dsa_id,
+NULL as name,
+NULL as linked_dsr_id,
+start as start_date,
+endt as end_date,
+approvedby as approved_by,
+'approved' as status
+from entitlement
+where userid = :userid
+and endt is NOT NULL;

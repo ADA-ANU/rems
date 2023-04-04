@@ -157,15 +157,7 @@
         dsr_count (:dsr_count (db/get-dsr-count-for-userprofile {:userid userid}))
         dsa_count (:dsa_count (db/get-dsa-count-for-userprofile {:userid userid}))
         projects_count (:projects_count (db/get-projects-count-for-userprofile {:userid userid}))]
-    (when (:log-authentication-details env)
-      (log/info "userattrs-json == " userattrs-json)
-      (log/info "json/parse-string == " (json/parse-string userattrs-json))
-      (log/info "json/generate-string == " (json/generate-string userattrs-json))
-      (log/info "append-remaining-key-value-pairs-to-json == " (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json) dsr_count dsa_count projects_count))
-      (log/info "cheshire-json/parse-string == " (cheshire-json/parse-string userattrs-json))
-      (log/info "cheshire-json/encode == " (cheshire-json/encode (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json) dsr_count dsa_count projects_count)))
-      (log/info "cheshire-json/generate-string == " (cheshire-json/generate-string (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json) dsr_count dsa_count projects_count)))
-      (log/info "projects_count == " projects_count))
+
     (if (seq userattrs-json)
       (cheshire-json/generate-string (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json) dsr_count dsa_count projects_count))
       (cheshire-json/generate-string {}))))
@@ -182,6 +174,7 @@
          :dsrs dsrs 
          :dsas dsas))
 
+
 (defn get-user-dashboard-data
   "fetch dashboard data"
   [userid]
@@ -190,28 +183,25 @@
         dsr_count (:dsr_count (db/get-dsr-count-for-userprofile {:userid userid}))
         dsa_count (:dsa_count (db/get-dsa-count-for-userprofile {:userid userid}))
         projects_count (:projects_count (db/get-projects-count-for-userprofile {:userid userid}))
-        ;;datasets_count (:datasets_count (db/get-datasets-count-for-userprofile {:userid userid}))
         datasets_count 0
-        projects []
-        dsas []
-        dsrs []
+        projects (db/get-dashboard-projects-tabular-data {:userid userid})
+        dsas (db/get-dashboard-dsas-tabular-data {:userid userid})
+        dsrs (db/get-dashboard-dsrs-tabular-data {:userid userid})
         ]
-    (when (:log-authentication-details env)
-      (log/info "userattrs-json == " userattrs-json)
-      (log/info "name == " (:name (json/parse-string userattrs-json)))
-      (log/info "DSRs Count == " dsr_count)
-      (log/info "DSAs Count == " dsa_count)
-      (log/info "Projects Count == " projects_count)
-      ;;(log/info "Datasets Count == " datasets_count)
-      (log/info "userattrs-json == " userattrs-json)
-      )
+
     (if (seq userattrs-json)
       (do
         (log/info "success..")
-        (cheshire-json/generate-string (form-dashboard-reponse-json {} (:name (json/parse-string userattrs-json)) datasets_count projects_count dsr_count dsa_count projects dsrs dsas))
-        )
+        (cheshire-json/generate-string (form-dashboard-reponse-json {} 
+                                                                    (:name (json/parse-string userattrs-json)) 
+                                                                    datasets_count 
+                                                                    projects_count 
+                                                                    dsr_count 
+                                                                    dsa_count 
+                                                                    projects 
+                                                                    dsrs
+                                                                    dsas)))
       (do
         (log/info "Fail..")
-        (cheshire-json/generate-string {})
-        )
+        (cheshire-json/generate-string {}))
       )))
