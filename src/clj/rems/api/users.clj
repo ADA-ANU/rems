@@ -53,6 +53,38 @@
 (def dashboard-api
   (context "/dashboard" []
     :tags ["dashboard"]
+
+    (GET "/" request
+      :summary "Get user dashboard page"
+      :roles #{:logged-in}
+      ;;:return schema/SuccessResponse
+      (let [user-id-header (get-in request [:headers "x-rems-user-id"])
+            api-key-header (get-in request [:headers "x-rems-api-key"])]
+
+        (when (:log-authentication-details env)
+          (log/info "x-rems-user-id === " user-id-header)
+          (log/info "x-rems-api-key === " api-key-header))
+
+        (cond
+          (empty? user-id-header)
+          (do
+            ;; x-rems-user-id is either missing or empty
+            (log/info "x-rems-user-id is missing or empty")
+            {:status 400
+             :headers {"Content-Type" "application/json"}
+             :body (cheshire-json/encode {:error {:code "invalid_request"
+                                                  :message "The request is missing a required header: x-rems-user-id"}})})
+          :else
+          (let [response-json (users/get-user-dashboard-data user-id-header)]
+            (if (json/empty-json? response-json)
+              {:status 404
+               :headers {"Content-Type" "application/json"}
+               :body (cheshire-json/encode {:error {:code "Not Found"
+                                                    :message (str "x-rems-user-id with value " user-id-header " not found.")}})}
+              {:status 200
+               :headers {"Content-Type" "application/json"}
+               :body response-json}))))
+      )
     
     (GET "/user-profile" request
       :summary "Fetches the details of the current logged-in user for dashboard purpose"
@@ -76,16 +108,6 @@
              :headers {"Content-Type" "application/json"}
              :body (cheshire-json/encode {:error {:code "invalid_request"
                                                   :message "The request is missing a required header: x-rems-user-id"}})})
-
-          (empty? api-key-header)
-          (do
-            ;; api-key-header is either missing or empty
-            (log/info "api-key-header is missing or empty")
-            {:status 400
-             :headers {"Content-Type" "application/json"}
-             :body (cheshire-json/encode {:error {:code "invalid_request"
-                                                  :message "The request is missing a required header: api-key-header"}})})
-
           :else
           (let [response-json (users/fetch-user-profile user-id-header)]
             (if (json/empty-json? response-json) 

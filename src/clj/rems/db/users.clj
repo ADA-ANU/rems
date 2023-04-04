@@ -149,7 +149,7 @@
   (assoc existing-map :avatar "" :number_projects projects_count :number_dsrs dsr_count :number_dsas dsa_count :affiliations "" :orcid ""))
 
 (defn fetch-user-profile
-  "fetch dashboard user profile"
+  "fetch dashboard - user profile page"
   [userid]
   ;;(assert userid "userid cannot be NULL")
   (log/info "userid == " userid) 
@@ -169,3 +169,38 @@
     (if (seq userattrs-json)
       (cheshire-json/generate-string (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json) dsr_count dsa_count projects_count))
       (cheshire-json/generate-string {}))))
+
+;; Append new key-value pair to the user dashboard mapping
+(defn form-dashboard-reponse-json [existing-map projects dsrs dsas ]
+  (assoc existing-map :projects projects :dsrs dsrs :dsas dsas))
+
+(defn get-user-dashboard-data
+  "fetch dashboard data"
+  [userid]
+  (log/info "userid == " userid)
+  (let [dsr_count (:dsr_count (db/get-dsr-count-for-userprofile {:userid userid}))
+        dsa_count (:dsa_count (db/get-dsa-count-for-userprofile {:userid userid}))
+        projects_count (:projects_count (db/get-projects-count-for-userprofile {:userid userid}))
+        ;;datasets_count (:datasets_count (db/get-datasets-count-for-userprofile {:userid userid}))
+        datasets_count 0
+        projects []
+        dsas []
+        dsrs []
+        return-json {:dsr_count dsr_count :dsa_count dsa_count :projects_count projects_count :datasets_count datasets_count}]
+    (when (:log-authentication-details env)
+      (log/info "DSRs Count == " dsr_count)
+      (log/info "DSAs Count == " dsa_count)
+      (log/info "Projects Count == " projects_count)
+      ;;(log/info "Datasets Count == " datasets_count)
+      (log/info "return-json == " return-json)
+      )
+    (if (seq return-json)
+      (do
+        (log/info "success..")
+        (cheshire-json/generate-string (form-dashboard-reponse-json return-json projects dsrs dsas))
+        )
+      (do
+        (log/info "Fail..")
+        (cheshire-json/generate-string return-json)
+        )
+      )))
