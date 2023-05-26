@@ -10,7 +10,8 @@
             [schema.core :as s]
             [clojure.tools.logging :as log]
             [cheshire.core :as cheshire-json]
-            [rems.json :as json]))
+            [rems.json :as json]
+            [rems.util :refer [get-user-id]]))
 
 (s/defschema CreateUserCommand
   ;; we can't use UserWithAttributes here since UserWithAttributes
@@ -58,32 +59,20 @@
       :summary "Get user dashboard page"
       :roles #{:logged-in}
       ;;:return schema/SuccessResponse
-      (let [user-id-header (get-in request [:headers "x-rems-user-id"])
-            api-key-header (get-in request [:headers "x-rems-api-key"])]
+      (let [user-id (:userid (get-user-id))]
 
         (when (:log-authentication-details env)
-          (log/info "x-rems-user-id === " user-id-header)
-          (log/info "x-rems-api-key === " api-key-header))
+          (log/info "user-id === " user-id))
 
-        (cond
-          (empty? user-id-header)
-          (do
-            ;; x-rems-user-id is either missing or empty
-            (log/info "x-rems-user-id is missing or empty")
-            {:status 400
+        (let [response-json (users/get-user-dashboard-data (user-id))]
+          (if (json/empty-json? response-json)
+            {:status 404
              :headers {"Content-Type" "application/json"}
-             :body (cheshire-json/encode {:error {:code "invalid_request"
-                                                  :message "The request is missing a required header: x-rems-user-id"}})})
-          :else
-          (let [response-json (users/get-user-dashboard-data user-id-header)]
-            (if (json/empty-json? response-json)
-              {:status 404
-               :headers {"Content-Type" "application/json"}
-               :body (cheshire-json/encode {:error {:code "Not Found"
-                                                    :message (str "x-rems-user-id with value " user-id-header " not found.")}})}
-              {:status 200
-               :headers {"Content-Type" "application/json"}
-               :body response-json}))))
+             :body (cheshire-json/encode {:error {:code "Not Found"
+                                                  :message (str "x-rems-user-id with value " user-id " not found.")}})}
+            {:status 200
+             :headers {"Content-Type" "application/json"}
+             :body response-json})))
       )
     
     (GET "/user-profile" request
@@ -91,31 +80,17 @@
       :roles #{:logged-in}
       ;;:query-params [name :- String]
       
-      (let [user-id-header (get-in request [:headers "x-rems-user-id"])
-            api-key-header (get-in request [:headers "x-rems-api-key"])]
+      (let [user-id (:userid (get-user-id))]
         
         (when (:log-authentication-details env)
-          (log/info "x-rems-user-id === " user-id-header)
-          (log/info "x-rems-api-key === " api-key-header)
-          )
-        
-        (cond
-          (empty? user-id-header)
-          (do
-            ;; x-rems-user-id is either missing or empty
-            (log/info "x-rems-user-id is missing or empty")
-            {:status 400
-             :headers {"Content-Type" "application/json"}
-             :body (cheshire-json/encode {:error {:code "invalid_request"
-                                                  :message "The request is missing a required header: x-rems-user-id"}})})
-          :else
-          (let [response-json (users/fetch-user-profile user-id-header)]
+          (log/info "user-id === " (user-id)))
+          (let [response-json (users/fetch-user-profile (user-id))]
             (if (json/empty-json? response-json) 
               {:status 404
                :headers {"Content-Type" "application/json"}
                :body (cheshire-json/encode {:error {:code "Not Found"
-                                                    :message (str "x-rems-user-id with value " user-id-header " not found.")}})}
+                                                    :message (str "x-rems-user-id with value " user-id " not found.")}})}
               {:status 200
                 :headers {"Content-Type" "application/json"}
                 :body response-json}
-              )))))))
+              ))))))
