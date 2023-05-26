@@ -183,6 +183,7 @@
               (log/info "id-token:" id-token)
               (log/info "audience:" audience)
               (log/info "id-data:" id-data)
+              (log/info "sub:" (:sub id-data))
               (log/info "user-info:" user-info)) 
             
             ;;(let [url (getx env :cadre-frontend-proxy-server-url)
