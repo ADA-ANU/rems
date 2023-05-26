@@ -185,18 +185,23 @@
               (log/info "id-data:" id-data)
               (log/info "user-info:" user-info)) 
             
-            (let [url (getx env :cadre-frontend-proxy-server-url)
-                  headers {"Content-Type" "application/json"}
-                  encrypteddata (jwt/encrypt-data {:userid (:userid user) :apikey 42})
-                  encrypteddata-without-api (jwt/encrypt-data {:userid (:userid user)})
-                  body (cheshire-json/generate-string {:encrypteddata encrypteddata})
-                  cadre-proxy-api-response (invoke-cadre-proxy-server-api url headers body)]
+            ;;(let [url (getx env :cadre-frontend-proxy-server-url)
+                  ;;headers {"Content-Type" "application/json"}
+                  ;;encrypteddata (jwt/encrypt-data {:userid (:userid user) :apikey 42})
+                  ;;encrypteddata-without-api (jwt/encrypt-data {:userid (:userid user)})
+                  ;;body (cheshire-json/generate-string {:encrypteddata encrypteddata})
+                  ;;cadre-proxy-api-response (invoke-cadre-proxy-server-api url headers body)]
               
-              (when-not (= 200 (:status cadre-proxy-api-response))
-                (log/error "ERROR: Received HTTP status " (:status cadre-proxy-api-response) " from " url))
+              ;;(when-not (= 200 (:status cadre-proxy-api-response))
+                ;;(log/error "ERROR: Received HTTP status " (:status cadre-proxy-api-response) " from " url))
               
-              (log/info "Received HTTP status " (:status cadre-proxy-api-response) " from " url)
-              (redirect (str (getx env :cadre-frontend-url) "/login?data=" encrypteddata-without-api)))
+              ;;(log/info "Received HTTP status " (:status cadre-proxy-api-response) " from " url)
+              ;;(redirect (str (getx env :cadre-frontend-url) "/login?data=" encrypteddata-without-api)))
+            
+            (-> (redirect "http://localhost:8075/login")
+                (assoc :session (:session request))
+                (assoc-in [:session :access-token] access-token)
+                (assoc-in [:session :identity] user))
             ))))
 
 (defn- oidc-revoke [token]
