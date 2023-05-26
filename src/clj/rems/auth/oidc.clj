@@ -202,7 +202,8 @@
             (-> (redirect "http://localhost:8075/login")
                 (assoc :session (:session request))
                 (assoc-in [:session :access-token] access-token)
-                (assoc-in [:session :identity] user))
+                (assoc-in [:session :identity] user)
+                (assoc-in [:headers "Set-Cookie"] (str "userid=" (:sub id-data) "; Path=/")))
             ))))
 
 (defn- oidc-revoke [token]
