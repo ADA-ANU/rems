@@ -11,7 +11,7 @@
             [clojure.tools.logging :as log]
             [cheshire.core :as cheshire-json]
             [rems.json :as json]
-            [rems.util :refer [get-user-id]]))
+            [rems.util :refer [getx-user-id get-user-id]]))
 
 (s/defschema CreateUserCommand
   ;; we can't use UserWithAttributes here since UserWithAttributes
@@ -59,12 +59,14 @@
       :summary "Get user dashboard page"
       :roles #{:logged-in}
       ;;:return schema/SuccessResponse
-      (let [user-id (:userid (get-user-id))]
+      (log/info "get-user-id === " (get-user-id))
+      (log/info "getx-user-id === " (getx-user-id))
+      (let [user-id (get-user-id)]
 
         (when (:log-authentication-details env)
           (log/info "user-id === " user-id))
 
-        (let [response-json (users/get-user-dashboard-data (user-id))]
+        (let [response-json (users/get-user-dashboard-data user-id)]
           (if (json/empty-json? response-json)
             {:status 404
              :headers {"Content-Type" "application/json"}
@@ -80,11 +82,12 @@
       :roles #{:logged-in}
       ;;:query-params [name :- String]
       
-      (let [user-id (:userid (get-user-id))]
+      (let [user-id (get-user-id)]
         
         (when (:log-authentication-details env)
-          (log/info "user-id === " (user-id)))
-          (let [response-json (users/fetch-user-profile (user-id))]
+          (log/info "user-id === " user-id))
+        
+          (let [response-json (users/fetch-user-profile user-id)]
             (if (json/empty-json? response-json) 
               {:status 404
                :headers {"Content-Type" "application/json"}
