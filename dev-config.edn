@@ -4,20 +4,25 @@
  :test-database-url "postgresql://localhost/rems_test?user=rems_test"
  :search-index-path "target/search-index-dev"
  :theme-path "example-theme/theme.edn"
- :authentication :fake
+ :authentication :oidc
  :log-authentication-details true
  ;; Open ID Connect settings
  ;; These allow login to http://localhost:3000/oidc-callback only
  ;; :authentication :oidc
  :oidc-userid-attributes [{:attribute "sub" :rename "elixirId"}
                           {:attribute "old_sub"}]
- :oidc-metadata-url "https://remsdev.eu.auth0.com/.well-known/openid-configuration"
- :oidc-client-id "65TIN1Joo6EvsHSPCN4zyCaxxPh0WJF1"
- :oidc-client-secret "e1yr9R_8WW3Xg03wm6wJ4UmNVVjiqdVhwFGvHhttyoRS3h04F4MGh0zRaV7vKm30"
+ :oidc-metadata-url "https://cilogon.org/.well-known/openid-configuration"
+ :oidc-client-id "cilogon:/client_id/49d90ada6b3a30dcf9e694a672a33f7b"
+ :oidc-client-secret "LDANUr6BXg_Dr5ue7j8o4HfF9rwK_AVWlp_pLNz0f8CDdyGvBntuGyR6n3l2-e5WIILlvB1K4Zev6YIBvtvskg"
+ :userinfo_endpoint "https://cilogon.org/oauth2/userinfo"
+ :oidc-scopes "openid profile email org.cilogon.userinfo"
  ;; some attributes that google oauth returns:
  :oidc-extra-attributes [{:attribute "nickname" :name {:en "Nickname" :fi "Lempinimi"}}
                          {:attribute "picture"}
-                         {:attribute "organizations"}]
+                         {:attribute "organizations"}
+                         {:attribute "eduPersonOrcid"}
+                         {:attribute "homeOrganization"}
+                         {:attribute "eduPersonAffiliation"}]
  :languages [:en :fi :sv]
  :public-url "http://localhost:3000/"
  :extra-pages [{:id "about"
@@ -84,4 +89,5 @@
  :enable-catalogue-tree true
  :enable-save-compaction true
  :enable-autosave true
+ :cadre-url "https://cadre5safes-staging.ada.edu.au"
  }

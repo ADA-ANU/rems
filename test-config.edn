@@ -11,7 +11,8 @@
  :oidc-userid-attributes [{:attribute "sub"}]
  :oidc-extra-attributes [{:attribute "nickname" :name {:en "Nickname" :fi "Lempinimi"}}
                          {:attribute "picture"}
-                         {:attribute "organizations"}]
+                         {:attribute "organizations"}
+                         {:attribute "eduPersonOrcid"}]
  :languages [:en :fi :sv]
  :extra-pages [{:id "about"
                 :translations {:fi {:title "Info"
