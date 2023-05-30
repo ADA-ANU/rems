@@ -24,7 +24,7 @@
                          {:attribute "homeOrganization"}
                          {:attribute "eduPersonAffiliation"}]
  :languages [:en :fi :sv]
- :public-url "http://localhost:3000/"
+ :public-url "http://localhost:8075/rems/"
  :extra-pages [{:id "about"
                 :translations {:fi {:title "Info"
                                     :filename "about-fi.md"}
