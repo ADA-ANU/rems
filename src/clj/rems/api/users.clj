@@ -59,8 +59,10 @@
       :summary "Get user dashboard page"
       :roles #{:logged-in}
       ;;:return schema/SuccessResponse
-      (log/info "get-user-id === " (get-user-id))
-      (log/info "getx-user-id === " (getx-user-id))
+      (when (:log-authentication-details env)
+        (log/info "get-user-id === " (get-user-id))
+        (log/info "getx-user-id === " (getx-user-id)))
+      
       (let [user-id (get-user-id)]
 
         (when (:log-authentication-details env)
