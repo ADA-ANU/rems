@@ -199,7 +199,7 @@
               ;;(log/info "Received HTTP status " (:status cadre-proxy-api-response) " from " url)
               ;;(redirect (str (getx env :cadre-frontend-url) "/login?data=" encrypteddata-without-api)))
             
-            (-> (redirect (str (getx env :cadre-url) "/login"))
+            (-> (redirect (str (getx env :cadre-url)))
                 (assoc :session (:session request))
                 (assoc-in [:session :access-token] access-token)
                 (assoc-in [:session :identity] user)
