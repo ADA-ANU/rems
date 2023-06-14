@@ -130,6 +130,17 @@
       (log/error "Error: received response from CADRE Proxy API, status:" (:status response) " from " url))
     response))
 
+(defn request [req]
+  (http/with-middleware [headers/wrap-header-map
+                         http/wrap-query-params
+                         http/wrap-url
+                         http/wrap-output-coercion
+                         http/wrap-method]
+    (http/request req)))
+
+(defn curl [method url & {:keys [headers query-params] :as req}]
+  (request (merge req {:method method :url url})))
+
 (defn oidc-callback [request]
   (let [error (get-in request [:params :error])
         code (get-in request [:params :code])]
@@ -199,11 +210,14 @@
               ;;(log/info "Received HTTP status " (:status cadre-proxy-api-response) " from " url)
               ;;(redirect (str (getx env :cadre-frontend-url) "/login?data=" encrypteddata-without-api)))
             
-            (-> (redirect (str (getx env :cadre-url)))
-                (assoc :session (:session request))
-                (assoc-in [:session :access-token] access-token)
-                (assoc-in [:session :identity] user)
-                (assoc-in [:headers "Set-Cookie"] (str "userid=" (:sub id-data) "; Path=/")))
+            ;; (-> (redirect (str (getx env :cadre-url)))
+            ;;     (assoc :session (:session request))
+            ;;     (assoc-in [:session :access-token] access-token)
+            ;;     (assoc-in [:session :identity] user)
+            ;;     (assoc-in [:headers "Set-Cookie"] (str "userid=" (:sub id-data) "; Path=/")))
+            
+            (curl :post "http://nodeback:5005/api/auth"
+                  :headers {"Content-Type" "application/json" "token" access-token})
             ))))
 
 (defn- oidc-revoke [token]
