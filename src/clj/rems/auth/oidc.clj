@@ -1,5 +1,6 @@
 (ns rems.auth.oidc
   (:require [clj-http.client :as http]
+            [clj-http.headers :as headers]
             [clojure.string :as str]
             [clojure.test :refer :all]
             [clojure.tools.logging :as log]
