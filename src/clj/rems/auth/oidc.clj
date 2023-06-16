@@ -1,6 +1,5 @@
 (ns rems.auth.oidc
   (:require [clj-http.client :as http]
-            [clj-http.headers :as headers]
             [clojure.string :as str]
             [clojure.test :refer :all]
             [clojure.tools.logging :as log]
@@ -11,7 +10,6 @@
             [rems.db.users :as users]
             [rems.ga4gh :as ga4gh]
             [rems.json :as json]
-            [cheshire.core :as cheshire-json]
             [rems.jwt :as jwt]
             [rems.util :refer [getx]]
             [ring.util.response :refer [redirect]])
@@ -131,17 +129,6 @@
       (log/error "Error: received response from CADRE Proxy API, status:" (:status response) " from " url))
     response))
 
-(defn request [req]
-  (http/with-middleware [headers/wrap-header-map
-                         http/wrap-query-params
-                         http/wrap-url
-                         http/wrap-output-coercion
-                         http/wrap-method]
-    (http/request req)))
-
-(defn curl [method url & {:keys [headers query-params] :as req}]
-  (request (merge req {:method method :url url})))
-
 (defn oidc-callback [request]
   (let [error (get-in request [:params :error])
         code (get-in request [:params :code])]
@@ -196,29 +183,14 @@
               (log/info "audience:" audience)
               (log/info "id-data:" id-data)
               (log/info "sub:" (:sub id-data))
-              (log/info "user-info:" user-info)) 
+              (log/info "user-info:" user-info))
             
-            ;;(let [url (getx env :cadre-frontend-proxy-server-url)
-                  ;;headers {"Content-Type" "application/json"}
-                  ;;encrypteddata (jwt/encrypt-data {:userid (:userid user) :apikey 42})
-                  ;;encrypteddata-without-api (jwt/encrypt-data {:userid (:userid user)})
-                  ;;body (cheshire-json/generate-string {:encrypteddata encrypteddata})
-                  ;;cadre-proxy-api-response (invoke-cadre-proxy-server-api url headers body)]
-              
-              ;;(when-not (= 200 (:status cadre-proxy-api-response))
-                ;;(log/error "ERROR: Received HTTP status " (:status cadre-proxy-api-response) " from " url))
-              
-              ;;(log/info "Received HTTP status " (:status cadre-proxy-api-response) " from " url)
-              ;;(redirect (str (getx env :cadre-frontend-url) "/login?data=" encrypteddata-without-api)))
-            
-            ;; (-> (redirect (str (getx env :cadre-url)))
-            ;;     (assoc :session (:session request))
-            ;;     (assoc-in [:session :access-token] access-token)
-            ;;     (assoc-in [:session :identity] user)
-            ;;     (assoc-in [:headers "Set-Cookie"] (str "userid=" (:sub id-data) "; Path=/")))
-            
-            (curl :post "http://nodeback:5005/api/auth"
-                  :headers {"Content-Type" "application/json" "token" access-token})
+            (-> (redirect (str (getx env :cadre-url) "/login"))
+                (assoc :session (:session request))
+                (assoc-in [:session :access-token] access-token)
+                (assoc-in [:session :identity] user)
+                (assoc-in [:headers "Set-Cookie"] (str "logged_in=true; Path=/"))
+                ) 
             ))))
 
 (defn- oidc-revoke [token]
