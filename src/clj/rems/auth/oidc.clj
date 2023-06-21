@@ -185,7 +185,7 @@
               (log/info "sub:" (:sub id-data))
               (log/info "user-info:" user-info))
             
-            (-> (redirect (str (getx env :cadre-url) "/login"))
+            (-> (redirect (str (getx env :cadre-url)))
                 (assoc :session (:session request))
                 (assoc-in [:session :access-token] access-token)
                 (assoc-in [:session :identity] user)

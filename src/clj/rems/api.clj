@@ -25,6 +25,7 @@
             [rems.api.user-settings :refer [user-settings-api]]
             [rems.api.users :refer [users-api]]
             [rems.cadre_api.dashboard_homepage :refer [dashboard-api]]
+            [rems.cadre-api.moodle-api.my-trainings :refer [my-trainings-api]]
             [rems.api.workflows :refer [workflows-api]]
             [rems.auth.auth :as auth]
             [rems.db.core :as db]
@@ -223,6 +224,7 @@
 
       ;;CADRE Application Custom API's
       dashboard-api
+      my-trainings-api
 
       
 

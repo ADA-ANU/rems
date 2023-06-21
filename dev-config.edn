@@ -90,4 +90,6 @@
  :enable-save-compaction true
  :enable-autosave true
  :cadre-url "https://cadre5safes-staging.ada.edu.au"
+ :cadre-moodle-app-wstoken nil
+ :cadre-moodle-app-api-url nil
  }

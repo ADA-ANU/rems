@@ -429,4 +429,6 @@
  :cadre-proxy-server-url "https://cadre5safes-staging.ada.edu.au/server/api/rems/" ; cadre frontend app proxy server url.
  :userinfo_endpoint "https://cilogon.org/oauth2/userinfo" ;Authorisation endpoint to fetch the iser information.
  :jwt-secret nil
- :enable-handler-emails true} ; should notification emails be sent to the handlers, reviewers, deciders for application actions (invitation emails will be sent regardless, reminders are also sent if configured)
+ :enable-handler-emails true ; should notification emails be sent to the handlers, reviewers, deciders for application actions (invitation emails will be sent regardless, reminders are also sent if configured) 
+ :cadre-moodle-app-wstoken nil ;The WebService token to invoke CADRE Moodle training webapp API's
+ :cadre-moodle-app-api-url nil} 

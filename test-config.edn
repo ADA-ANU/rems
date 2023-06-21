@@ -72,4 +72,6 @@
  :enable-doi true
  :enable-duo true
  :enable-catalogue-tree true
+ :cadre-moodle-app-wstoken nil
+ :cadre-moodle-app-api-url nil
 }
