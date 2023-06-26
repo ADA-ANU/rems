@@ -189,4 +189,41 @@
                  :body (cheshire-json/generate-string (json/parse-string (:body response)))}
                 (throw (ex-info "Non-200 status code returned: " {:response response}))))
             (catch Exception e
-              (log/error "Error invoking Moodle API - " "core_enrol_get_enrolled_users :" (.getMessage e)))))))))
+              (log/error "Error invoking Moodle API - " "core_enrol_get_enrolled_users :" (.getMessage e)))))))
+
+      (GET "/get-logged-in-user-enrolled-courses" request
+        :summary "This API gets list of all enrolled courses of logged-in user."
+        :query-params [{moodle-userid :- (describe s/Str "Input the CADRE Moodle App UserID.") nil}]
+        :roles #{:logged-in}
+
+        (let [user-id (get-user-id)]
+
+          (when (:log-authentication-details env)
+            (log/info "CADRE userid == " user-id)
+            (log/info "Moodle userid == " moodle-userid))
+
+          (when user-id
+            (try
+              (let [cadre-moodle-app-wsfunction "core_enrol_get_users_courses"
+                    url (str (getx env :cadre-moodle-app-api-url)
+                             "?wstoken=" (getx env :cadre-moodle-app-wstoken)
+                             "&wsfunction=" cadre-moodle-app-wsfunction
+                             "&moodlewsrestformat=json"
+                             "&userid=" moodle-userid)
+                    response (client/get url {:accept :json})]
+
+                (when (:log-authentication-details env)
+                  (log/info "url == " url)
+                  (log/info "response - status == " (:status response))
+                  (log/info "response - Headers == " (:headers response))
+                  (log/info "response - Body == " (:body response))
+                  (log/info "json/parse-string of body == " (json/parse-string (:body response)))
+                  (log/info "cheshire-json/generate-string of json/parse-string == " (cheshire-json/generate-string (json/parse-string (:body response)))))
+
+                (if (= 200 (:status response))
+                  {:status  200
+                   :headers {"Content-Type" "application/json"}
+                   :body (cheshire-json/generate-string (json/parse-string (:body response)))}
+                  (throw (ex-info "Non-200 status code returned: " {:response response}))))
+              (catch Exception e
+                (log/error "Error invoking Moodle API - " "core_enrol_get_users_courses :" (.getMessage e)))))))))
