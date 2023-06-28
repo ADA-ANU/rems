@@ -18,10 +18,13 @@
       :summary "Fetches the details of the current logged-in user from the CADRE Moodle training App."
       :roles #{:logged-in}
 
-      (let [user-id (get-user-id)]
+      (let [user-id (get-user-id)
+            cookies (:cookies request)
+            cadre-moodle-app-userid (get cookies "cadre-moodle-app-userid")]
 
         (when (:log-authentication-details env)
-          (log/info "user-id === " user-id))
+          (log/info "user-id === " user-id)
+          (log/info "cadre-moodle-app-userid === " cadre-moodle-app-userid))
 
         (when user-id
           (try
@@ -43,9 +46,18 @@
                 (log/info "cheshire-json/generate-string of json/parse-string == " (cheshire-json/generate-string (json/parse-string (:body response)))))
 
               (if (= 200 (:status response))
-                {:status  200
-                 :headers {"Content-Type" "application/json"}
-                 :body (cheshire-json/generate-string (json/parse-string (:body response)))}
+                (let [parsed-json (json/parse-string (:body response))
+                      users (:users parsed-json)
+                      first-user (first users)
+                      id (:id first-user)]
+                  (log/info "parsed-json == " parsed-json)
+                  (log/info "users == " users)
+                  (log/info "first-user == " first-user)
+                 (log/info "id == " id) 
+                 (-> {:status  200
+                      :headers {"Content-Type" "application/json"}
+                      :body (cheshire-json/generate-string (json/parse-string (:body response)))}
+                     (set-cookie "cadre-moodle-app-user-id" id {:http-only true})))
                 (throw (ex-info "Non-200 status code returned: " {:response response}))))
             (catch Exception e
               (log/error "Error invoking Moodle API - " "core_user_get_users :" (.getMessage e)))))))
@@ -77,54 +89,18 @@
         (catch Exception e
           (log/error "Error invoking Moodle API - " "core_course_get_courses :" (.getMessage e)))))
 
-    (GET "/get-user-details" request
-      :summary "Fetches the details of the current logged-in user from the CADRE Moodle training App."
-      :roles #{:logged-in}
-
-      (let [user-id (get-user-id)]
-
-        (when (:log-authentication-details env)
-          (log/info "user-id === " user-id))
-
-        (when user-id
-          (try
-            (let [cadre-moodle-app-wsfunction "core_user_get_users"
-                  url (str (getx env :cadre-moodle-app-api-url)
-                           "?wstoken=" (getx env :cadre-moodle-app-wstoken)
-                           "&wsfunction=" cadre-moodle-app-wsfunction
-                           "&moodlewsrestformat=json"
-                           "&criteria[0][key]=username"
-                           "&criteria[0][value]=" user-id)
-                  response (client/get url {:accept :json})]
-
-              (when (:log-authentication-details env)
-                (log/info "url == " url)
-                (log/info "response - status == " (:status response))
-                (log/info "response - Headers == " (:headers response))
-                (log/info "response - Body == " (:body response))
-                (log/info "json/parse-string of body == " (json/parse-string (:body response)))
-                (log/info "cheshire-json/generate-string of json/parse-string == " (cheshire-json/generate-string (json/parse-string (:body response)))))
-
-              (if (= 200 (:status response))
-                {:status  200
-                 :headers {"Content-Type" "application/json"}
-                 :body (cheshire-json/generate-string (json/parse-string (:body response)))}
-                (throw (ex-info "Non-200 status code returned: " {:response response}))))
-
-            (catch Exception e
-              (log/error "Error invoking åMoodle API - " "core_user_get_users :" (.getMessage e)))))))
-
     (GET "/get-course-completion-status" request
       :summary "Get the CADRE Moodle course completion status of a user for a specific course."
-      :query-params [{moodle-userid :- (describe s/Str "Input the CADRE Moodle App UserID.") nil}
-                     {course-id :- (describe s/Str "Input the CADDRE Moodle App courseID for which the course completion status needs to be checked.") nil}]
+      :query-params [{course-id :- (describe s/Str "Input the CADDRE Moodle App courseID for which the course completion status needs to be checked.") nil}]
       :roles #{:logged-in}
 
-      (let [user-id (get-user-id)]
+      (let [user-id (get-user-id)
+            cookies (:cookies request)
+            cadre-moodle-app-user-id (:value (get cookies "cadre-moodle-app-user-id"))]
 
         (when (:log-authentication-details env)
           (log/info "CADRE userid == " user-id)
-          (log/info "Moodle userid == " moodle-userid)
+          (log/info "Moodle userid == " cadre-moodle-app-user-id)
           (log/info "Course ID == " course-id))
 
         (when user-id
@@ -135,7 +111,7 @@
                            "&wsfunction=" cadre-moodle-app-wsfunction
                            "&moodlewsrestformat=json"
                            "&courseid=" course-id
-                           "&userid=" moodle-userid)
+                           "&userid=" cadre-moodle-app-user-id)
                   response (client/get url {:accept :json})]
 
               (when (:log-authentication-details env)
@@ -193,14 +169,15 @@
 
       (GET "/get-logged-in-user-enrolled-courses" request
         :summary "This API gets list of all enrolled courses of logged-in user."
-        :query-params [{moodle-userid :- (describe s/Str "Input the CADRE Moodle App UserID.") nil}]
         :roles #{:logged-in}
 
-        (let [user-id (get-user-id)]
+        (let [user-id (get-user-id)
+              cookies (:cookies request)
+              cadre-moodle-app-user-id (:value (get cookies "cadre-moodle-app-user-id"))]
 
           (when (:log-authentication-details env)
             (log/info "CADRE userid == " user-id)
-            (log/info "Moodle userid == " moodle-userid))
+            (log/info "Moodle userid == " cadre-moodle-app-user-id))
 
           (when user-id
             (try
@@ -209,7 +186,7 @@
                              "?wstoken=" (getx env :cadre-moodle-app-wstoken)
                              "&wsfunction=" cadre-moodle-app-wsfunction
                              "&moodlewsrestformat=json"
-                             "&userid=" moodle-userid)
+                             "&userid=" cadre-moodle-app-user-id)
                     response (client/get url {:accept :json})]
 
                 (when (:log-authentication-details env)
