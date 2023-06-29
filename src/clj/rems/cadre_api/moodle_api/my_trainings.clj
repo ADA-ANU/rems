@@ -10,6 +10,10 @@
             [rems.json :as json]
             [schema.core :as s]))
 
+;; API Request Models
+(s/defschema CourseCompletionStatusRequestBody
+  {:course-id s/Str})
+
 (def my-trainings-api
   (context "/my-trainings" []
     :tags ["mytrainings"]
@@ -129,6 +133,55 @@
                 (throw (ex-info "Non-200 status code returned: " {:response response}))))
             (catch Exception e
               (log/error "Error invoking Moodle API - " "core_completion_get_course_completion_status :" (.getMessage e)))))))
+    
+    (POST "/get-course-completion-status" request
+      :summary "Get the CADRE Moodle course completion status of a user for a specific course."
+      :body [req-body CourseCompletionStatusRequestBody]
+      :roles #{:logged-in}
+
+      (log/info "#### Inside get-course-completion-status API ####")
+
+      (let [user-id (get-user-id)
+            cookies (:cookies request)
+            request-body (:body request)
+            course-id-2 (:course-id request-body)
+            cadre-moodle-app-user-id (:value (get cookies "cadre-moodle-app-user-id"))
+            course-id (:course-id req-body)]
+
+        (when (:log-authentication-details env)
+          (log/info "CADRE userid == " user-id)
+          (log/info "Moodle userid == " cadre-moodle-app-user-id)
+          (log/info "req-body == " req-body)
+          (log/info "request-body == " request-body)
+          (log/info "Course ID == " course-id)
+          (log/info "Course ID 2 == " course-id-2))
+
+        (when user-id
+          (try
+            (let [cadre-moodle-app-wsfunction "core_completion_get_course_completion_status"
+                  url (str (getx env :cadre-moodle-app-api-url)
+                           "?wstoken=" (getx env :cadre-moodle-app-wstoken)
+                           "&wsfunction=" cadre-moodle-app-wsfunction
+                           "&moodlewsrestformat=json"
+                           "&courseid=" (str course-id)
+                           "&userid=" cadre-moodle-app-user-id)
+                  response (client/get url {:accept :json})]
+
+              (when (:log-authentication-details env)
+                (log/info "url == " url)
+                (log/info "response - status == " (:status response))
+                (log/info "response - Headers == " (:headers response))
+                (log/info "response - Body == " (:body response))
+                (log/info "json/parse-string of body == " (json/parse-string (:body response)))
+                (log/info "cheshire-json/generate-string of json/parse-string == " (cheshire-json/generate-string (json/parse-string (:body response)))))
+
+              (if (= 200 (:status response))
+                {:status  200
+                 :headers {"Content-Type" "application/json"}
+                 :body (cheshire-json/generate-string (json/parse-string (:body response)))}
+                (throw (ex-info "Non-200 status code returned: " {:response response}))))
+            (catch Exception e
+              (log/error "Error invoking Moodle API (POST) - " "core_completion_get_course_completion_status :" (.getMessage e)))))))
 
     (GET "/get-all-enrolled-users-in-course" request
       :summary "This API get list of all users enrolled in a particular CADRE Moodle course."
