@@ -7,7 +7,8 @@
             [clojure.tools.logging :as log]
             [cheshire.core :as cheshire-json]
             [rems.json :as json]
-            [rems.util :refer [getx-user-id get-user-id]]))
+            [rems.util :refer [getx getx-user-id get-user-id]]
+            [clj-http.client :as client]))
 
 (def dashboard-api
   (context "/dashboard" []
@@ -54,4 +55,48 @@
                                                   :message (str "x-rems-user-id with value " user-id " not found.")}})}
             {:status 200
              :headers {"Content-Type" "application/json"}
-             :body response-json}))))))
+             :body response-json}))))
+    
+    (GET "/user-profile/get-affiliations" request
+      :summary "Fetches the affiliation details of the current logged-in user"
+      :roles #{:logged-in}
+    
+      (let [user-id (get-user-id)
+            url (str "https://registry-test.cadre5safes.org.au/registry/org_identities.json?coid=2&search.identifier=" user-id)]
+    
+        (when (:log-authentication-details env)
+          (log/info "user-id === " user-id)
+          (log/info "url === " url))
+    
+        (when user-id
+          (try
+            (let [response (client/get url 
+                                       {:accept :json
+                                       :basic-auth ["co_2.test" "q8ef-k5ap-edjp-va0m"]})]
+    
+              (when (:log-authentication-details env)
+                (log/info "url == " url)
+                (log/info "response - status == " (:status response))
+                (log/info "response - Headers == " (:headers response))
+                (log/info "response - Body == " (:body response))
+                (log/info "json/parse-string of body == " (json/parse-string (:body response)))
+                (log/info "cheshire-json/generate-string of json/parse-string == " (cheshire-json/generate-string (json/parse-string (:body response)))))
+    
+              (if (= 200 (:status response))
+                (let [parsed-json (json/parse-string (:body response))
+                      OrgIdentities (:OrgIdentities parsed-json)
+                      first-OrgIdentities (first OrgIdentities)
+                      Affiliation (:Affiliation first-OrgIdentities)
+                      O (:O first-OrgIdentities)]
+                  (log/info "parsed-json == " parsed-json)
+                  (log/info "OrgIdentities == " OrgIdentities)
+                  (log/info "first-OrgIdentities == " first-OrgIdentities)
+                  (log/info "Affiliation == " Affiliation)
+                  (log/info "O == " O)
+                  (-> {:status  200
+                       :headers {"Content-Type" "application/json"}
+                       :body (cheshire-json/generate-string (json/parse-string (:body response)))}))
+                (throw (ex-info "Non-200 status code returned: " {:response response}))))
+            (catch Exception e
+              (log/error "Error invoking CoManage API - " "org_identities :" (.getMessage e))))))) 
+    ))
