@@ -16,18 +16,11 @@ else
 fi
 
 docker build --pull \
-    --tag cscfi/rems:latest \
-    --tag cscfi/rems:${tag2} \
-    --tag docker-registry.rahti.csc.fi/rems/rems:${tag1} \
-    --tag docker-registry.rahti.csc.fi/rems/rems:${tag2} .
+    --tag ada/rems:latest \
+    --tag ada/rems:${tag2} \
+    --tag docker-registry.cadre-rems.ada.edu.au:5000/ada/rems:${tag1} \
+    --tag docker-registry.cadre-rems.ada.edu.au:5000/ada/rems:${tag2} .
 
-docker login -p $rahtitoken -u unused docker-registry.rahti.csc.fi
-docker push docker-registry.rahti.csc.fi/rems/rems:${tag1}
-docker push docker-registry.rahti.csc.fi/rems/rems:${tag2}
-
-if [ "${tag1}" == "release" ] ; then
-    docker login -u remspush -p ${dockerhub}
-    docker push cscfi/rems:latest
-    docker push cscfi/rems:${tag2}
-fi
-
+docker login -p $dockerregpwd -u docker docker-registry.cadre-rems.ada.edu.au:5000
+docker push docker-registry.cadre-rems.ada.edu.au:5000/ada/rems:${tag1}
+docker push docker-registry.cadre-rems.ada.edu.au:5000/ada/rems:${tag2}
