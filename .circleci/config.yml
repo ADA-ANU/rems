@@ -1,11 +1,10 @@
 version: 2.1
 
-# We still use this legacy machine executor for building docker images.
-# TODO: use docker executor and setup_remote_docker for these builds.
+# We still use this legacy machine executor for building docker images due to circleci not supporting inside containers
 defaults: &defaults
-  machine:
-    image: ubuntu-2004:202201-02
+  resource_class: adamzammit/cicdmachine
   working_directory: ~/repo
+  machine: true
   environment:
     LEIN_ROOT: "true"
     # Customize the JVM maximum heap limit
@@ -15,6 +14,8 @@ orbs:
   browser-tools: circleci/browser-tools@1.3.0
 
 executors:
+  builder:
+    machine: true
   clojure:
     docker:
       - image: cimg/clojure:1.11.1-browsers
@@ -29,68 +30,79 @@ executors:
 jobs:
   deps:
     executor: clojure
+    resource_class: adamzammit/cicdmicrok8s
     steps:
       - checkout
-      # Download and cache dependencies
       - restore_cache:
           keys:
-            - v3-dependencies-{{ checksum "project.clj" }}-{{ checksum "package.json" }}-{{ checksum "shadow-cljs.edn" }}
+            - &cache-key v5-dependencies-{{ checksum "project.clj" }}-{{ checksum "package-lock.json" }}-{{ checksum "shadow-cljs.edn" }}
             # fallback to using the latest cache if no exact match is found
-            - v3-dependencies-
-      - run: lein deps
-      - run: npm install
-      # TODO using persist_to_workspace might be more robust than using cache
+            - v5-dependencies-
+      # build shadow-cljs already so that all maven deps get cached
+      - run: lein do deps, shadow-build
       - save_cache:
           paths:
             - ~/.m2
             - node_modules
-          key: v3-dependencies-{{ checksum "project.clj" }}-{{ checksum "package.json" }}-{{ checksum "shadow-cljs.edn" }}
+          key: *cache-key
+      # persist shadow-cljs build for browser tests etc
+      - persist_to_workspace:
+          root: .
+          paths:
+            - target/shadow
+            - .shadow-cljs
 
   unit-test:
     executor: clojure
+    resource_class: adamzammit/cicdmicrok8s
     steps:
       - browser-tools/install-chrome
       - browser-tools/install-chromedriver
       - checkout
+      - attach_workspace:
+          at: .
       - restore_cache:
-          key: v3-dependencies-{{ checksum "project.clj" }}-{{ checksum "package.json" }}-{{ checksum "shadow-cljs.edn" }}
+          key: *cache-key
       # verify that we can run unit tests without the database:
       - run: DATABASE_URL=invalid lein kaocha --reporter kaocha.report/documentation unit
-      - run: lein shadow-build
       - run: lein shadow-test
       - store_test_results:
           path: target/test-results
 
   cljfmt:
     executor: clojure
+    resource_class: adamzammit/cicdmicrok8s
     steps:
       - checkout
       - restore_cache:
-          key: v3-dependencies-{{ checksum "project.clj" }}-{{ checksum "package.json" }}-{{ checksum "shadow-cljs.edn" }}
+          key: *cache-key
       - run: lein cljfmt check
 
   integration-test:
     executor: db
+    resource_class: adamzammit/cicdmicrok8s
     steps:
-      - browser-tools/install-chrome
-      - browser-tools/install-chromedriver
       - checkout
       - restore_cache:
-          key: v3-dependencies-{{ checksum "project.clj" }}-{{ checksum "package.json" }}-{{ checksum "shadow-cljs.edn" }}
+          key: *cache-key
       - run: lein kaocha --reporter kaocha.report/documentation integration
       - store_test_results:
           path: target/test-results
 
   browser-test:
     executor: db
+    resource_class: adamzammit/cicdmicrok8s
+    parallelism: 4
     steps:
       - browser-tools/install-chrome
       - browser-tools/install-chromedriver
       - checkout
+      # include shadow-cljs build
+      - attach_workspace:
+          at: .
       - restore_cache:
-          key: v3-dependencies-{{ checksum "project.clj" }}-{{ checksum "package.json" }}-{{ checksum "shadow-cljs.edn" }}
-      - run: lein shadow-build
-      - run: lein kaocha --reporter kaocha.report/documentation browser
+          key: *cache-key
+      - run: lein kaocha --reporter kaocha.report/documentation --plugin rems.kaocha-circleci/plugin browser
       - store_test_results:
           path: target/test-results
       - store_artifacts:
@@ -102,11 +114,14 @@ jobs:
 
   build:
     executor: clojure
+    resource_class: adamzammit/cicdmicrok8s
     steps:
       - checkout
       - restore_cache:
-          key: v3-dependencies-{{ checksum "project.clj" }}-{{ checksum "package.json" }}-{{ checksum "shadow-cljs.edn" }}
-      - run: lein with-profile uberjar uberjar # fix a bug in leiningen 2.9.9-2.9.10, fix in 2.9.11
+          key: *cache-key
+      - run:
+          no_output_timeout: 30m
+          command: lein with-profile uberjar uberjar # fix a bug in leiningen 2.9.9-2.9.10, fix in 2.9.11
       - store_artifacts:
           path: target/uberjar/rems.jar
       - persist_to_workspace:
@@ -129,18 +144,6 @@ jobs:
       - attach_workspace:
           at: .
       - run: .circleci/docker.sh release
-
-  rahti-dev:
-    <<: *defaults
-    steps:
-      - checkout
-      - run: .circleci/rahti-deploy.sh dev
-
-  rahti-demo:
-    <<: *defaults
-    steps:
-      - checkout
-      - run: .circleci/rahti-deploy.sh demo
 
   # pseudo job to post a single ok status to github after all the tests
   ok:
@@ -200,25 +203,6 @@ workflows:
           requires:
             - deps
             - build
-          filters:
-            tags:
-              only: /v[0-9]\.[0-9].*/
-            branches:
-              ignore: /.*/
-      - rahti-dev:
-          requires:
-            - deps
-            - build
-            - docker-snapshot
-          filters:
-            branches:
-              only:
-                - master
-      - rahti-demo:
-          requires:
-            - deps
-            - build
-            - docker-release
           filters:
             tags:
               only: /v[0-9]\.[0-9].*/
