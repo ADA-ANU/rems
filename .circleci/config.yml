@@ -2,7 +2,7 @@ version: 2.1
 
 # We still use this legacy machine executor for building docker images due to circleci not supporting inside containers
 defaults: &defaults
-  resource_class: adamzammit/cicdmachine
+  resource_class: ada-anu/cicdmachine
   working_directory: ~/repo
   machine: true
   environment:
@@ -30,7 +30,7 @@ executors:
 jobs:
   deps:
     executor: clojure
-    resource_class: adamzammit/cicdmicrok8s
+    resource_class: ada-anu/cicdmicrok8s
     steps:
       - checkout
       - restore_cache:
@@ -54,7 +54,7 @@ jobs:
 
   unit-test:
     executor: clojure
-    resource_class: adamzammit/cicdmicrok8s
+    resource_class: ada-anu/cicdmicrok8s
     steps:
       - browser-tools/install-chrome
       - browser-tools/install-chromedriver
@@ -71,7 +71,7 @@ jobs:
 
   cljfmt:
     executor: clojure
-    resource_class: adamzammit/cicdmicrok8s
+    resource_class: ada-anu/cicdmicrok8s
     steps:
       - checkout
       - restore_cache:
@@ -80,7 +80,7 @@ jobs:
 
   integration-test:
     executor: db
-    resource_class: adamzammit/cicdmicrok8s
+    resource_class: ada-anu/cicdmicrok8s
     steps:
       - checkout
       - restore_cache:
@@ -91,7 +91,7 @@ jobs:
 
   browser-test:
     executor: db
-    resource_class: adamzammit/cicdmicrok8s
+    resource_class: ada-anu/cicdmicrok8s
     parallelism: 4
     steps:
       - browser-tools/install-chrome
@@ -114,7 +114,7 @@ jobs:
 
   build:
     executor: clojure
-    resource_class: adamzammit/cicdmicrok8s
+    resource_class: ada-anu/cicdmicrok8s
     steps:
       - checkout
       - restore_cache:
