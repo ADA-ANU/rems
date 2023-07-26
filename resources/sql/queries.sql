@@ -11,6 +11,8 @@
 -- - :form form id to fetch items for
 -- - :archived true if archived items should be included
 -- - :enabled whether enabled items should be included or nil if doesn't matter
+-- - :limit Number of items in each page
+-- - :offset Number of pages
 SELECT ci.id, res.resid, ci.wfid, ci.formid, ci.start, ci.endt as "end", ci.enabled, ci.archived, ci.organization
 /*~ (when (:expand-catalogue-data? params) */
 , ci.catalogueitemdata::TEXT
@@ -52,7 +54,14 @@ WHERE 1=1
 /*~ (when-not (nil? (:enabled params)) */
   AND ci.enabled = :enabled
 /*~ ) ~*/
-ORDER BY ci.id;
+  ORDER BY ci.id
+/*~ (when (:limit params) */
+  LIMIT :limit
+/*~ ) ~*/
+/*~ (when (:offset params) */ 
+  OFFSET :offset
+/*~ ) ~*/
+  ;
 
 -- :name set-catalogue-item-enabled! :!
 UPDATE catalogue_item

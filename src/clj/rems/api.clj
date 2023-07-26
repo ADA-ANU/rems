@@ -25,6 +25,7 @@
             [rems.api.user-settings :refer [user-settings-api]]
             [rems.api.users :refer [users-api]]
             [rems.cadre_api.dashboard_homepage :refer [dashboard-api]]
+            [rems.cadre-api.catalogue-items :refer [cadre-catalogue-items-api]]
             [rems.cadre-api.moodle-api.my-trainings :refer [my-trainings-api]]
             [rems.api.workflows :refer [workflows-api]]
             [rems.auth.auth :as auth]
@@ -225,8 +226,7 @@
       ;;CADRE Application Custom API's
       dashboard-api
       my-trainings-api
-
-      
+      cadre-catalogue-items-api
 
       ;; keep this last
       (undocumented not-found-handler)))))
