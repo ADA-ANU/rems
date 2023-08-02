@@ -137,6 +137,22 @@ jobs:
           at: .
       - run: .circleci/docker.sh circle
 
+  docker-snapshot-stage:
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: .circleci/docker.sh stage
+
+  docker-snapshot-test:
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: .circleci/docker.sh test
+
   docker-release:
     <<: *defaults
     steps:
@@ -199,6 +215,24 @@ workflows:
             branches:
               only:
                 - master
+      - docker-snapshot-test:
+          requires:
+            - deps
+            - build
+          filters:
+            tags:
+              only: /test.*/
+            branches:
+              ignore: /.*/
+      - docker-snapshot-stage:
+          requires:
+            - deps
+            - build
+          filters:
+            tags:
+              only: /stage.*/
+            branches:
+              ignore: /.*/
       - docker-release:
           requires:
             - deps
