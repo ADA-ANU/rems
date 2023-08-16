@@ -1,7 +1,6 @@
 (ns rems.test-jwt
   (:require [clojure.test :refer :all]
-            [rems.jwt :as jwt]
-            [clojure.tools.logging :as log]))
+            [rems.jwt :as jwt]))
 
 ;; key cached from https://luontola.eu.auth0.com/.well-known/jwks.json
 (def jwk {:alg "RS256",
@@ -56,27 +55,3 @@
     (testing "issuer and audience validation are optional"
       (is (= {:name "Esko Luontola"}
              (select-keys (jwt/validate token nil nil now) [:name]))))))
-
-
-(def playload {:userid 12345 :username "XYZ"})
-
-(deftest test-encryption-and-decyption
-  (testing "test the encryption and decryption of data"
-    (let [encrypt-data (jwt/encrypt-data playload)
-      decrypted-data (jwt/decrypt-data encrypt-data)]
-      
-      (is (= playload decrypted-data)))
-    ))
-
-(comment
-(deftest test-signing-and-unsigning
-  (testing "test the signing and unsigning of JWTs"
-    (let [encrypt-data (jwt/encrypt-data playload)
-          signed-jwt (jwt/sign-token encrypt-data)
-          unsigned-signed-jwt (jwt/unsign-token signed-jwt)
-          decrypted-data (jwt/decrypt-data (:encrypted-data unsigned-signed-jwt))]
-      (log/info "encrypt-data: " (str encrypt-data))
-      (log/info "signed-jwt: " (str signed-jwt))
-      (is (= playload decrypted-data)))
-    ))
-)
