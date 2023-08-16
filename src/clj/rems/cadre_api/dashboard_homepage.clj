@@ -10,6 +10,12 @@
             [rems.util :refer [getx getx-user-id get-user-id]]
             [clj-http.client :as client]))
 
+(defn has-key? [m k]
+  (contains? m k))
+
+(defn is-vector-empty? [v]
+  (empty? v))
+
 (def dashboard-api
   (context "/dashboard" []
     :tags ["dashboard"]
@@ -57,12 +63,14 @@
              :headers {"Content-Type" "application/json"}
              :body response-json}))))
     
-    (GET "/user-profile/get-affiliations" request
-      :summary "Fetches the affiliation details of the current logged-in user"
+    (GET "/user-profile/get-all-affiliations" request
+      :summary "Fetches the affiliation details of the current logged-in user by invoking comanage core API."
       :roles #{:logged-in}
     
       (let [user-id (get-user-id)
-            url (str "https://registry-test.cadre5safes.org.au/registry/org_identities.json?coid=2&search.identifier=" user-id)]
+            comanage-registry-url (getx env :comanage-registry-url)
+            comanage-registry-coid (getx env :comanage-registry-coid)
+            url (str comanage-registry-url "/api/co/" comanage-registry-coid "/core/v1/people?identifier=" user-id)]
     
         (when (:log-authentication-details env)
           (log/info "user-id === " user-id)
@@ -70,9 +78,9 @@
     
         (when user-id
           (try
-            (let [response (client/get url 
+            (let [response (client/get url
                                        {:accept :json
-                                       :basic-auth ["co_2.test" "q8ef-k5ap-edjp-va0m"]})]
+                                        :basic-auth [(getx env :comanage-core-api-userid) (getx env :comanage-core-api-key)]})]
     
               (when (:log-authentication-details env)
                 (log/info "url == " url)
@@ -83,20 +91,26 @@
                 (log/info "cheshire-json/generate-string of json/parse-string == " (cheshire-json/generate-string (json/parse-string (:body response)))))
     
               (if (= 200 (:status response))
-                (let [parsed-json (json/parse-string (:body response))
-                      OrgIdentities (:OrgIdentities parsed-json)
-                      first-OrgIdentities (first OrgIdentities)
-                      Affiliation (:Affiliation first-OrgIdentities)
-                      O (:O first-OrgIdentities)]
+                (let [response-body (:body response)
+                      parsed-json (json/parse-string response-body)
+                      ;;has-first-element (has-key? parsed-json :0)
+                      ;;has-org-identities (has-key? (parsed-json :0) :OrgIdentity)
+                      ;;is-org-identity-empty (is-vector-empty? ((parsed-json :0) :OrgIdentity))
+                      first-element (:0 parsed-json)
+                      OrgIdentity (:OrgIdentity first-element)]
+
                   (log/info "parsed-json == " parsed-json)
-                  (log/info "OrgIdentities == " OrgIdentities)
-                  (log/info "first-OrgIdentities == " first-OrgIdentities)
-                  (log/info "Affiliation == " Affiliation)
-                  (log/info "O == " O)
+                  (log/info "first-element == " first-element)
+                  (log/info "OrgIdentity == " OrgIdentity)
+
+                  (log/info "has-key? parsed-json :0 == " (has-key? parsed-json :0))
+                  (log/info "has-key? first-element :OrgIdentity == " (has-key? first-element :OrgIdentity))
+                  (log/info "is-vector-empty? OrgIdentity == " (is-vector-empty? OrgIdentity))
+
                   (-> {:status  200
                        :headers {"Content-Type" "application/json"}
-                       :body (cheshire-json/generate-string (json/parse-string (:body response)))}))
+                       :body (cheshire-json/generate-string OrgIdentity)}))
                 (throw (ex-info "Non-200 status code returned: " {:response response}))))
             (catch Exception e
-              (log/error "Error invoking CoManage API - " "org_identities :" (.getMessage e))))))) 
+              (log/error "Error invoking CoManage Core API - /core/v1/people :" (.getMessage e)))))))
     ))
