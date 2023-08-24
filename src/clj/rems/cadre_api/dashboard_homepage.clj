@@ -1,7 +1,7 @@
 (ns rems.cadre_api.dashboard_homepage
   (:require [compojure.api.sweet :refer :all]
             [rems.api.util] ; required for route :roles
-            [rems.db.users :as users]
+            [rems.db.cadredb.users :as users]
             [rems.config :refer [env]]
             [ring.util.http-response :refer :all]
             [clojure.tools.logging :as log]

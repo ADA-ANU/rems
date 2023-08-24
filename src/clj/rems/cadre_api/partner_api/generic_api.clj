@@ -1,7 +1,7 @@
 (ns rems.cadre-api.partner-api.generic-api
   (:require [compojure.api.sweet :refer :all]
             [rems.api.util] ; required for route :roles
-            [rems.db.users :as users]
+            [rems.db.cadredb.users :as users]
             [rems.config :refer [env]]
             [ring.util.http-response :refer :all]
             [clojure.tools.logging :as log]
@@ -19,17 +19,17 @@
     (GET "/user-details" request
       :summary "Fetches the details of any user of CADRE platform"
       :roles #{:owner :organization-owner}
-      :query-params [userid :- (describe s/Str "Show details for this user")]
+      :query-params [user-email-id :- (describe s/Str "Input the email-id of the user, who details are to be viewed.")]
 
       (when (:log-authentication-details env)
-          (log/info "userid === " userid))
+          (log/info "user-email-id === " user-email-id))
 
-        (let [response-json (users/fetch-user-profile userid)]
+        (let [response-json (users/fetch-user-details-based-on-user-email-id user-email-id)]
           (if (json/empty-json? response-json)
             {:status 404
              :headers {"Content-Type" "application/json"}
              :body (cheshire-json/encode {:error {:code "Not Found"
-                                                  :message (str "user-id " userid " not found.")}})}
+                                                  :message (str "User with user-email-id '" user-email-id "', not found!!!")}})}
             {:status 200
              :headers {"Content-Type" "application/json"}
              :body response-json})))

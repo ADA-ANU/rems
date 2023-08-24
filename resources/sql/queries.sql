@@ -883,3 +883,8 @@ approvedby as approved_by,
 from entitlement
 where userid = :userid
 and endt is NOT NULL;
+
+-- :name get-userid-from-user-email :? :1
+SELECT userid::TEXT
+FROM users
+WHERE LOWER(userattrs->>'email') = LOWER(:user-email-id);
