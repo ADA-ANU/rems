@@ -67,7 +67,7 @@
 (defn fetch-user-details-based-on-user-email-id
   "Fetch the user details "
   [user-email-id]
-  (assert user-email-id "user-email-id cannot be NULL.")
+  ;;(assert user-email-id "user-email-id cannot be NULL.")
   (log/info "user-email-id == " user-email-id)
   (let [userid (:userid (db/get-userid-from-user-email {:user-email-id user-email-id}))
         userattrs-json (:userattrs (db/get-user-profile {:userid userid}))
