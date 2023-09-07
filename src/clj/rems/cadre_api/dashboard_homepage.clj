@@ -63,8 +63,8 @@
              :headers {"Content-Type" "application/json"}
              :body response-json}))))
     
-    (GET "/user-profile/get-all-affiliations" request
-      :summary "Fetches the affiliation details of the current logged-in user by invoking comanage core API."
+    (GET "/user-profile/get-all-organization-identities" request
+      :summary "Fetches the organization details of the current logged-in user by invoking comanage core API."
       :roles #{:logged-in}
     
       (let [user-id (get-user-id)

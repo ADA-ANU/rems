@@ -888,3 +888,11 @@ and endt is NOT NULL;
 SELECT userid::TEXT
 FROM users
 WHERE LOWER(userattrs->>'email') = LOWER(:user-email-id);
+
+-- :name save-user-trainings-details! :!
+INSERT INTO trainings (organization_id, user_email, data)
+VALUES (:organization-id, :user-email-id, :data::jsonb)
+ON CONFLICT (organization_id, user_email)
+DO UPDATE
+SET (organization_id, user_email, data) = (:organization-id, :user-email-id, :data::jsonb)
+RETURNING 'success' as flag;

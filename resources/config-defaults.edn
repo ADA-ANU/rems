@@ -431,4 +431,8 @@
  :jwt-secret nil
  :enable-handler-emails true ; should notification emails be sent to the handlers, reviewers, deciders for application actions (invitation emails will be sent regardless, reminders are also sent if configured) 
  :cadre-moodle-app-wstoken nil ;The WebService token to invoke CADRE Moodle training webapp API's
- :cadre-moodle-app-api-url nil} 
+ :cadre-moodle-app-api-url nil
+ :comanage-core-api-key nil
+ :comanage-registry-url nil
+ :comanage-core-api-userid nil
+ :comanage-registry-coid nil}
