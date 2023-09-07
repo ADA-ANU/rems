@@ -127,12 +127,3 @@
                 :body ""}
                response)
             "can't log in when an error happens")))))
-
-(deftest test-proxy-server-api-after-successful-authentication
-  (testing "test proxy server api after successful authentication"
-    (let [url "https://cadre5safes-staging.ada.edu.au/server/api/aaf?email=vikasc"
-          headers {"Content-Type" "application/json"}
-          encrypteddata (rems.jwt/encrypt-data {:userid (:userid "1234567890") :apikey 42})
-          body (cheshire-json/generate-string {:encrypteddata encrypteddata})
-          response-status (oidc/invoke-cadre-proxy-server-api url headers body)]
-      (is (= response-status 200)))))
