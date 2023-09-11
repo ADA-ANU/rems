@@ -221,6 +221,7 @@
       (when (:log-authentication-details env)
         (log/info "redirecting to" redirect-url))
 
-      (assoc (redirect redirect-url)
-             :session (dissoc session :identity :access-token))))
+      (-> (redirect redirect-url)
+          (assoc-in [:headers "Set-Cookie"] "logged_in=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT")
+          (update :session dissoc :access-token :identity))))
   (GET "/oidc-callback" req (oidc-callback req)))
