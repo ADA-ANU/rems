@@ -121,7 +121,6 @@
 
 (defn invoke-cadre-proxy-server-api [url headers body]
   (let [response (http/get url {:headers headers :body body :throw-exceptions false})]
-    
     (when (= 200 (:status response))
       (log/info "received response from CADRE Proxy API, status:" (:status response) " from " url))
 
@@ -184,14 +183,11 @@
               (log/info "id-data:" id-data)
               (log/info "sub:" (:sub id-data))
               (log/info "user-info:" user-info))
-            
             (-> (redirect (str (getx env :cadre-url)))
                 (assoc :session (:session request))
                 (assoc-in [:session :access-token] access-token)
                 (assoc-in [:session :identity] user)
-                (assoc-in [:headers "Set-Cookie"] (str "logged_in=true; Path=/"))
-                ) 
-            ))))
+                (assoc-in [:headers "Set-Cookie"] (str "logged_in=true; Path=/")))))))
 
 (defn- oidc-revoke [token]
   (when token

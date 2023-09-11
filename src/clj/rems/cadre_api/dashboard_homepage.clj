@@ -62,26 +62,26 @@
             {:status 200
              :headers {"Content-Type" "application/json"}
              :body response-json}))))
-    
+
     (GET "/user-profile/get-all-organization-identities" request
       :summary "Fetches the organization details of the current logged-in user by invoking comanage core API."
       :roles #{:logged-in}
-    
+
       (let [user-id (get-user-id)
             comanage-registry-url (getx env :comanage-registry-url)
             comanage-registry-coid (getx env :comanage-registry-coid)
             url (str comanage-registry-url "/api/co/" comanage-registry-coid "/core/v1/people?identifier=" user-id)]
-    
+
         (when (:log-authentication-details env)
           (log/info "user-id === " user-id)
           (log/info "url === " url))
-    
+
         (when user-id
           (try
             (let [response (client/get url
                                        {:accept :json
                                         :basic-auth [(getx env :comanage-core-api-userid) (getx env :comanage-core-api-key)]})]
-    
+
               (when (:log-authentication-details env)
                 (log/info "url == " url)
                 (log/info "response - status == " (:status response))
@@ -89,7 +89,7 @@
                 (log/info "response - Body == " (:body response))
                 (log/info "json/parse-string of body == " (json/parse-string (:body response)))
                 (log/info "cheshire-json/generate-string of json/parse-string == " (cheshire-json/generate-string (json/parse-string (:body response)))))
-    
+
               (if (= 200 (:status response))
                 (let [response-body (:body response)
                       parsed-json (json/parse-string response-body)
@@ -112,5 +112,4 @@
                        :body (cheshire-json/generate-string OrgIdentity)}))
                 (throw (ex-info "Non-200 status code returned: " {:response response}))))
             (catch Exception e
-              (log/error "Error invoking CoManage Core API - /core/v1/people :" (.getMessage e)))))))
-    ))
+              (log/error "Error invoking CoManage Core API - /core/v1/people :" (.getMessage e)))))))))

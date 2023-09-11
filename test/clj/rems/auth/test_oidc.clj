@@ -8,8 +8,7 @@
             [rems.jwt]
             [rems.json :as json]
             [rems.testing-util :refer [with-fake-login-users]]
-            [cheshire.core :as cheshire-json]
-            ))
+            [cheshire.core :as cheshire-json]))
 
 (defn- with-special-setup [params f]
   (let [id-data (:id-data params)
