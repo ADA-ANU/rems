@@ -25,6 +25,7 @@
             [rems.api.user-settings :refer [user-settings-api]]
             [rems.api.users :refer [users-api]]
             [rems.cadre_api.dashboard_homepage :refer [dashboard-api]]
+            [rems.cadre-api.research-graph :refer [research-graph-api]]
             [rems.cadre-api.catalogue-items :refer [cadre-catalogue-items-api]]
             [rems.cadre-api.moodle-api.my-trainings :refer [my-trainings-api]]
             [rems.cadre-api.partner-api.generic-api :refer [partner-generic-api]]
@@ -229,6 +230,7 @@
       my-trainings-api
       cadre-catalogue-items-api
       partner-generic-api
+      research-graph-api
 
       ;; keep this last
       (undocumented not-found-handler)))))
