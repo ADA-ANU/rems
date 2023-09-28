@@ -435,4 +435,10 @@
  :comanage-core-api-key nil
  :comanage-registry-url nil
  :comanage-core-api-userid nil
- :comanage-registry-coid nil}
+ :comanage-registry-coid nil
+ :database-name nil
+ :oidc-perform-revoke-in-logout nil
+ :revocation_endpoint nil
+ :cadre-url nil
+ :rg-augment-api-url nil
+ :rg-augment-api-key nil}

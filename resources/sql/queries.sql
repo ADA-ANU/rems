@@ -896,3 +896,19 @@ ON CONFLICT (organization_id, user_email)
 DO UPDATE
 SET (organization_id, user_email, data) = (:organization-id, :user-email-id, :data::jsonb)
 RETURNING 'success' as flag;
+
+-- :name fetch-most-recent-rg-data-of-user :? :1
+SELECT u.userid::TEXT, COALESCE(rg.rg_json_data::TEXT, '') AS rg_json_data
+FROM users u
+LEFT JOIN research_graph_details rg 
+ON LOWER(u.userid::TEXT) = LOWER(rg.userid)
+AND LOWER(rg.orcid) = LOWER(:orcid)
+AND rg.retrieved_at > NOW() - INTERVAL '24 hours'
+WHERE LOWER(u.userattrs->>'eduPersonOrcid') = LOWER(:orcid)
+ORDER BY COALESCE(rg.retrieved_at, NOW()) DESC
+LIMIT 1;
+
+-- :name insert-rg-data-of-user! :insert
+INSERT INTO research_graph_details (userid, orcid, rg_json_data) 
+VALUES (:userid, :orcid, :rg_json_data::jsonb)
+RETURNING 'success' as flag;
