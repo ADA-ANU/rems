@@ -1,0 +1,1 @@
+CREATE SEQUENCE comanage_sqlsource_id_seq;

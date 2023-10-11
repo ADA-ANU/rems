@@ -1,0 +1,25 @@
+CREATE TABLE comanage_sqlsource (
+    id                  integer PRIMARY KEY DEFAULT nextval('comanage_sqlsource_id_seq'),
+    sorid               character varying(1024) UNIQUE,
+    honorific           character varying(32),
+    given               character varying(128) NOT NULL,
+    middle              character varying(128),
+    family              character varying(128),
+    suffix              character varying(32),
+    affiliation         character varying(32),
+    date_of_birth       date,
+    valid_from          timestamp without time zone,
+    valid_through       timestamp without time zone,
+    title               character varying(128),
+    o                   character varying(128),
+    ou                  character varying(128),
+    manager_identifier  character varying(512),
+    sponsor_identifier  character varying(512),
+    mail                character varying(256),
+    identifier          character varying(512),
+    telephone_number    character varying(64),
+    address             character varying(512),
+    url                 character varying(256),
+    -- if the modified column is present, it will be used to detect records changed since the last full sync
+    modified            timestamp without time zone
+);

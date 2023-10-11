@@ -890,11 +890,11 @@ FROM users
 WHERE LOWER(userattrs->>'email') = LOWER(:user-email-id);
 
 -- :name save-user-trainings-details! :!
-INSERT INTO trainings (organization_id, user_email, data)
-VALUES (:organization-id, :user-email-id, :data::jsonb)
-ON CONFLICT (organization_id, user_email)
+INSERT INTO trainings (organization_short_name, partner_platform_user_id, data)
+VALUES (:organization-short-name, :partner-platform-user-id, :data::jsonb)
+ON CONFLICT (organization_short_name, partner_platform_user_id)
 DO UPDATE
-SET (organization_id, user_email, data) = (:organization-id, :user-email-id, :data::jsonb)
+SET (organization_short_name, partner_platform_user_id, data) = (:organization-short-name, :partner-platform-user-id, :data::jsonb)
 RETURNING 'success' as flag;
 
 -- :name fetch-most-recent-rg-data-of-user :? :1

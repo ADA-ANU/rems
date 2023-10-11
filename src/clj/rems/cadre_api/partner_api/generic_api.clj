@@ -7,19 +7,45 @@
             [clojure.tools.logging :as log]
             [cheshire.core :as cheshire-json]
             [rems.json :as json]
-            [rems.util :refer [getx getx-user-id get-user-id]]
-            [clj-http.client :as client]
             [schema.core :as s]
-            [rems.api.schema :as schema]
-            [rems.schema-base :as schema-base]
             [rems.db.core :as db]))
 
+(def YYYY-MM-DD-regex #"\d{4}-\d{2}-\d{2}")
+
+(defn valid-date-or-empty? [str]
+  (or (empty? str) (re-matches YYYY-MM-DD-regex str)))
+
+(s/defschema CourseData
+  {:course-id s/Str
+   :course-name s/Str
+   :completion-status s/Bool})
+
+;; Note: Compojure-API will automatically validate incoming requests against that schema.
+;; If the request body doesn't conform to the schema, Compojure-API will immediately return an error response to the client, 
+;; and your handler logic will not be executed.Therefore, the validation errors are not caught in the try/catch block!
 (s/defschema AddUserTrainingsCommand
-  {:organization-id (s/maybe s/Str)
-   :user-email-id (s/maybe s/Str)
-   :given-name (s/maybe s/Str)
-   :family-name (s/maybe s/Str)
-   :data (s/maybe s/Any)})
+  {:organization-short-name s/Str
+   :partner-platform-user-id s/Str
+   (s/optional-key :honorific) (s/maybe s/Str)
+   :given-name s/Str
+   (s/optional-key :middle-name) (s/maybe s/Str)
+   (s/optional-key :family-name) (s/maybe s/Str)
+   (s/optional-key :suffix) (s/maybe s/Str)
+   (s/optional-key :affiliation) (s/maybe s/Str)
+   (s/optional-key :title) (s/maybe s/Str)
+   (s/optional-key :date-of-birth) (s/maybe (s/constrained s/Str valid-date-or-empty? "Must be either null or in the format 'YYYY-MM-DD'"))
+   (s/optional-key :valid-from) (s/maybe (s/constrained s/Str valid-date-or-empty? "Must be either null or in the format 'YYYY-MM-DD'"))
+   (s/optional-key :valid-through) (s/maybe (s/constrained s/Str valid-date-or-empty? "Must be either null or in the format 'YYYY-MM-DD'"))
+   (s/optional-key :o) (s/maybe s/Str)
+   (s/optional-key :ou) (s/maybe s/Str)
+   (s/optional-key :manager-identifier) (s/maybe s/Str)
+   (s/optional-key :sponsor-identifier) (s/maybe s/Str)
+   :mail s/Str
+   (s/optional-key :identifier) (s/maybe s/Str)
+   (s/optional-key :telephone-number) (s/maybe s/Str)
+   (s/optional-key :address) (s/maybe s/Str)
+   (s/optional-key :url) (s/maybe s/Str)
+   :courses [CourseData]})
 
 (def partner-generic-api
   (context "/partner" []
@@ -46,25 +72,26 @@
     (POST "/trainings/add-user-training-details" request
       :summary "Push training details of the user from the Partner training platforms into CADRE"
       :roles #{:owner :organization-owner}
-      ;;:query-params [organization-id :- (describe s/Str "Input the Organization ID of the partner platform")
-                     ;;user-email-id :- (describe s/Str "Input the email-id of the user, whose training details are to be saved in CADRE")]
       :body [reqbody AddUserTrainingsCommand]
-      (when (:log-authentication-details env)
-        (log/info "#### add-user-training-details ####")
-        ;;(log/info "organization-id === " organization-id)
-        ;;(log/info "user-email-id === " user-email-id)
-        (log/info "organization-id2 === " (:organization-id reqbody))
-        (log/info "user-email-id2 === " (:user-email-id reqbody))
-        (log/info "reqbody == " reqbody)
-        (log/info "json/generate-string reqbody == " (json/generate-string reqbody)))
-      (when reqbody
-        (try
-          (let [db-response (db/save-user-trainings-details! {:organization-id (:organization-id reqbody)
-                                                              :user-email-id (:user-email-id reqbody)
+      (try
+        (when (:log-authentication-details env)
+          (log/info "#### add-user-training-details ####")
+          (log/info "organization-short-name === " (:organization-short-name reqbody))
+          (log/info "partner-platform-user-id === " (:partner-platform-user-id reqbody))
+          (log/info "reqbody == " reqbody)
+          (log/info "json/generate-string reqbody == " (json/generate-string reqbody)))
+        (when reqbody
+          (let [db-response (db/save-user-trainings-details! {:organization-short-name (:organization-short-name reqbody)
+                                                              :partner-platform-user-id (:partner-platform-user-id reqbody)
                                                               :data (json/generate-string reqbody)})]
             (when (:log-authentication-details env)
               (log/info "db-response == " db-response)
               (log/info "db-response == " (:flag db-response)))
-            (ok {:success true}))
-          (catch Exception e
-            (log/error "Error invoking API add-user-training-details :" (.getMessage e))))))))
+            (ok {:success true})))
+        (catch Exception e
+          (log/error "Error invoking API add-user-training-details :" (.getMessage e))
+          (log/error "Type: " (.getClass e))
+          (log/error "Message: " (.getMessage e))
+          (log/error "PrintStackTrace: " (.printStackTrace e))
+          {:status (or (some-> e ex-data :status) 500) ; default to 500 if no specific status
+           :message (.getMessage e)})))))
