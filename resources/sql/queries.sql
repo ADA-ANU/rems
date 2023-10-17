@@ -912,3 +912,8 @@ LIMIT 1;
 INSERT INTO research_graph_details (userid, orcid, rg_json_data) 
 VALUES (:userid, :orcid, :rg_json_data::jsonb)
 RETURNING 'success' as flag;
+
+-- :name get-logged-in-user-roles :? :1
+SELECT role 
+FROM roles 
+WHERE LOWER(userid) = LOWER(:user-id);

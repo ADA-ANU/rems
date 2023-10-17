@@ -11,11 +11,11 @@
   (context "/cadre-users" []
     :tags ["cadre-users"]
 
-    (GET "/roles" request
-      :summary "Get user roles of the current logged-in user"
+    (GET "/role" request
+      :summary "Get role of the current logged-in user"
       :roles #{:logged-in}
       (let [user-id (get-user-id)
-            response-json (users/fetch-logged-in-user-roles user-id)]
+            response-json (users/fetch-logged-in-user-role user-id)]
         (when (:log-authentication-details env)
           (log/info "response-json === " response-json))
         {:status 200

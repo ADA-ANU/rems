@@ -78,3 +78,11 @@
     (if (seq userattrs-json)
       (cheshire-json/generate-string (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json) dsr_count dsa_count projects_count))
       (cheshire-json/generate-string {}))))
+
+(defn fetch-logged-in-user-role
+  "Fetch the user roles of the current logged-in user"
+  [user-id]
+  (let [user-roles (:role (db/get-logged-in-user-roles {:user-id user-id}))]
+    (if (empty? user-roles)
+      (cheshire-json/generate-string {:role ""})
+      (cheshire-json/generate-string {:role user-roles}))))
