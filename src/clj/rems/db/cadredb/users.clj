@@ -84,5 +84,5 @@
   [user-id]
   (let [user-roles (:role (db/get-logged-in-user-roles {:user-id user-id}))]
     (if (empty? user-roles)
-      (cheshire-json/generate-string {:role ""})
+      (cheshire-json/generate-string {:role "logged-in"})
       (cheshire-json/generate-string {:role user-roles}))))
