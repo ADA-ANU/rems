@@ -1,4 +1,4 @@
-(ns rems.cadre-schema-base
+(ns rems.schema-base-cadre
   "Fragments of schema shared between API, event and command schemas.
 
   Be careful when adding things here: we don't want to couple the API
@@ -21,8 +21,8 @@
 
 (s/defschema ProjectOverview
   (merge ProjectId
-         {:project/short-name LocalizedString
-          :project/name LocalizedString}))
+         {:project/short-name schema-base/LocalizedString
+          :project/name schema-base/LocalizedString}))
 
 (s/defschema ProjectFull
   (merge ProjectOverview

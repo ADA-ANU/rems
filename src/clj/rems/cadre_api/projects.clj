@@ -4,6 +4,7 @@
             [rems.api.util :refer [not-found-json-response]] ; required for route :roles
             [rems.schema-base :as schema-base]
             [rems.schema-base-cadre :as schema-base-cadre]
+            [rems.service.cadre.projects :as projects]
             [rems.util :refer [getx-user-id]]
             [ring.util.http-response :refer :all]
             [schema.core :as s]))
@@ -26,8 +27,16 @@
    :project/id s/Int
    (s/optional-key :errors) [s/Any]})
 
+(s/defschema ProjectEnabledCommand
+  (merge schema-base-cadre/ProjectId
+         {:enabled s/Bool}))
+
+(s/defschema ProjectArchivedCommand
+  (merge schema-base-cadre/ProjectId
+         {:archived s/Bool}))
+
 ;; TODO: deduplicate or decouple with /api/applications/reviewers API?
-(s/defschema AvailableOwner schema-base-cadre/UserWithAttributes)
+(s/defschema AvailableOwner schema-base-cadre/UserWithAttributesCadre)
 (s/defschema AvailableOwners [AvailableOwner])
 
 (def projects-api
@@ -37,7 +46,9 @@
     (GET "/" []
       :summary "Get projects. Returns more information for owners and handlers."
       :roles #{:logged-in}
-      :query-params [{owner :- (describe s/Str "return only projects that are owned by owner") nil}]
+      :query-params [{owner :- (describe s/Str "return only projects that are owned by owner") nil}
+                     {disabled :- (describe s/Bool "whether to include disabled projects") false}
+                     {archived :- (describe s/Bool "whether to include archived projects") false}]
       :return [schema-base-cadre/ProjectFull]
       (ok (projects/get-projects (merge {:userid (getx-user-id)
                                          :owner owner}
@@ -62,14 +73,14 @@
     (PUT "/archived" []
       :summary "Archive or unarchive the project"
       :roles #{:owner}
-      :body [command schema/ProjectArchivedCommand]
+      :body [command ProjectArchivedCommand]
       :return schema/SuccessResponse
       (ok (projects/set-project-archived! command)))
 
     (PUT "/enabled" []
       :summary "Enable or disable the project"
       :roles #{:owner}
-      :body [command schema/ProjectEnabledCommand]
+      :body [command ProjectEnabledCommand]
       :return schema/SuccessResponse
       (ok (projects/set-project-enabled! command)))
 
