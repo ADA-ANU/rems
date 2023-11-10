@@ -57,7 +57,7 @@
   (let [id (:project/id cmd)]
     (rems.service.cadre.util/check-allowed-project! cmd)
     (projects/update-project! id (fn [project] (->> (dissoc cmd :project/id)
-                                                                   (merge project))))
+                                                    (merge project))))
     {:success true
      :project/id id}))
 

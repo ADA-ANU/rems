@@ -30,6 +30,7 @@
             [rems.cadre-api.catalogue-items :refer [cadre-catalogue-items-api]]
             [rems.cadre-api.moodle-api.my-trainings :refer [my-trainings-api]]
             [rems.cadre-api.partner-api.generic-api :refer [partner-generic-api]]
+            [rems.cadre-api.projects :refer [projects-api]]
             [rems.api.workflows :refer [workflows-api]]
             [rems.auth.auth :as auth]
             [rems.db.core :as db]
@@ -233,6 +234,7 @@
       partner-generic-api
       research-graph-api
       cadre-users-api
+      projects-api
 
       ;; keep this last
       (undocumented not-found-handler)))))

@@ -14,9 +14,9 @@
 
 (defn check-allowed-project! [project]
   (assert (:project/id project) {:error "invalid project"
-                                           :project project})
+                                 :project project})
   (when-not (may-edit-project? (rems.db.cadredb.projects/get-project-by-id-raw
-                                     (:project/id project)))
+                                (:project/id project)))
     (throw-forbidden (str "no access to project " (pr-str (:project/id project))))))
 
 (deftest test-may-edit-project?
