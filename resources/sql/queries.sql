@@ -846,8 +846,27 @@ SELECT COUNT(*) AS projects_count
 FROM projects 
 WHERE created_by = :userid;
 
--- :name create-project! :!
-INSERT INTO projects (created_by) VALUES (:userid);
+-- :name add-project! :insert
+INSERT INTO projects (created_by,projectattrs)
+VALUES (:userid, :projectattrs::jsonb)
+ON CONFLICT (project_id) DO NOTHING
+RETURNING project_id;
+
+-- :name edit-project! :!
+UPDATE projects
+SET projectattrs = :projectattrs::jsonb
+WHERE project_id = :project_id;
+
+-- :name remove-project! :!
+DELETE from projects
+WHERE project_id = :project_id;
+
+-- :name link-project-application! :insert
+INSERT INTO project_application
+(appid, projectid)
+VALUES
+(:appid, :project_id);
+
 
 -- :name get-dashboard-dsrs-tabular-data :? :*
 SELECT t.eventdata ->> 'application/id' as reqid,
