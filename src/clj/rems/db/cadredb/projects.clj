@@ -7,21 +7,29 @@
             [rems.schema-base :as schema-base]
             [schema.core :as s]
             [schema.coerce :as coerce])
-  (:import rems.DataException))
+  (:import rems.DataException)
+  (:import (org.joda.time DateTime)))
 
 (s/defschema ProjectRaw
   (merge schema-base-cadre/ProjectOverview
          {(s/optional-key :project/owners) [schema-base/User]
+          (s/optional-key :project/collaborators) [schema-base/User]
+          (s/optional-key :project/end-date) DateTime
+          (s/optional-key :project/RAiD) s/Str
           (s/optional-key :enabled) s/Bool
           (s/optional-key :archived) s/Bool}))
 
 (def ^:private validate-project
   (s/validator ProjectRaw))
 
-(defn add-project! [org]
-  (validate-project org)
-  (:id (db/add-project! {:id (:project/id org)
-                         :data (json/generate-string (-> org
+(defn link-project! [appid projectid]
+  (:id (db/link-project-application! {:appid appid
+                                      :projectid projectid})))
+
+(defn add-project! [userid proj]
+  (validate-project proj)
+  (:id (db/add-project! {:userid userid
+                         :data (json/generate-string (-> proj
                                                          (assoc :enabled true
                                                                 :archived false)
                                                          (dissoc :project/id)))})))
@@ -37,6 +45,9 @@
    (json/parse-string (:data raw))
    {:project/id (:id raw)}))
 
+(defn get-application-projects [application-id]
+  (db/get-application-projects {:application application-id}))
+
 (defn get-projects-raw []
   (->> (db/get-projects)
        (mapv parse-project)
@@ -51,13 +62,22 @@
 (defn get-projects []
   (->> (get-projects-raw)
        (mapv #(update % :project/owners (partial mapv (comp users/get-user :userid))))
+       (mapv #(update % :project/collaborators (partial mapv (comp users/get-user :userid))))
+       (mapv coerce-project-full)))
+
+(defn get-projects-by-application [id]
+  (->> (db/get-application-projects {:id id})
+       (mapv parse-project)
+       (mapv #(update % :project/owners (partial mapv (comp users/get-user :userid))))
+       (mapv #(update % :project/collaborators (partial mapv (comp users/get-user :userid))))
        (mapv coerce-project-full)))
 
 (defn getx-project-by-id [id]
   (assert id)
   (let [project (-> (db/get-project-by-id {:id id})
                     parse-project
-                    (update :project/owners (partial mapv (comp users/get-user :userid))))]
+                    (update :project/owners (partial mapv (comp users/get-user :userid)))
+                    (update :project/collaborators (partial mapv (comp users/get-user :userid))))]
     (when-not (:project/id project)
       (throw (DataException. (str "project \"" id "\" does not exist") {:errors [{:type :t.actions.errors/project-does-not-exist  :args [id] :project/id id}]})))
     (coerce-project-full project)))
@@ -69,7 +89,7 @@
         project-id (if (string? project) project (:project/id project))
         project-overview (-> project-id
                              getx-project-by-id
-                             (select-keys [:project/id :project/name :project/short-name]))]
+                             (select-keys [:project/id :project/name]))]
     (-> x
         (update-existing :project (fn [_] project-overview))
         (update-existing :project (fn [_] project-overview)))))

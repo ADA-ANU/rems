@@ -7,7 +7,7 @@
             [schema.core :as s])
   (:import (org.joda.time DateTime)))
 
-(s/defschema ProjectId {:project/id s/Int})
+(def ProjectId s/Int) ; used both optionally and as required
 
 (s/defschema UserWithAttributesCadre
   {:userid schema-base/UserId
@@ -20,14 +20,15 @@
    s/Keyword s/Any})
 
 (s/defschema ProjectOverview
-  (merge ProjectId
-         {:project/short-name schema-base/LocalizedString
-          :project/name schema-base/LocalizedString}))
+  {(s/optional-key :project/id) ProjectId
+   :project/name schema-base/LocalizedString})
 
 (s/defschema ProjectFull
   (merge ProjectOverview
-         {(s/optional-key :project/modifier) UserWithAttributesCadre
-          (s/optional-key :project/last-modified) DateTime
+         {(s/optional-key :project/last-modified) DateTime
           (s/optional-key :project/owners) [UserWithAttributesCadre]
+          (s/optional-key :project/collaborators) [UserWithAttributesCadre]
+          (s/optional-key :project/RAiD) s/Str
+          (s/optional-key :project/end-date) DateTime
           (s/optional-key :enabled) s/Bool
           (s/optional-key :archived) s/Bool}))

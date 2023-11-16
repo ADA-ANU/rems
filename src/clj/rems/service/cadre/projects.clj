@@ -15,43 +15,48 @@
                               (projects/get-all-project-roles userid)
                               (applications/get-all-application-roles userid))
         can-see-all? (some? (some #{:owner :project-owner :handler :reporter} user-roles))]
-    (for [org projects]
+    (for [proj projects]
       (if (or (nil? userid) can-see-all?)
-        org
-        (dissoc org
+        proj
+        (dissoc proj
                 :project/owners
                 :enabled
                 :archived)))))
 
-(defn- owner-filter-match? [owner org]
+(defn- owner-filter-match? [owner proj]
   (or (nil? owner) ; return all when not specified
       (contains? (roles/get-roles owner) :owner) ; implicitly owns all
-      (contains? (set (map :userid (:project/owners org))) owner)))
+      (contains? (set (map :userid (:project/owners proj))) owner)))
 
-(defn- project-filters [userid owner projects]
+(defn- collaborator-filter-match? [collaborator proj]
+  (or (nil? collaborator) ; return all when not specified
+      (contains? (set (map :userid (:project/collaborators proj))) collaborator)))
+
+(defn- project-filters [userid owner collaborator projects]
   (->> projects
        (apply-user-permissions userid)
        (filter (partial owner-filter-match? owner))
+       (filter (partial collaborator-filter-match? collaborator))
        (doall)))
 
-(defn get-projects [& [{:keys [userid owner enabled archived]}]]
+(defn get-projects [& [{:keys [userid owner collaborator enabled archived]}]]
   (->> (projects/get-projects)
        (db/apply-filters (assoc-some {}
                                      :enabled enabled
                                      :archived archived))
-       (project-filters userid owner)))
+       (project-filters userid owner collaborator)))
 
-(defn get-project [userid org]
+(defn get-project [userid proj]
   (->> (get-projects {:userid userid})
-       (find-first (comp #{(:project/id org)} :project/id))))
+       (find-first (comp #{(:project/id proj)} :project/id))))
 
-(defn add-project! [cmd]
-  (if-let [id (projects/add-project! cmd)]
+(defn add-project! [userid proj]
+  (if-let [id (projects/add-project! userid proj)]
     {:success true
      :project/id id}
     {:success false
      :errors [{:type :t.actions.errors/duplicate-id
-               :project/id (:project/id cmd)}]}))
+               :project/id (:project/id proj)}]}))
 
 (defn edit-project! [cmd]
   (let [id (:project/id cmd)]
@@ -60,6 +65,14 @@
                                                     (merge project))))
     {:success true
      :project/id id}))
+
+(defn link-project! [cmd]
+  (let [id (:project/id cmd)]
+    (rems.service.cadre.util/check-allowed-project! cmd)
+    (if-let [apid (projects/link-project! (:application/id cmd) id)]
+      {:success true
+       :project-application/id apid}
+      {:success false})))
 
 (defn set-project-enabled! [{:keys [enabled] :as cmd}]
   (let [id (:project/id cmd)]

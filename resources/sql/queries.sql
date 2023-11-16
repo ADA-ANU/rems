@@ -464,6 +464,12 @@ INNER JOIN catalogue_item item ON (item.resid = rl.resid)
 WHERE item.id IN (:v*:items)
 ORDER BY id;
 
+-- :name get-application-projects :? :*
+SELECT proj.project_id as id, proj.projectattrs::text as data
+FROM projects proj
+INNER JOIN project_application pa ON proj.project_id = pa.projectid
+WHERE pa.appid = :id;
+
 -- :name get-resource-licenses :? :*
 SELECT lic.id, lic.type, lic.enabled, lic.archived, lic.organization
 FROM license lic
@@ -876,7 +882,8 @@ WHERE project_id = :id;
 INSERT INTO project_application
 (appid, projectid)
 VALUES
-(:appid, :project_id);
+(:appid, :projectid)
+RETURNING id;
 
 -- :name get-dashboard-dsrs-tabular-data :? :*
 SELECT t.eventdata ->> 'application/id' as reqid,

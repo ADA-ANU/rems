@@ -11,9 +11,10 @@
 
 (s/defschema CreateProjectCommand
   (-> schema-base-cadre/ProjectFull
-      (dissoc :project/modifier
-              :project/last-modifier)
-      (assoc (s/optional-key :project/owners) [schema-base/User])))
+      (dissoc :project/id
+              :project/last-modified)
+      (assoc (s/optional-key :project/owners) [schema-base/User]
+             (s/optional-key :project/collaborators) [schema-base/User])))
 
 (s/defschema CreateProjectResponse
   {:success s/Bool
@@ -27,13 +28,22 @@
    :project/id s/Int
    (s/optional-key :errors) [s/Any]})
 
+(s/defschema LinkProjectResponse
+  {:success s/Bool
+   :project-application/id s/Int
+   (s/optional-key :errors) [s/Any]})
+
+(s/defschema LinkProjectCommand
+  {:project/id s/Int
+   :application/id s/Int})
+
 (s/defschema ProjectEnabledCommand
-  (merge schema-base-cadre/ProjectId
-         {:enabled s/Bool}))
+  {:project/id s/Int
+   :enabled s/Bool})
 
 (s/defschema ProjectArchivedCommand
-  (merge schema-base-cadre/ProjectId
-         {:archived s/Bool}))
+  {:project/id s/Int
+   :archived s/Bool})
 
 ;; TODO: deduplicate or decouple with /api/applications/reviewers API?
 (s/defschema AvailableOwner schema-base-cadre/UserWithAttributesCadre)
@@ -47,11 +57,13 @@
       :summary "Get projects. Returns more information for owners and handlers."
       :roles #{:logged-in}
       :query-params [{owner :- (describe s/Str "return only projects that are owned by owner") nil}
+                     {collaborator :- (describe s/Str "return only projects where the user is a collaborator") nil}
                      {disabled :- (describe s/Bool "whether to include disabled projects") false}
                      {archived :- (describe s/Bool "whether to include archived projects") false}]
       :return [schema-base-cadre/ProjectFull]
       (ok (projects/get-projects (merge {:userid (getx-user-id)
-                                         :owner owner}
+                                         :owner owner
+                                         :collaborator collaborator}
                                         (when-not disabled {:enabled true})
                                         (when-not archived {:archived false})))))
 
@@ -60,7 +72,14 @@
       :roles #{:owner}
       :body [command CreateProjectCommand]
       :return CreateProjectResponse
-      (ok (projects/add-project! command)))
+      (ok (projects/add-project! (getx-user-id) command)))
+
+    (POST "/link-application" []
+      :summary "Link a project to an application (DSA/DSR)"
+      :roles #{:owner}
+      :body [command LinkProjectCommand]
+      :return LinkProjectResponse
+      (ok (projects/link-project! command)))
 
     (PUT "/edit" []
       :summary "Edit project. Project owners cannot change the owners."
