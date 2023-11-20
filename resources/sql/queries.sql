@@ -867,7 +867,7 @@ WHERE project_id = :id;
 INSERT INTO projects (created_by,projectattrs)
 VALUES (:userid, :data::jsonb)
 ON CONFLICT (project_id) DO NOTHING
-RETURNING project_id;
+RETURNING project_id as id;
 
 -- :name edit-project! :!
 UPDATE projects
