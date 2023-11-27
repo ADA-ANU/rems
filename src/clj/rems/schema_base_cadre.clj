@@ -4,7 +4,8 @@
   Be careful when adding things here: we don't want to couple the API
   schema too tightly to internal schemas!"
   (:require [rems.schema-base :as schema-base]
-            [schema.core :as s])
+            [schema.core :as s]
+            [rems.api.schema :as schema])
   (:import (org.joda.time DateTime)))
 
 (def ProjectId s/Int) ; used both optionally and as required
@@ -28,6 +29,7 @@
          {(s/optional-key :project/last-modified) DateTime
           (s/optional-key :project/owners) [UserWithAttributesCadre]
           (s/optional-key :project/collaborators) [UserWithAttributesCadre]
+          (s/optional-key :project/applications) [schema/ApplicationRaw]
           (s/optional-key :project/RAiD) s/Str
           (s/optional-key :project/end-date) DateTime
           (s/optional-key :enabled) s/Bool

@@ -878,6 +878,11 @@ WHERE project_id = :id;
 DELETE from projects
 WHERE project_id = :id;
 
+-- :name get-applications-for-project! :? :*
+SELECT appid as id
+FROM project_application
+WHERE projectid = :id;
+
 -- :name link-project-application! :insert
 INSERT INTO project_application
 (appid, projectid)

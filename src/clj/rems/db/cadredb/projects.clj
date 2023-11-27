@@ -3,6 +3,7 @@
             [rems.db.core :as db]
             [rems.json :as json]
             [rems.db.users :as users]
+            [rems.db.applications :as applications]
             [rems.schema-base-cadre :as schema-base-cadre]
             [rems.schema-base :as schema-base]
             [schema.core :as s]
@@ -10,10 +11,14 @@
   (:import rems.DataException)
   (:import (org.joda.time DateTime)))
 
+(s/defschema ApplicationIds
+  {:id s/Int});
+
 (s/defschema ProjectRaw
   (merge schema-base-cadre/ProjectOverview
          {(s/optional-key :project/owners) [schema-base/User]
           (s/optional-key :project/collaborators) [schema-base/User]
+          (s/optional-key :project/applications) [ApplicationIds]
           (s/optional-key :project/end-date) DateTime
           (s/optional-key :project/RAiD) s/Str
           (s/optional-key :enabled) s/Bool
@@ -45,24 +50,32 @@
    (json/parse-string (:data raw))
    {:project/id (:id raw)}))
 
+(defn- parse-project-application [raw]
+  (merge
+    raw
+    {:project/applications (db/get-applications-for-project! {:id (:project/id raw)})}))
+
 (defn get-application-projects [application-id]
   (db/get-application-projects {:application application-id}))
 
 (defn get-projects-raw []
   (->> (db/get-projects)
        (mapv parse-project)
+       (mapv parse-project-application)
        (mapv coerce-project-raw)))
 
 (defn get-project-by-id-raw [id]
   (when-some [project (db/get-project-by-id {:id id})]
     (-> project
         (parse-project)
+        (parse-project-application)
         (coerce-project-raw))))
 
 (defn get-projects []
   (->> (get-projects-raw)
        (mapv #(update % :project/owners (partial mapv (comp users/get-user :userid))))
        (mapv #(update % :project/collaborators (partial mapv (comp users/get-user :userid))))
+       (mapv #(update % :project/applications (partial mapv (comp applications/get-application :id))))
        (mapv coerce-project-full)))
 
 (defn get-projects-by-application [id]
