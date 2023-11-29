@@ -52,8 +52,8 @@
 
 (defn- parse-project-application [raw]
   (merge
-    raw
-    {:project/applications (db/get-applications-for-project! {:id (:project/id raw)})}))
+   raw
+   {:project/applications (db/get-applications-for-project! {:id (:project/id raw)})}))
 
 (defn get-application-projects [application-id]
   (db/get-application-projects {:application application-id}))
