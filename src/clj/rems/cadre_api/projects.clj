@@ -69,14 +69,14 @@
 
     (POST "/create" []
       :summary "Create project"
-      :roles #{:owner}
+      :roles #{:owner :logged-in}
       :body [command CreateProjectCommand]
       :return CreateProjectResponse
       (ok (projects/add-project! (getx-user-id) command)))
 
     (POST "/link-application" []
       :summary "Link a project to an application (DSA/DSR)"
-      :roles #{:owner}
+      :roles #{:owner :logged-in}
       :body [command LinkProjectCommand]
       :return LinkProjectResponse
       (ok (projects/link-project! command)))
@@ -91,14 +91,14 @@
 
     (PUT "/archived" []
       :summary "Archive or unarchive the project"
-      :roles #{:owner}
+      :roles #{:owner :project-owner}
       :body [command ProjectArchivedCommand]
       :return schema/SuccessResponse
       (ok (projects/set-project-archived! command)))
 
     (PUT "/enabled" []
       :summary "Enable or disable the project"
-      :roles #{:owner}
+      :roles #{:owner :project-owner}
       :body [command ProjectEnabledCommand]
       :return schema/SuccessResponse
       (ok (projects/set-project-enabled! command)))
