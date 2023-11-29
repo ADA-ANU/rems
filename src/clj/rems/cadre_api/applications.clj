@@ -7,7 +7,7 @@
             [rems.service.attachment :as attachment]
             [rems.service.command :as command]
             [rems.service.licenses :as licenses]
-            [rems.service.todos :as todos]
+            [rems.service.cadre.todos :as todos]
             [rems.api.util :as api-util] ; required for route :roles
             [rems.application.commands :as commands]
             [rems.application.search :as search]
