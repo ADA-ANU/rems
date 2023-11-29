@@ -890,6 +890,10 @@ VALUES
 (:appid, :projectid)
 RETURNING id;
 
+-- :name unlink-project-application! :!
+DELETE FROM project_application
+WHERE appid = :application;
+
 -- :name get-dashboard-dsrs-tabular-data :? :*
 SELECT t.eventdata ->> 'application/id' as reqid,
 t.eventdata ->> 'event/time' as createddate,
