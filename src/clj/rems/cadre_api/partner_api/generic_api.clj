@@ -8,6 +8,7 @@
             [cheshire.core :as cheshire-json]
             [rems.json :as json]
             [schema.core :as s]
+            [rems.util :refer [getx get-user-id]]
             [rems.db.core :as db]))
 
 (def YYYY-MM-DD-regex #"\d{4}-\d{2}-\d{2}")
@@ -95,3 +96,32 @@
           (log/error "PrintStackTrace: " (.printStackTrace e))
           {:status (or (some-> e ex-data :status) 500) ; default to 500 if no specific status
            :message (.getMessage e)})))))
+
+(GET "/trainings/user-training-details" request
+  :summary "Fetches training details of the specified user from partner trainings"
+  :roles #{:owner :organization-owner}
+  :query-params [{organization-short-name :- (describe s/Str "Short name of the organisations")}
+                 {partner-platform-user-id :- (describe s/Str "Partner platform user id")}]
+  (let [response-json (db/get-user-trainings-details! {:organization-short-name organization-short-name
+                                                      :partner-platform-user-id partner-platform-user-id})]
+    (if (json/empty-json? response-json)
+      {:status 404
+       :headers {"Content-Type" "application/json"}
+       :body (cheshire-json/encode {:error {:code "Not Found"
+                                            :message (str "Not found")}})}
+      {:status 200
+       :headers {"Content-Type" "application/json"}
+       :body response-json})))
+
+(GET "/trainings/my-training-details" request
+  :summary "Fetches training details of the logged in user from partner trainings"
+  :roles #{:logged-in}
+  (let [response-json (db/get-my-trainings-details! {:user-id (get-user-id)})]
+    (if (json/empty-json? response-json)
+      {:status 404
+       :headers {"Content-Type" "application/json"}
+       :body (cheshire-json/encode {:error {:code "Not Found"
+                                            :message (str "Not found")}})}
+      {:status 200
+       :headers {"Content-Type" "application/json"}
+       :body response-json})))

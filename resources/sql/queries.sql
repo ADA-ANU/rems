@@ -934,6 +934,18 @@ SELECT userid::TEXT
 FROM users
 WHERE LOWER(userattrs->>'email') = LOWER(:user-email-id);
 
+-- :name get-my-trainings-details! :!
+SELECT t.organization_short_name, t.partner_platform_user_id, t.data->>'courses'
+FROM trainings as t
+JOIN users as u on (u.userid = :user-id)
+WHERE LOWER(t.data->>'mail') == LOWER(u.userattrs->>'email')
+
+-- :name get-user-trainings-details! :!
+SELECT organization_short_name, partner_platform_user_id, data::TEXT
+FROM trainings
+WHERE organization_short_name = :organization-short-name
+AND partner-platform-user-id = :partner-platform-user-id
+
 -- :name save-user-trainings-details! :!
 INSERT INTO trainings (organization_short_name, partner_platform_user_id, data)
 VALUES (:organization-short-name, :partner-platform-user-id, :data::jsonb)
