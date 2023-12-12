@@ -435,7 +435,7 @@
           ;; %4 - invitation link
           :member-invited {:subject "Invitation to participate in application %3"
                            :message "Dear %1,\n\nYou have been invited to participate in application %3, by %2.\n\nYou can view the application and accept the terms of use at %4"}
-          :regards "\n\nKind regards,\n\nREMS\n"
+          :regards "\n\nKind regards,\n\nCADRE Platform User Support Team\n"
           :remarked {:subject "(%3) Application has been commented"
                      :message "Dear %1,\n\n%2 has commented your application %3, submitted by %4.\n\nYou can view the application and the comment at %6"}
           :review-requested {:subject "(%3) Review request"
@@ -449,7 +449,7 @@
                               :subject "Applications pending review"}
           :workflow-handler-invitation {:message "Dear %1,\n\n%2 has invited you to be a handler of applications of workflow %3.\n\nYou can view the workflow at %4"
                                         :subject "Invitation to handle applications"}}
-  :footer "CSC – IT Center for Science"
+  :footer "CADRE 5 Safes"
   :form {:accepted-licenses "Accepted terms of use"
          :actions "Actions"
          :add-comments-not-shown-to-applicant "Add comment (not shown to applicant)"
@@ -508,7 +508,7 @@
                       :required "Field \"%1\" is required."
                       :toolong "Text in field \"%1\" too long."
                       :unsupported "Field \"%1\" is not supported."}}
-  :header {:title "REMS"}
+  :header {:title "CADRE"}
   :item-lists {:move-down "Move down"
                :move-up "Move up"
                :remove "Remove"}
@@ -526,12 +526,12 @@
                    :unknown "There was a problem logging you in. Please check your identity provider."}
           :fake-text ""
           :fake-title ""
-          :intro [:div [:h1 "Welcome to REMS"] [:p "This is a demo environment for testing the REMS software. The demo environment has a couple of fictional datasets to which you can apply for access. More information is available on " [:a {:href "/extra-pages/about"} "About"] " page."]]
+          :intro [:div [:h1 "Welcome to the CADRE 5 Safes platform."] [:p "This is a demo environment for testing the CADRE 5 Safes application. The demo environment has a couple of fictional datasets to which you can apply for access. More information is available on " [:a {:href "/extra-pages/about"} "About"] " page."]]
           :intro2 ""
           :login "Login"
           :oidc-text ""
           :oidc-title ""
-          :text [:p "Please, login to access REMS."]
+          :text [:p "Please, login to access CADRE 5 Safes."]
           :title ""}
   :missing "Missing translation %1"
   :navigation {:actions "Actions"
@@ -591,5 +591,5 @@
   :forbidden-page {:forbidden "Forbidden"
                    :you-are-forbidden "Access to the page is forbidden."}
   :error-page {:title "Problem"}
-  :meta {:description "Resource Entitlement Management System is a tool for managing access rights to resources, such as research datasets."
-         :keywords "REMS, entitlement, access management, tool, access rights, resources, datasets"}}}
+  :meta {:description "CADRE 5 Safes is a tool for managing access rights to sensitive data resources, such as research datasets."
+         :keywords "CADRE, entitlement, access management, tool, access rights, resources, datasets"}}}
