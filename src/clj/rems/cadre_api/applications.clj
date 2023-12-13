@@ -5,7 +5,7 @@
             [medley.core :refer [update-existing]]
             [rems.api.schema :as schema]
             [rems.service.attachment :as attachment]
-            [rems.service.command :as command]
+            [rems.service.cadre.command :as command]
             [rems.service.licenses :as licenses]
             [rems.service.cadre.todos :as todos]
             [rems.api.util :as api-util] ; required for route :roles
@@ -14,8 +14,7 @@
             [rems.auth.auth :as auth]
             [rems.config :as config]
             [rems.context :as context]
-            [rems.db.applications :as applications]
-            [rems.db.cadredb.applications :as cadreapplications]
+            [rems.db.cadredb.applications :as applications]
             [rems.db.csv :as csv]
             [rems.db.user-settings :as user-settings]
             [rems.db.users :as users]
@@ -142,7 +141,7 @@
       :roles #{:logged-in}
       :return [ApplicationOverviewCadre]
       :query-params [{query :- (describe s/Str "search query [documentation](https://github.com/CSCfi/rems/blob/master/docs/search.md)") nil}]
-      (ok (->> (cadreapplications/get-my-applications (getx-user-id))
+      (ok (->> (applications/get-my-applications (getx-user-id))
                (filter-with-search query))))))
 
 (def cadre-applications-api
@@ -154,7 +153,7 @@
       :roles #{:logged-in}
       :return [ApplicationOverviewCadre]
       :query-params [{query :- (describe s/Str "search query [documentation](https://github.com/CSCfi/rems/blob/master/docs/search.md)") nil}]
-      (ok (->> (cadreapplications/get-all-applications (getx-user-id))
+      (ok (->> (applications/get-all-applications (getx-user-id))
                (filter-with-search query))))
 
     (GET "/todo" []
@@ -197,7 +196,7 @@
       :summary "Export all submitted applications of a given form as CSV"
       :roles #{:owner :reporter}
       :query-params [form-id :- (describe s/Int "form id")]
-      (-> (ok (cadreapplications/export-applications-for-form-as-csv (getx-user-id)
+      (-> (ok (applications/export-applications-for-form-as-csv (getx-user-id)
                                                                      form-id
                                                                      (:language (user-settings/get-user-settings (getx-user-id)))))
           (header "Content-Disposition" (str "filename=\"" (csv/applications-filename) "\""))
@@ -281,7 +280,7 @@
       :path-params [application-id :- (describe s/Int "application id")]
       :responses {200 {:schema ApplicationCadre}
                   404 {:schema s/Str :description "Not found"}}
-      (if-let [app (cadreapplications/get-application-for-user (getx-user-id) application-id)]
+      (if-let [app (applications/get-application-for-user (getx-user-id) application-id)]
         (ok app)
         (api-util/not-found-json-response)))
 

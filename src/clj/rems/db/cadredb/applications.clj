@@ -8,7 +8,7 @@
             [conman.core :as conman]
             [medley.core :refer [distinct-by map-vals]]
             [mount.core :as mount]
-            [rems.application.events-cache :as events-cache]
+            [rems.application.cadre.events-cache :as events-cache]
             [rems.application.cadre.model :as model]
             [rems.auth.util :refer [throw-forbidden]]
             [rems.common.util :refer [conj-set keep-keys]]
