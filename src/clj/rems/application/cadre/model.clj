@@ -760,7 +760,7 @@
        (remove (comp false? :application/public)))) ; :application/public might not be set
 
 (defn- censor-user [user]
-  (select-keys user [:userid :name :email :organizations :notification-email]))
+  (select-keys user [:userid :name :email :organizations :notification-email :eduPersonOrcid]))
 
 (defn- censor-users-in-event [event]
   (-> event

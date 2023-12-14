@@ -14,7 +14,7 @@
   (merge {:userid (:userid u) ; NB: currently we expect to return the keys always
           :name (:name u)
           :email (:email u)}
-         (select-keys u [:organizations :notification-email :researcher-status-by])
+         (select-keys u [:organizations :eduPersonOrcid :notification-email :researcher-status-by])
          (select-keys u (map (comp keyword :attribute) (:oidc-extra-attributes env)))))
 
 (defn- unformat-user
