@@ -116,7 +116,7 @@
 
 (defn update-project! [id update-fn]
   (let [id (:project/id id id)
-        project (getx-project-by-id id)]
+        project (get-project-by-id-raw id)]
     (set-project! (update-fn project))))
 
 (defn get-all-project-roles [userid]

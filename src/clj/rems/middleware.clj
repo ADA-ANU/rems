@@ -12,6 +12,7 @@
             [rems.context :as context]
             [rems.db.applications :as applications]
             [rems.db.organizations :as organizations]
+            [rems.db.cadredb.projects :as projects]
             [rems.db.roles :as roles]
             [rems.db.user-settings :as user-settings]
             [rems.db.workflow :as workflow]
@@ -70,6 +71,7 @@
                                (when context/*user*
                                  (set/union (roles/get-roles (getx-user-id))
                                             (organizations/get-all-organization-roles (getx-user-id))
+                                            (projects/get-all-project-roles (getx-user-id))
                                             (workflow/get-all-workflow-roles (getx-user-id))
                                             (applications/get-all-application-roles (getx-user-id))))
                                (when (:uses-valid-api-key? request)

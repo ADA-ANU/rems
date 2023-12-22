@@ -76,11 +76,13 @@
 
 (defn set-project-enabled! [{:keys [enabled] :as cmd}]
   (let [id (:project/id cmd)]
+    (rems.service.cadre.util/check-allowed-project! cmd)
     (projects/update-project! id (fn [project] (assoc project :enabled enabled)))
     {:success true}))
 
 (defn set-project-archived! [{:keys [archived] :as cmd}]
   (let [id (:project/id cmd)]
+    (rems.service.cadre.util/check-allowed-project! cmd)
     (or (dependencies/change-archive-status-error archived  {:project/id id})
         (do
           (projects/update-project! id (fn [project] (assoc project :archived archived)))
