@@ -3,10 +3,12 @@
    are described in more detail by rems.main/-main docstring."
   (:require [clojure.string :as str]
             [clojure.tools.cli :refer [parse-opts]]
+            [clojure.tools.namespace.repl :as clrepl]
             [clojure.tools.logging :as log]
             [luminus-migrations.core :as migrations]
             [luminus.http-server :as http]
             [luminus.repl-server :as repl]
+            [hawk.core :as hawk]
             [medley.core :refer [find-first]]
             [mount.core :as mount]
             [rems.service.ega :as ega]
@@ -31,6 +33,26 @@
 (def cli-options
   [["-p" "--port PORT" "Port number"
     :parse-fn #(Integer/parseInt %)]])
+
+(defn- clojure-file? [_ {:keys [file]}]
+  (re-matches #"[^.].*(\.clj|\.edn)$" (.getName file)))
+
+(defn stop-app []
+  (doseq [component (:stopped (mount/stop))]
+    (log/info component "stopped")))
+
+(defn- auto-reset-handler []
+  (binding [*ns* *ns*]
+    (stop-app)
+    (clrepl/refresh-all :after 'rems.main/start-app)))
+
+(defn auto-reset
+  "Automatically reset the system when a Clojure or edn file is changed in
+  `src` or `resources`."
+  []
+  (hawk/watch! [{:paths ["src/" "resources/" "dev/src/" "dev/resources/"]
+                 :filter clojure-file?
+                 :handler (auto-reset-handler)}]))
 
 (defn- jetty-configurator [server]
   (let [pool (.getThreadPool server)]
@@ -70,18 +92,19 @@
   (when http-server (http/stop http-server)))
 
 (mount/defstate
-  ^{:on-reload :noop}
+  ;; ^{:on-reload :noop}
   repl-server
   :start
   (when-let [nrepl-port (env :nrepl-port)]
     (repl/start {:port nrepl-port}))
   :stop
   (when repl-server
-    (repl/stop repl-server)))
+    (repl/stop repl-server))
+  ;; :restart
+  ;; (auto-reset)
+  )
 
-(defn stop-app []
-  (doseq [component (:stopped (mount/stop))]
-    (log/info component "stopped")))
+
 
 (defn- refresh-caches []
   (log/info "Refreshing caches")
@@ -97,7 +120,8 @@
     (log/info component "started"))
   (.addShutdownHook (Runtime/getRuntime) (Thread. stop-app))
   (validate/validate)
-  (refresh-caches))
+  (refresh-caches)
+  (auto-reset))
 
 ;; The default of the JVM is to exit with code 128+signal. However, we
 ;; shut down gracefully on SIGINT and SIGTERM due to the exit hooks

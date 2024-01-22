@@ -20,6 +20,7 @@
                  [conman "0.8.4"] ; 0.8.5 switches to next.jdbc, which breaks stuff and requires proper testing in production
                  [cprop "0.1.19"]
                  [garden "1.3.10"]
+                 [hawk "0.2.11"]
                  [hiccup "1.0.5"]
                  [com.cognitect/transit-clj "1.0.329"]
                  [javax.xml.bind/jaxb-api "2.4.0-b180830.0359"]
