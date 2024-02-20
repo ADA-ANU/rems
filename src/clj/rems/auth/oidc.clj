@@ -119,15 +119,6 @@
     (save-user-mappings! user-data (:userid user))
     user))
 
-(defn invoke-cadre-proxy-server-api [url headers body]
-  (let [response (http/get url {:headers headers :body body :throw-exceptions false})]
-    (when (= 200 (:status response))
-      (log/info "received response from CADRE Proxy API, status:" (:status response) " from " url))
-
-    (when-not (= 200 (:status response))
-      (log/error "Error: received response from CADRE Proxy API, status:" (:status response) " from " url))
-    response))
-
 (defn oidc-callback [request]
   (let [error (get-in request [:params :error])
         code (get-in request [:params :code])]
@@ -176,18 +167,11 @@
                 user-data (merge id-data user-info researcher-status)
                 user (find-or-create-user! user-data)]
             (when (:log-authentication-details env)
-              (log/info "logged in" user-data user)
-              (log/info "access-token:" access-token)
-              (log/info "id-token:" id-token)
-              (log/info "audience:" audience)
-              (log/info "id-data:" id-data)
-              (log/info "sub:" (:sub id-data))
-              (log/info "user-info:" user-info))
-            (-> (redirect (str (getx env :cadre-url)))
+              (log/info "logged in" user-data user))
+            (-> (redirect "/redirect")
                 (assoc :session (:session request))
                 (assoc-in [:session :access-token] access-token)
-                (assoc-in [:session :identity] user)
-                (assoc-in [:headers "Set-Cookie"] (str "logged_in=true; Path=/")))))))
+                (assoc-in [:session :identity] user))))))
 
 (defn- oidc-revoke [token]
   (when token
@@ -221,7 +205,7 @@
       (when (:log-authentication-details env)
         (log/info "redirecting to" redirect-url))
 
-      (-> (redirect redirect-url)
-          (assoc-in [:headers "Set-Cookie"] "logged_in=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT")
-          (update :session dissoc :access-token :identity))))
+      (assoc (redirect redirect-url)
+             :session (dissoc session :identity :access-token))))
   (GET "/oidc-callback" req (oidc-callback req)))
+
