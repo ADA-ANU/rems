@@ -206,6 +206,7 @@
       public/theme-api
       public/config-api
       public/keepalive-api
+      public/csrf-api
 
       my-applications-api
       applications-api

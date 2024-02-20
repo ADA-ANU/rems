@@ -1,10 +1,15 @@
 (ns rems.service.public
   (:require [rems.config :refer [env]]
             [rems.locales :as locales]
+            [ring.middleware.anti-forgery :refer [*anti-forgery-token*]]
             [rems.common.roles :as roles]))
 
 (defn get-translations []
   locales/translations)
+
+(defn get-csrf []
+  (when (bound? #'*anti-forgery-token*)
+    *anti-forgery-token*))
 
 (defn get-theme []
   (:theme env))

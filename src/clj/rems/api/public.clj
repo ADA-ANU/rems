@@ -8,6 +8,9 @@
 (s/defschema GetTranslationsResponse
   s/Any)
 
+(s/defschema GetCSRFResponse
+  s/Any)
+
 (s/defschema GetThemeResponse
   s/Any)
 
@@ -58,6 +61,15 @@
       :summary "Get translations"
       :return GetTranslationsResponse
       (ok (public/get-translations)))))
+
+(def csrf-api
+  (context "/csrf" []
+    :tags ["csrf"]
+
+    (GET "/" []
+      :summary "Get CSRF Token"
+      :return GetCSRFResponse
+      (ok (public/get-csrf)))))
 
 (def theme-api
   (context "/theme" []
