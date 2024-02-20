@@ -168,7 +168,7 @@
                 user (find-or-create-user! user-data)]
             (when (:log-authentication-details env)
               (log/info "logged in" user-data user))
-            (-> (redirect "/redirect")
+            (-> (redirect (str (getx env :cadre-url)))
                 (assoc :session (:session request))
                 (assoc-in [:session :access-token] access-token)
                 (assoc-in [:session :identity] user))))))
