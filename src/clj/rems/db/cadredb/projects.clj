@@ -102,7 +102,7 @@
         project-id (if (string? project) project (:project/id project))
         project-overview (-> project-id
                              getx-project-by-id
-                             (select-keys [:project/id :project/name]))]
+                             (select-keys [:project/id]))]
     (-> x
         (update-existing :project (fn [_] project-overview))
         (update-existing :project (fn [_] project-overview)))))
