@@ -59,7 +59,7 @@
 
 (s/defschema ApplicationCadre
   (assoc schema/Application
-         :application/projects [schema-base-cadre/ProjectFull]))
+         :application/projects [schema-base-cadre/ProjectOverview]))
 
 (s/defschema AcceptInvitationResult
   (assoc schema/SuccessResponse
