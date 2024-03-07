@@ -55,7 +55,7 @@
 (s/defschema ApplicationOverviewCadre
   (assoc schema/ApplicationOverview
          :application/applicant schema-base-cadre/UserWithAttributesCadre
-         :application/projects [schema-base-cadre/ProjectFull]))
+         :application/projects [schema-base-cadre/ProjectApplication]))
 
 (s/defschema ApplicationCadre
   (assoc schema/Application
