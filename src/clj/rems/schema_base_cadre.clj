@@ -10,6 +10,9 @@
 
 (def ProjectId s/Int) ; used both optionally and as required
 
+(s/defschema ProjectApplications
+  {:id s/Int})
+
 (s/defschema UserWithAttributesCadre
   {:userid schema-base/UserId
    :name (s/maybe s/Str)
@@ -30,7 +33,7 @@
          {(s/optional-key :project/last-modified) DateTime
           (s/optional-key :project/owners) [UserWithAttributesCadre]
           (s/optional-key :project/collaborators) [UserWithAttributesCadre]
-          (s/optional-key :project/applications) [s/Int]
+          (s/optional-key :project/applications) [ProjectApplications]
           (s/optional-key :project/RAiD) s/Str
           (s/optional-key :project/end-date) DateTime
           (s/optional-key :enabled) s/Bool
