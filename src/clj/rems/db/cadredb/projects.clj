@@ -45,6 +45,9 @@
 (def ^:private coerce-project-full
   (coerce/coercer! schema-base-cadre/ProjectFull json/coercion-matcher))
 
+(def ^:private coerce-project-application
+  (coerce/coercer! schema-base-cadre/ProjectApplication json/coercion-matcher))
+
 (defn- parse-project [raw]
   (merge
    (json/parse-string (:data raw))
@@ -83,7 +86,7 @@
        (mapv parse-project)
        (mapv #(update % :project/owners (partial mapv (comp users/get-user :userid))))
        (mapv #(update % :project/collaborators (partial mapv (comp users/get-user :userid))))
-       (mapv coerce-project-full)))
+       (mapv coerce-project-application)))
 
 (defn getx-project-by-id [id]
   (assert id)

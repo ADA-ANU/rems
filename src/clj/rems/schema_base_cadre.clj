@@ -25,6 +25,17 @@
   {(s/optional-key :project/id) ProjectId
    :project/name schema-base/LocalizedString})
 
+(s/defschema ProjectApplication
+  (merge ProjectOverview
+         {(s/optional-key :project/last-modified) DateTime
+          (s/optional-key :project/owners) [UserWithAttributesCadre]
+          (s/optional-key :project/collaborators) [UserWithAttributesCadre]
+          (s/optional-key :project/applications) [s/Int]
+          (s/optional-key :project/RAiD) s/Str
+          (s/optional-key :project/end-date) DateTime
+          (s/optional-key :enabled) s/Bool
+          (s/optional-key :archived) s/Bool}))
+
 (s/defschema ProjectFull
   (merge ProjectOverview
          {(s/optional-key :project/last-modified) DateTime
