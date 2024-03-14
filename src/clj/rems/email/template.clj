@@ -15,7 +15,7 @@
 
 ;; move this to a util namespace if its needed somewhere else
 (defn- link-to-application [application-id]
-  (str (:public-url env) "application/" application-id))
+  (str (:cadre-url env) "dsrs/" application-id))
 
 (defn- invitation-link [token]
   (str (:public-url env) "accept-invitation?token=" token))
