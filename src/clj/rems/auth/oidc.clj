@@ -18,6 +18,7 @@
 (defn login-url []
   (str (:authorization_endpoint oidc-configuration)
        "?response_type=code"
+       "&skin=cadre"
        "&client_id=" (getx env :oidc-client-id)
        "&redirect_uri=" (getx env :public-url) "oidc-callback"
        "&scope=" (getx env :oidc-scopes)
