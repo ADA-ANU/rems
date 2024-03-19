@@ -17,7 +17,8 @@
    :invitation/created DateTime
    (s/optional-key :invitation/sent) DateTime
    (s/optional-key :invitation/accepted) DateTime
-   (s/optional-key :invitation/workflow) {:workflow/id s/Int}})
+   (s/optional-key :invitation/workflow) {:workflow/id s/Int}
+   (s/optional-key :invitation/project) {:project/id s/Int}})
 
 (def ^:private validate-InvitationData
   (s/validator InvitationData))

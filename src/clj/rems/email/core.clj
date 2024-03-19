@@ -14,6 +14,7 @@
             [rems.db.outbox :as outbox]
             [rems.db.user-settings :as user-settings]
             [rems.db.users :as users]
+            [rems.db.cadredb.projects :as projects]
             [rems.email.template :as template]
             [rems.scheduler :as scheduler])
   (:import [javax.mail.internet InternetAddress]
@@ -59,7 +60,11 @@
     (cond (:invitation/workflow invitation)
           (let [workflow (workflow/get-workflow (get-in invitation [:invitation/workflow :workflow/id]))]
             (assert workflow "Can't send invitation, missing workflow")
-            (template/workflow-handler-invitation-email lang invitation workflow)))))
+            (template/workflow-handler-invitation-email lang invitation workflow))
+          (:invitation/project invitation)
+          (let [project (projects/get-project-by-id-raw (get-in invitation [:invitation/project :project/id]))]
+            (assert project "Can't send invitation, missing project")
+            (template/project-handler-invitation-email lang invitation project)))))
 
 (defn generate-invitation-emails! [invitations]
   (doseq [invitation invitations

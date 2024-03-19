@@ -4,6 +4,7 @@
             [rems.db.invitation :as invitation]
             [rems.db.users :as users]
             [rems.db.workflow :as workflow]
+            [rems.db.cadredb.projects :as projects]
             [rems.email.core :as email]
             [medley.core :refer [update-existing]]
             [rems.util :refer [secure-token]]))
@@ -18,10 +19,11 @@
   (dissoc invitation :invitation/token))
 
 (defn- invalid-invitation-type-error [cmd]
-  (when-not (:workflow-id cmd) ; so far we only support invitation to workflow
+  (when-not (or (:workflow-id cmd) (:project-id cmd)); so far we only support invitation to workflow or project
     {:success false
      :errors [{:type :t.accept-invitation.errors/invalid-invitation-type
-               :workflow-id (:workflow-id cmd)}]}))
+               :workflow-id (:workflow-id cmd)
+               :project-id (:project-id cmd)}]}))
 
 (defn- invalid-workflow-error [cmd]
   (when-let [workflow-id (:workflow-id cmd)]
@@ -31,6 +33,13 @@
         (util/check-allowed-organization! organization))
       {:success false
        :errors [{:type :t.accept-invitation.errors/invalid-workflow :workflow-id workflow-id}]})))
+
+(defn- invalid-project-error [cmd]
+  (when-let [project-id (:project-id cmd)]
+    (if-let [project (projects/get-project-by-id-raw project-id)]
+      (let [project (:id project)])
+      {:success false
+       :errors [{:type :t.accept-invitation.errors/invalid-project :project-id project-id}]})))
 
 (defn get-invitations-full [cmd]
   (->> cmd
@@ -56,12 +65,15 @@
 (defn create-invitation! [cmd]
   (or (invalid-invitation-type-error cmd)
       (invalid-workflow-error cmd)
+      (invalid-project-error cmd)
       (let [id (invitation/create-invitation! (merge {:invitation/name (:name cmd)
                                                       :invitation/email (:email cmd)
                                                       :invitation/token (secure-token)
                                                       :invitation/invited-by {:userid (:userid cmd)}}
                                                      (when-let [workflow-id (:workflow-id cmd)]
-                                                       {:invitation/workflow {:workflow/id workflow-id}})))]
+                                                       {:invitation/workflow {:workflow/id workflow-id}})
+                                                     (when-let [project-id (:project-id cmd)]
+                                                       {:invitation/project {:project/id project-id}})))]
         (when id
           (email/generate-invitation-emails! (get-invitations-full {:ids [id]})))
         {:success (not (nil? id))
@@ -82,7 +94,13 @@
             (applications/reload-cache!)
             {:success true
              :invitation/workflow {:workflow/id (:id workflow)}})))
-      {:success false
-       :errors [{:key :t.accept-invitation.errors/invalid-invitation-type}]})
+      (if-let [project-id (get-in invitation [:invitation/project :project/id])]
+        (let [project (projects/get-project-by-id-raw project-id)]
+          (do
+            (invitation/accept-invitation! userid token)
+            {:success true
+             :invitation/project {:project/id (:project/id project)}}))
+        {:success false
+         :errors [{:key :t.accept-invitation.errors/invalid-invitation-type}]}))
     {:success false
      :errors [{:key :t.accept-invitation.errors/invalid-token :token token}]}))

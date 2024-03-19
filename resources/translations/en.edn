@@ -448,7 +448,9 @@
                               :message "Dear %1,\n\nThe following applications are waiting for a review from you:\n\n%2\n\nYou can view the applications at %3"
                               :subject "Applications pending review"}
           :workflow-handler-invitation {:message "Dear %1,\n\n%2 has invited you to be a handler of applications of workflow %3.\n\nYou can view the workflow at %4"
-                                        :subject "Invitation to handle applications"}}
+                                        :subject "Invitation to handle applications"}
+          :project-handler-invitation {:message "Dear %1,\n\n%2 has invited you to be a member of project %3.\n\nYou can join the project at %4"
+                                        :subject "Invitation to join project"}}
   :footer "CADRE 5 Safes"
   :form {:accepted-licenses "Accepted terms of use"
          :actions "Actions"

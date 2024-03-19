@@ -12,7 +12,8 @@
 (s/defschema CreateInvitationCommand
   {:name s/Str
    :email s/Str
-   (s/optional-key :workflow-id) s/Int})
+   (s/optional-key :workflow-id) s/Int
+   (s/optional-key :project-id) s/Int})
 
 (s/defschema CreateInvitationResponse
   {:success s/Bool
@@ -28,12 +29,14 @@
    :invitation/created DateTime
    (s/optional-key :invitation/sent) DateTime
    (s/optional-key :invitation/accepted) DateTime
-   (s/optional-key :invitation/workflow) {:workflow/id s/Int}})
+   (s/optional-key :invitation/workflow) {:workflow/id s/Int}
+   (s/optional-key :invitation/project) {:project/id s/Int}})
 
 (s/defschema AcceptInvitationResponse
   {:success s/Bool
    (s/optional-key :errors) [s/Any]
-   (s/optional-key :invitation/workflow) {:workflow/id s/Int}})
+   (s/optional-key :invitation/workflow) {:workflow/id s/Int}
+   (s/optional-key :invitation/project) {:project/id s/Int}})
 
 (def invitations-api
   (context "/invitations" []

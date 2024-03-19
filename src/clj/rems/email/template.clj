@@ -327,3 +327,21 @@
                 (text :t.email/regards)
                 (text :t.email/footer))}))))
 
+(defn project-handler-invitation-email [lang invitation project]
+  (with-language lang
+    (fn []
+      (when project
+        {:to (:invitation/email invitation)
+         :subject (text-format :t.email.project-handler-invitation/subject
+                               (:invitation/name invitation)
+                               (get-in invitation [:invitation/invited-by :name])
+                               (:project/name project)
+                               (invitation-link (:invitation/token invitation)))
+         :body (str
+                (text-format :t.email.project-handler-invitation/message
+                             (:invitation/name invitation)
+                             (get-in invitation [:invitation/invited-by :name])
+                             (:project/name project)
+                             (invitation-link (:invitation/token invitation)))
+                (text :t.email/regards)
+                (text :t.email/footer))}))))
