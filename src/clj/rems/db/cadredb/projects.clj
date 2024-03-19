@@ -20,7 +20,10 @@
           (s/optional-key :project/collaborators) [schema-base/User]
           (s/optional-key :project/applications) [ApplicationIds]
           (s/optional-key :project/end-date) DateTime
+          (s/optional-key :project/start-date) DateTime
           (s/optional-key :project/RAiD) s/Str
+          (s/optional-key :project/description) s/Str
+          (s/optional-key :project/organisations) [schema-base-cadre/ProjectOrganisation]
           (s/optional-key :enabled) s/Bool
           (s/optional-key :archived) s/Bool}))
 

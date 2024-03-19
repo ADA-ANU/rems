@@ -10,6 +10,19 @@
 
 (def ProjectId s/Int) ; used both optionally and as required
 
+(s/defschema ProjectOrganisationRole
+  {:id s/Str
+  :schemaUri s/Str
+  :startDate DateTime
+  (s/optional-key :endDate) DateTime
+})
+
+(s/defschema ProjectOrganisation
+  {:id s/Str
+  :schemaUri s/Str
+  (s/optional-key :role) ProjectOrganisationRole
+})
+
 (s/defschema ProjectApplications
   {:id s/Int})
 
@@ -35,6 +48,9 @@
           (s/optional-key :project/collaborators) [UserWithAttributesCadre]
           (s/optional-key :project/applications) [ProjectApplications]
           (s/optional-key :project/RAiD) s/Str
+          (s/optional-key :project/organisations) [ProjectOrganisation]
+          (s/optional-key :project/start-date) DateTime
+          (s/optional-key :project/description) s/Str
           (s/optional-key :project/end-date) DateTime
           (s/optional-key :enabled) s/Bool
           (s/optional-key :archived) s/Bool}))
@@ -46,6 +62,9 @@
           (s/optional-key :project/collaborators) [UserWithAttributesCadre]
           (s/optional-key :project/applications) [schema/ApplicationRaw]
           (s/optional-key :project/RAiD) s/Str
+          (s/optional-key :project/organisations) [ProjectOrganisation]
+          (s/optional-key :project/start-date) DateTime
+          (s/optional-key :project/description) s/Str
           (s/optional-key :project/end-date) DateTime
           (s/optional-key :enabled) s/Bool
           (s/optional-key :archived) s/Bool}))
