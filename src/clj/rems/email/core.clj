@@ -66,11 +66,24 @@
             (assert project "Can't send invitation, missing project")
             (template/project-handler-invitation-email lang invitation project)))))
 
+(defn- render-revocation-template [invitation]
+  (let [lang (:default-language env)] ; we don't know the preferred languages here since there is no user
+    (when (:invitation/project invitation)
+         (let [project (projects/get-project-by-id-raw (get-in invitation [:invitation/project :project/id]))]
+            (assert project "Can't send revocation, missing project")
+            (template/project-handler-revocation-email lang invitation project)))))
+
 (defn generate-invitation-emails! [invitations]
   (doseq [invitation invitations
           :when (not (:invitation/sent invitation))
           :let [email (render-invitation-template invitation)]]
     (invitation/mail-sent! (:invitation/id invitation))
+    (enqueue-email! email)))
+
+(defn generate-revocation-emails! [invitations]
+  (doseq [invitation invitations
+          :when (not (:invitation/revoked invitation))
+          :let [email (render-revocation-template invitation)]]
     (enqueue-email! email)))
 
 ;;; Email poller

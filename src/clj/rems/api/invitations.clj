@@ -29,6 +29,8 @@
    :invitation/created DateTime
    (s/optional-key :invitation/sent) DateTime
    (s/optional-key :invitation/accepted) DateTime
+   (s/optional-key :invitation/revoked) DateTime
+   (s/optional-key :invitation/revoked-by) schema-base/UserWithAttributes
    (s/optional-key :invitation/workflow) {:workflow/id s/Int}
    (s/optional-key :invitation/project) {:project/id s/Int}})
 
@@ -46,11 +48,13 @@
       :summary "Get invitations"
       :roles +admin-read-roles+
       :query-params [{sent :- (describe s/Bool "whether to include sent invitations") nil}
-                     {accepted :- (describe s/Bool "whether to include accepted invitations") nil}]
+                     {accepted :- (describe s/Bool "whether to include accepted invitations") nil}
+                     {revoked :- (describe s/Bool "whether to include revoked invitations") nil}]
       :return [InvitationResponse]
       (ok (invitation/get-invitations (merge {:userid (getx-user-id)}
                                              (when (some? sent) {:sent sent})
-                                             (when (some? accepted) {:accepted accepted})))))
+                                             (when (some? accepted) {:accepted accepted}
+                                             (when (some? revoked) {:revoked revoked}))))))
 
     (POST "/create" []
       :summary "Create an invitation. The invitation will be sent asynchronously to the recipient."
@@ -58,6 +62,13 @@
       :body [command CreateInvitationCommand]
       :return CreateInvitationResponse
       (ok (invitation/create-invitation! (assoc command :userid (getx-user-id)))))
+
+    (POST "/revoke" []
+      :summary "Revoke an invitation. The revocation will be sent asynchronously to the recipient."
+      :roles +admin-write-roles+
+      :query-params [{id :- (describe s/Int "id of invitation") false}]
+      :return AcceptInvitationResponse
+      (ok (invitation/revoke-invitation! {:userid (getx-user-id) :id id})))
 
     (POST "/accept-invitation" []
       :summary "Accept an invitation. The invitation token will be spent."

@@ -13,6 +13,7 @@
   (when invitation
     (-> invitation
         (update-existing :invitation/invited-by users/join-user)
+        (update-existing :invitation/revoked-by users/join-user)
         (update-existing :invitation/invited-user users/join-user))))
 
 (defn- apply-user-permissions [userid invitation]
@@ -78,6 +79,23 @@
           (email/generate-invitation-emails! (get-invitations-full {:ids [id]})))
         {:success (not (nil? id))
          :invitation/id id})))
+
+(defn revoke-invitation! [{:keys [userid id]}]
+  (if-let [invitation (first (invitation/get-invitations {:ids [id]}))]
+    (if (not (:invitation/revoked invitation))
+        (if-let [project-id (get-in invitation [:invitation/project :project/id])]
+            (let [project (projects/get-project-by-id-raw project-id)]
+                (do
+                    (email/generate-revocation-emails! (get-invitations-full {:ids [id]}))
+                    (invitation/revoke-invitation! userid id)
+                    {:success true
+                         :invitation/project {:project/id (:project/id project)}}))
+            {:success false
+                 :errors [{:key :t.revoke-invitation.errors/invalid-invitation-type}]})
+       {:success false
+           :errors [{:key :t.revoke-invitation.errors.already-revoked}]})
+   {:success false
+     :errors [{:key :t.revoke-invitation.errors/invalid-id :id id}]}))
 
 (defn accept-invitation! [{:keys [userid token]}]
   (if-let [invitation (first (invitation/get-invitations {:token token}))]
