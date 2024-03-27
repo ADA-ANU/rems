@@ -1,5 +1,6 @@
 (ns rems.service.invitation
   (:require [rems.service.util :as util]
+            [rems.service.cadre.util]
             [rems.db.applications :as applications]
             [rems.db.invitation :as invitation]
             [rems.db.users :as users]
@@ -38,7 +39,9 @@
 (defn- invalid-project-error [cmd]
   (when-let [project-id (:project-id cmd)]
     (if-let [project (projects/get-project-by-id-raw project-id)]
-      (let [project (:id project)])
+      (do
+        (rems.service.cadre.util/check-allowed-project! project)
+        (let [project (:id project)]))
       {:success false
        :errors [{:type :t.accept-invitation.errors/invalid-project :project-id project-id}]})))
 
@@ -86,6 +89,7 @@
         (if-let [project-id (get-in invitation [:invitation/project :project/id])]
             (let [project (projects/get-project-by-id-raw project-id)]
                 (do
+                    (rems.service.cadre.util/check-allowed-project! project)
                     (email/generate-revocation-emails! (get-invitations-full {:ids [id]}))
                     (invitation/revoke-invitation! userid id)
                     {:success true

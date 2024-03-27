@@ -58,14 +58,14 @@
 
     (POST "/create" []
       :summary "Create an invitation. The invitation will be sent asynchronously to the recipient."
-      :roles +admin-write-roles+
+      :roles #{:logged-in}
       :body [command CreateInvitationCommand]
       :return CreateInvitationResponse
       (ok (invitation/create-invitation! (assoc command :userid (getx-user-id)))))
 
     (POST "/revoke" []
       :summary "Revoke an invitation. The revocation will be sent asynchronously to the recipient."
-      :roles +admin-write-roles+
+      :roles #{:logged-in}
       :query-params [{id :- (describe s/Int "id of invitation") false}]
       :return AcceptInvitationResponse
       (ok (invitation/revoke-invitation! {:userid (getx-user-id) :id id})))
