@@ -18,7 +18,7 @@
   (str (:cadre-url env) "dsrs/" application-id))
 
 (defn- invitation-link [token]
-  (str (:public-url env) "accept-invitation?token=" token))
+  (str (:cadre-url env) "accept-invitation?token=" token))
 
 (defn- format-application-for-email [application]
   (str
