@@ -66,7 +66,7 @@
 
     (GET "/user-details" request
       :summary "Fetches the details of any user of CADRE platform"
-      :roles #{:owner :organization-owner}
+      :roles #{:owner :organization-owner :handler}
       :query-params [user-email-id :- (describe s/Str "Input the email-id of the user, who details are to be viewed.")]
 
       (when (:log-authentication-details env)
