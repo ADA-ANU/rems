@@ -20,6 +20,7 @@
 (s/defschema ProjectOrganisation
   {:id s/Str
   :schemaUri s/Str
+  :name s/Str
   (s/optional-key :role) ProjectOrganisationRole
 })
 
