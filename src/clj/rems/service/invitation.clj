@@ -65,7 +65,6 @@
        get-invitations
        first))
 
-
 (defn create-invitation! [cmd]
   (or (invalid-invitation-type-error cmd)
       (invalid-workflow-error cmd)
@@ -117,11 +116,15 @@
             {:success true
              :invitation/workflow {:workflow/id (:id workflow)}})))
       (if-let [project-id (get-in invitation [:invitation/project :project/id])]
-        (let [project (projects/get-project-by-id-raw project-id)]
+        (let [cmd (projects/get-project-by-id-raw project-id)]
           (do
             (invitation/accept-invitation! userid token)
+            (projects/update-project! project-id (fn [project] (dissoc project :project/id
+                                                                               :project/invitations
+                                                                               :project/applications)
+                                                               (update project :project/collaborators conj {:userid userid})))
             {:success true
-             :invitation/project {:project/id (:project/id project)}}))
+             :invitation/project {:project/id (:project/id cmd)}}))
         {:success false
          :errors [{:key :t.accept-invitation.errors/invalid-invitation-type}]}))
     {:success false
