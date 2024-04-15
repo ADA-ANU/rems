@@ -76,7 +76,6 @@
        (mapv join-dependencies)))
 
 (defn- parse-project-invitation [raw]
-  (println (get-invitations-full {:project-id (:project/id raw)}))
   (merge
    raw
    {:project/invitations (get-invitations-full {:project-id (:project/id raw)})}))

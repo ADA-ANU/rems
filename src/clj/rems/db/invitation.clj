@@ -42,11 +42,12 @@
       (assoc :invitation/id (:id row))))
 
 (defn get-invitations
-  [{:keys [project-id workflow-id ids token sent accepted revoked]}]
+  [{:keys [project-id workflow-id invited-user-id ids token sent accepted revoked]}]
   (cond->> (db/get-invitations {:ids ids :token token})
     true (map fix-row-from-db)
     workflow-id (filter (comp #{workflow-id} :workflow/id :invitation/workflow))
     project-id (filter (comp #{project-id} :project/id :invitation/project))
+    invited-user-id (filter (comp #{invited-user-id} :userid :invitation/invited-user))
     (some? sent) ((if sent filter remove) :invitation/sent)
     (some? revoked) ((if revoked filter remove) :invitation/revoked)
     (some? accepted) ((if accepted filter remove) :invitation/accepted)))
