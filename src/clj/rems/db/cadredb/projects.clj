@@ -4,6 +4,7 @@
             [rems.json :as json]
             [rems.db.users :as users]
             [rems.db.applications :as applications]
+            [rems.db.invitation :as invitation]
             [rems.schema-base-cadre :as schema-base-cadre]
             [rems.schema-base :as schema-base]
             [schema.core :as s]
@@ -24,6 +25,7 @@
           (s/optional-key :project/RAiD) s/Str
           (s/optional-key :project/description) s/Str
           (s/optional-key :project/organisations) [schema-base-cadre/ProjectOrganisation]
+          (s/optional-key :project/invitations) [schema-base/InvitationResponse]
           (s/optional-key :enabled) s/Bool
           (s/optional-key :archived) s/Bool}))
 
@@ -61,6 +63,24 @@
    raw
    {:project/applications (db/get-applications-for-project! {:id (:project/id raw)})}))
 
+(defn- join-dependencies [invitation]
+    (when invitation
+    (-> invitation
+        (update-existing :invitation/invited-by users/join-user)
+        (update-existing :invitation/revoked-by users/join-user)
+        (update-existing :invitation/invited-user users/join-user))))
+
+(defn- get-invitations-full [cmd]
+  (->> cmd
+       invitation/get-invitations
+       (mapv join-dependencies)))
+
+(defn- parse-project-invitation [raw]
+  (println (get-invitations-full {:project-id (:project/id raw)}))
+  (merge
+   raw
+   {:project/invitations (get-invitations-full {:project-id (:project/id raw)})}))
+
 (defn get-application-projects [application-id]
   (db/get-application-projects {:application application-id}))
 
@@ -68,6 +88,7 @@
   (->> (db/get-projects)
        (mapv parse-project)
        (mapv parse-project-application)
+       (mapv parse-project-invitation)
        (mapv coerce-project-raw)))
 
 (defn get-project-by-id-raw [id]
@@ -75,6 +96,7 @@
     (-> project
         (parse-project)
         (parse-project-application)
+        (parse-project-invitation)
         (coerce-project-raw))))
 
 (defn get-projects []

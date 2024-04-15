@@ -20,20 +20,6 @@
    (s/optional-key :invitation/id) s/Int
    (s/optional-key :errors) [s/Any]})
 
-(s/defschema InvitationResponse
-  {(s/optional-key :invitation/id) s/Int
-   :invitation/name s/Str
-   :invitation/email s/Str
-   :invitation/invited-by schema-base/UserWithAttributes
-   (s/optional-key :invitation/invited-user) schema-base/UserWithAttributes
-   :invitation/created DateTime
-   (s/optional-key :invitation/sent) DateTime
-   (s/optional-key :invitation/accepted) DateTime
-   (s/optional-key :invitation/revoked) DateTime
-   (s/optional-key :invitation/revoked-by) schema-base/UserWithAttributes
-   (s/optional-key :invitation/workflow) {:workflow/id s/Int}
-   (s/optional-key :invitation/project) {:project/id s/Int}})
-
 (s/defschema AcceptInvitationResponse
   {:success s/Bool
    (s/optional-key :errors) [s/Any]
@@ -50,7 +36,7 @@
       :query-params [{sent :- (describe s/Bool "whether to include sent invitations") nil}
                      {accepted :- (describe s/Bool "whether to include accepted invitations") nil}
                      {revoked :- (describe s/Bool "whether to include revoked invitations") nil}]
-      :return [InvitationResponse]
+      :return [schema-base/InvitationResponse]
       (ok (invitation/get-invitations (merge {:userid (getx-user-id)}
                                              (when (some? sent) {:sent sent})
                                              (when (some? accepted) {:accepted accepted}

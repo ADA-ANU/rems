@@ -62,6 +62,7 @@
           (s/optional-key :project/owners) [UserWithAttributesCadre]
           (s/optional-key :project/collaborators) [UserWithAttributesCadre]
           (s/optional-key :project/applications) [schema/ApplicationRaw]
+          (s/optional-key :project/invitations) [schema-base/InvitationResponse]
           (s/optional-key :project/RAiD) s/Str
           (s/optional-key :project/organisations) [ProjectOrganisation]
           (s/optional-key :project/start-date) DateTime

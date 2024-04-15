@@ -119,3 +119,17 @@
 (s/defschema LicenseId
   {:license/id s/Int})
 
+(s/defschema InvitationResponse
+  {(s/optional-key :invitation/id) s/Int
+   (s/optional-key :invitation/token) s/Str
+   :invitation/name s/Str
+   :invitation/email s/Str
+   :invitation/invited-by UserWithAttributes
+   (s/optional-key :invitation/invited-user) UserWithAttributes
+   :invitation/created DateTime
+   (s/optional-key :invitation/sent) DateTime
+   (s/optional-key :invitation/accepted) DateTime
+   (s/optional-key :invitation/revoked) DateTime
+   (s/optional-key :invitation/revoked-by) UserWithAttributes
+   (s/optional-key :invitation/workflow) {:workflow/id s/Int}
+   (s/optional-key :invitation/project) {:project/id s/Int}})
