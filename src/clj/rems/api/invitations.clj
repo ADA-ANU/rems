@@ -40,7 +40,7 @@
       (ok (invitation/get-invitations (merge {:userid (getx-user-id)}
                                              (when (some? sent) {:sent sent})
                                              (when (some? accepted) {:accepted accepted}
-                                             (when (some? revoked) {:revoked revoked}))))))
+                                                   (when (some? revoked) {:revoked revoked}))))))
 
     (GET "/my-invitations" []
       :summary "Get my invitations"

@@ -64,7 +64,7 @@
    {:project/applications (db/get-applications-for-project! {:id (:project/id raw)})}))
 
 (defn- join-dependencies [invitation]
-    (when invitation
+  (when invitation
     (-> invitation
         (update-existing :invitation/invited-by users/join-user)
         (update-existing :invitation/revoked-by users/join-user)

@@ -12,17 +12,15 @@
 
 (s/defschema ProjectOrganisationRole
   {:id s/Str
-  :schemaUri s/Str
-  :startDate DateTime
-  (s/optional-key :endDate) DateTime
-})
+   :schemaUri s/Str
+   :startDate DateTime
+   (s/optional-key :endDate) DateTime})
 
 (s/defschema ProjectOrganisation
   {:id s/Str
-  :schemaUri s/Str
-  :name s/Str
-  (s/optional-key :role) ProjectOrganisationRole
-})
+   :schemaUri s/Str
+   :name s/Str
+   (s/optional-key :role) ProjectOrganisationRole})
 
 (s/defschema ProjectApplications
   {:id s/Int})

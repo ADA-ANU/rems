@@ -85,19 +85,19 @@
 (defn revoke-invitation! [{:keys [userid id]}]
   (if-let [invitation (first (invitation/get-invitations {:ids [id]}))]
     (if (not (:invitation/revoked invitation))
-        (if-let [project-id (get-in invitation [:invitation/project :project/id])]
-            (let [project (projects/get-project-by-id-raw project-id)]
-                (do
-                    (rems.service.cadre.util/check-allowed-project! project)
-                    (email/generate-revocation-emails! (get-invitations-full {:ids [id]}))
-                    (invitation/revoke-invitation! userid id)
-                    {:success true
-                         :invitation/project {:project/id (:project/id project)}}))
-            {:success false
-                 :errors [{:key :t.revoke-invitation.errors/invalid-invitation-type}]})
-       {:success false
-           :errors [{:key :t.revoke-invitation.errors.already-revoked}]})
-   {:success false
+      (if-let [project-id (get-in invitation [:invitation/project :project/id])]
+        (let [project (projects/get-project-by-id-raw project-id)]
+          (do
+            (rems.service.cadre.util/check-allowed-project! project)
+            (email/generate-revocation-emails! (get-invitations-full {:ids [id]}))
+            (invitation/revoke-invitation! userid id)
+            {:success true
+             :invitation/project {:project/id (:project/id project)}}))
+        {:success false
+         :errors [{:key :t.revoke-invitation.errors/invalid-invitation-type}]})
+      {:success false
+       :errors [{:key :t.revoke-invitation.errors.already-revoked}]})
+    {:success false
      :errors [{:key :t.revoke-invitation.errors/invalid-id :id id}]}))
 
 (defn accept-invitation! [{:keys [userid token]}]
@@ -120,9 +120,9 @@
           (do
             (invitation/accept-invitation! userid token)
             (projects/update-project! project-id (fn [project] (dissoc project :project/id
-                                                                               :project/invitations
-                                                                               :project/applications)
-                                                               (update project :project/collaborators conj {:userid userid})))
+                                                                       :project/invitations
+                                                                       :project/applications)
+                                                   (update project :project/collaborators conj {:userid userid})))
             {:success true
              :invitation/project {:project/id (:project/id cmd)}}))
         {:success false
