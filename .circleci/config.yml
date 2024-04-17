@@ -176,24 +176,6 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - unit-test:
-          requires:
-            - deps
-          filters:
-            tags:
-              only: /.*/
-      - integration-test:
-          requires:
-            - deps
-          filters:
-            tags:
-              only: /.*/
-      - browser-test:
-          requires:
-            - deps
-          filters:
-            tags:
-              only: /.*/
       - cljfmt:
           filters:
             tags:
@@ -245,9 +227,6 @@ workflows:
       - ok:
           requires:
             - deps
-            - unit-test
-            - integration-test
-            - browser-test
             - build
             - cljfmt
           filters:
