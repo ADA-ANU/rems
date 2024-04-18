@@ -137,6 +137,7 @@
 (defn set-project! [project]
   (let [stripped-project (-> project
                              (update :project/owners (partial mapv #(select-keys % [:userid])))
+                             (update :project/collaborators (partial mapv #(select-keys % [:userid])))
                              (dissoc :project/applications
                                      :project/invitations)
                              validate-project)]
