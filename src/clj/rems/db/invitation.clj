@@ -41,6 +41,11 @@
       coerce-InvitationData
       (assoc :invitation/id (:id row))))
 
+(defn get-my-invitations
+  [userid]
+  (cond->> (db/get-my-invitations userid)
+    true (map fix-row-from-db)))
+
 (defn get-invitations
   [{:keys [project-id workflow-id invited-user-id ids token sent accepted revoked]}]
   (cond->> (db/get-invitations {:ids ids :token token})

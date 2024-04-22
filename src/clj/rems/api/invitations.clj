@@ -46,7 +46,7 @@
       :summary "Get my invitations"
       :roles #{:logged-in}
       :return [schema-base/InvitationResponse]
-      (ok (invitation/get-invitations {:userid (getx-user-id) :invited-user-id (getx-user-id)})))
+      (ok (invitation/get-my-invitations {:userid (getx-user-id)})))
 
     (POST "/create" []
       :summary "Create an invitation. The invitation will be sent asynchronously to the recipient."

@@ -55,6 +55,9 @@
        get-invitations-full
        (mapv (partial apply-user-permissions (:userid cmd)))))
 
+(defn get-my-invitations [userid]
+  (mapv join-dependencies (invitation/get-my-invitations userid)))
+
 (defn get-invitation-full [id]
   (->> {:ids [id]}
        get-invitations-full

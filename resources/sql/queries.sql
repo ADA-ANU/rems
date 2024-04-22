@@ -761,6 +761,13 @@ VALUES (:invitationdata::jsonb)
 ON CONFLICT (id) DO NOTHING
 RETURNING id;
 
+-- :name get-my-invitations :? :*
+SELECT i.id, i.invitationdata::TEXT
+FROM invitation as i
+JOIN users as u ON (i.invitationdata->>'invitation/email' LIKE u.userattrs->>'email')
+WHERE u.userid = :userid
+ORDER BY i.id ASC;
+
 -- :name get-invitations :? :*
 SELECT id, invitationdata::TEXT
 FROM invitation
