@@ -761,6 +761,45 @@ VALUES (:invitationdata::jsonb)
 ON CONFLICT (id) DO NOTHING
 RETURNING id;
 
+-- :name add-comment! :insert
+INSERT INTO comments (created_by,addressed_to,commenttext,appId)
+VALUES (:userid,:useridto,:commenttext,/*~ (if (:appid params) */ :appid /*~*/ NULL /*~ ) ~*/)
+ON CONFLICT (id) DO NOTHING
+RETURNING id;
+
+-- :name markread-comment! :!
+UPDATE comments
+SET read_at = NOW()
+WHERE id = :id 
+AND read_at IS NULL;
+
+-- :name get-comments :? :*
+SELECT id, appId as appid, created_by, addressed_to, created_at, read_at, commenttext
+FROM comments
+WHERE 1 = 1
+/*~ (when (:useridt params) */
+  AND (addressed_to LIKE :useridt OR created_by LIKE :useridf)
+/*~ ) ~*/
+/*~ (when (:addressed_to params) */
+  AND (addressed_to LIKE :addressed_to)
+/*~ ) ~*/
+/*~ (when (:created_by params) */
+  AND (created_by LIKE :created_by)
+/*~ ) ~*/
+/*~ (when (:appid params) */
+  AND (appId = :appid)
+/*~ ) ~*/
+/*~ (when (and (:markedread params) (true? (:markedread params))) */
+  AND (read_at IS NOT NULL)
+/*~ ) ~*/
+/*~ (when (false? (:markedread params)) */
+  AND (read_at IS NULL)
+/*~ ) ~*/
+/*~ (when (:id params) */
+  AND (id = :id)
+/*~ ) ~*/
+ORDER BY id ASC;
+
 -- :name get-my-invitations :? :*
 SELECT i.id, i.invitationdata::TEXT
 FROM invitation as i

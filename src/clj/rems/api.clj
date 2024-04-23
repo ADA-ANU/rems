@@ -31,6 +31,7 @@
             [rems.cadre-api.moodle-api.my-trainings :refer [my-trainings-api]]
             [rems.cadre-api.partner-api.generic-api :refer [partner-generic-api]]
             [rems.cadre-api.projects :refer [projects-api]]
+            [rems.cadre-api.comments :refer [comments-api]]
             [rems.cadre-api.applications :refer [cadre-applications-api cadre-my-applications-api]]
             [rems.api.workflows :refer [workflows-api]]
             [rems.auth.auth :as auth]
@@ -239,6 +240,7 @@
       projects-api
       cadre-my-applications-api
       cadre-applications-api
+      comments-api
 
       ;; keep this last
       (undocumented not-found-handler)))))
