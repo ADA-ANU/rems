@@ -49,10 +49,10 @@
       :return CommentDataResponse
       (ok (comments/get-comments (merge     (when (some? userid) {:useridt userid})
                                             (when (some? userid) {:useridf userid})
-                             (when (some? markedread) {:markedread markedread})
-                                             (when (some? addressed_to) {:addressed_to addressed_to})
-                                              (when (some? created_by) {:created_by created_by})
-                                                   (when (some? appid) {:appid appid})))))
+                                            (when (some? markedread) {:markedread markedread})
+                                            (when (some? addressed_to) {:addressed_to addressed_to})
+                                            (when (some? created_by) {:created_by created_by})
+                                            (when (some? appid) {:appid appid})))))
 
     (GET "/get-comments-by-appid" []
       :summary "Get comments related to me and this appid"

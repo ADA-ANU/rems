@@ -25,30 +25,30 @@
 
 (defn create-comment! [data]
   (if-let [id (db/add-comment! data)]
-      {:success (not (nil? id))
-       :comment/id (:id id)}
-      {:success false
-       :errors [{:type :t.create-comment.errors/invalid-data}]}))
+    {:success (not (nil? id))
+     :comment/id (:id id)}
+    {:success false
+     :errors [{:type :t.create-comment.errors/invalid-data}]}))
 
 (defn get-comments  [cmd]
   (if-let [comments (db/get-comments cmd)]
-      (if (< 0 (count comments))
-       {:success true
+    (if (< 0 (count comments))
+      {:success true
        :comments (remove-nils comments)}
       {:success false
        :errors [{:type :t.get-comment.errors/no-comments}]})
     {:success false
-       :errors [{:type :t.get-comment.errors/no-comments}]}))
+     :errors [{:type :t.get-comment.errors/no-comments}]}))
 
 (defn markread-comment! [cmd]
   (if-let [comments (db/get-comments cmd)]
-      (if (< 0 (count comments)) 
-        (if (db/markread-comment! cmd)
-            {:success true
-             :comment/id (:id cmd)}
-         {:success false
-           :errors [{:type :t.get-comment.errors/couldnt-update}]})   
+    (if (< 0 (count comments))
+      (if (db/markread-comment! cmd)
+        {:success true
+         :comment/id (:id cmd)}
         {:success false
-           :errors [{:type :t.get-comment.errors/no-comments}]})
+         :errors [{:type :t.get-comment.errors/couldnt-update}]})
+      {:success false
+       :errors [{:type :t.get-comment.errors/no-comments}]})
     {:success false
-           :errors [{:type :t.get-comment.errors/no-comments}]}))
+     :errors [{:type :t.get-comment.errors/no-comments}]}))
