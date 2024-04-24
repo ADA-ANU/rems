@@ -13,7 +13,8 @@
   {:name s/Str
    :email s/Str
    (s/optional-key :workflow-id) s/Int
-   (s/optional-key :project-id) s/Int})
+   (s/optional-key :project-id) s/Int
+   (s/optional-key :role) (describe s/Str "Will add as collaborator by default. Set to 'owner' if you wish to invite as owner")})
 
 (s/defschema CreateInvitationResponse
   {:success s/Bool

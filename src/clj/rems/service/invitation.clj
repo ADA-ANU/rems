@@ -78,6 +78,8 @@
                                                       :invitation/invited-by {:userid (:userid cmd)}}
                                                      (when-let [workflow-id (:workflow-id cmd)]
                                                        {:invitation/workflow {:workflow/id workflow-id}})
+                                                     (when-let [role (:role cmd)]
+                                                       {:invitation/role role})
                                                      (when-let [project-id (:project-id cmd)]
                                                        {:invitation/project {:project/id project-id}})))]
         (when id
@@ -97,10 +99,15 @@
             (rems.service.cadre.util/check-allowed-project! project)
             (email/generate-revocation-emails! (get-invitations-full {:ids [id]}))
             (invitation/revoke-invitation! userid id)
-            (projects/update-project! project-id (fn [project] (-> project
-                                                                   (dissoc :project/invitations
-                                                                           :project/applications)
-                                                                   (update :project/collaborators #(filter-user % (get-in invitation [:invitation/invited-user :userid]))))))
+            (if (= (:invitation/role invitation) "owner")
+              (projects/update-project! project-id (fn [project] (-> project
+                                                                     (dissoc :project/invitations
+                                                                             :project/applications)
+                                                                     (update :project/owners #(filter-user % (get-in invitation [:invitation/invited-user :userid]))))))
+              (projects/update-project! project-id (fn [project] (-> project
+                                                                     (dissoc :project/invitations
+                                                                             :project/applications)
+                                                                     (update :project/collaborators #(filter-user % (get-in invitation [:invitation/invited-user :userid])))))))
             {:success true
              :invitation/project {:project/id (:project/id project)}}))
         {:success false
@@ -129,9 +136,13 @@
         (let [cmd (projects/get-project-by-id-raw project-id)]
           (do
             (invitation/accept-invitation! userid token)
-            (projects/update-project! project-id (fn [project] (dissoc project :project/invitations
-                                                                       :project/applications)
-                                                   (update project :project/collaborators conj {:userid userid})))
+            (if (= (:invitation/role invitation) "owner")
+              (projects/update-project! project-id (fn [project] (dissoc project :project/invitations
+                                                                         :project/applications)
+                                                     (update project :project/owners conj {:userid userid})))
+              (projects/update-project! project-id (fn [project] (dissoc project :project/invitations
+                                                                         :project/applications)
+                                                     (update project :project/collaborators conj {:userid userid}))))
             {:success true
              :invitation/project {:project/id (:project/id cmd)}}))
         {:success false

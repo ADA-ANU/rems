@@ -20,7 +20,8 @@
    (s/optional-key :invitation/revoked) DateTime
    (s/optional-key :invitation/revoked-by) schema-base/User
    (s/optional-key :invitation/workflow) {:workflow/id s/Int}
-   (s/optional-key :invitation/project) {:project/id s/Int}})
+   (s/optional-key :invitation/project) {:project/id s/Int}
+   (s/optional-key :invitation/role) s/Str})
 
 (def ^:private validate-InvitationData
   (s/validator InvitationData))
