@@ -17,6 +17,13 @@
         (update-existing :invitation/revoked-by users/join-user)
         (update-existing :invitation/invited-user users/join-user))))
 
+(defn- join-project [invitation]
+  (if-let [project-id (get-in invitation [:invitation/project :project/id])]
+    (let [project (projects/get-project-by-id-raw project-id)]
+      (-> invitation
+          (update :invitation/project conj {:project/description (:project/description project)}))) invitation))
+
+
 (defn- apply-user-permissions [userid invitation]
   (dissoc invitation :invitation/token))
 
@@ -48,7 +55,8 @@
 (defn get-invitations-full [cmd]
   (->> cmd
        invitation/get-invitations
-       (mapv join-dependencies)))
+       (mapv join-dependencies)
+       (mapv join-project)))
 
 (defn get-invitations [cmd]
   (->> cmd
@@ -56,7 +64,7 @@
        (mapv (partial apply-user-permissions (:userid cmd)))))
 
 (defn get-my-invitations [userid]
-  (mapv join-dependencies (invitation/get-my-invitations userid)))
+  (mapv join-project (mapv join-dependencies (invitation/get-my-invitations userid))))
 
 (defn get-invitation-full [id]
   (->> {:ids [id]}
