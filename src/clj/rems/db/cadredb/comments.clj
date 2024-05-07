@@ -13,7 +13,7 @@
   {:id s/Int
    (s/optional-key :appid) s/Int
    :created_by schema-base/UserWithAttributes
-   (s/optional-key :addressed_to ) schema-base/UserWithAttributes
+   (s/optional-key :addressed_to) schema-base/UserWithAttributes
    :created_at DateTime
    (s/optional-key :read_at) DateTime
    :commenttext s/Str})
@@ -34,26 +34,26 @@
 
 (defn create-comment! [data]
   (cond (:appid data)
-    (if-let [allmyapps (applications/get-my-applications (:userid data))]
-      (if (contains? (set (map :application/id allmyapps)) (:appid data))
+        (if-let [allmyapps (applications/get-my-applications (:userid data))]
+          (if (contains? (set (map :application/id allmyapps)) (:appid data))
+            (if-let [id (db/add-comment! data)]
+              {:success (not (nil? id))
+               :comment/id (:id id)}
+              {:success false
+               :errors [{:type :t.create-comment.errors/invalid-data}]})
+            {:success false
+             :errors [{:type :t.create-comment.errors/no-app-permission}]})
+          {:success false
+           :errors [{:type :t.create-comment.errors/no-app-id}]})
+        (and (:useridto data) (not (:appid data)))
         (if-let [id (db/add-comment! data)]
           {:success (not (nil? id))
            :comment/id (:id id)}
           {:success false
            :errors [{:type :t.create-comment.errors/invalid-data}]})
+        :else
         {:success false
-         :errors [{:type :t.create-comment.errors/no-app-permission}]})
-      {:success false
-       :errors [{:type :t.create-comment.errors/no-app-id}]})
-  (and (:useridto data) (not (:appid data)))
-    (if-let [id (db/add-comment! data)]
-      {:success (not (nil? id))
-       :comment/id (:id id)}
-      {:success false
-       :errors [{:type :t.create-comment.errors/invalid-data}]})
-  :else
-    {:success false
-     :errors [{:type :t.create-comment.errors/invalid-data}]}))
+         :errors [{:type :t.create-comment.errors/invalid-data}]}))
 
 
 (defn get-comments  [cmd]
@@ -71,8 +71,7 @@
     (if (contains? (set (map :application/id allmyapps)) appid)
       (get-comments {:appid appid})
       {:success false
-       :errors [{:type :t.get-app-comments.errors/no-app-comments}]}
-      )
+       :errors [{:type :t.get-app-comments.errors/no-app-comments}]})
     {:success false
      :errors [{:type :t.get-app-comments.errors/no-app-comments}]}))
 
