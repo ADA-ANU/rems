@@ -21,7 +21,7 @@
   (if-let [project-id (get-in invitation [:invitation/project :project/id])]
     (let [project (projects/get-project-by-id-raw project-id)]
       (-> invitation
-          (update :invitation/project conj {:project/description (:project/description project)}))) invitation))
+          (update :invitation/project conj {:project/description (:project/description project)} {:project/name (:project/name project)})))  invitation))
 
 
 (defn- apply-user-permissions [userid invitation]

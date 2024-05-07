@@ -121,7 +121,8 @@
 
 (s/defschema InvitationProject
   {(s/optional-key :project/id) s/Int
-   (s/optional-key :project/description) s/Str})
+   (s/optional-key :project/description) s/Str
+   (s/optional-key :project/name) LocalizedString})
 
 
 (s/defschema InvitationResponse
