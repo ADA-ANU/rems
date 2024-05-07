@@ -763,7 +763,7 @@ RETURNING id;
 
 -- :name add-comment! :insert
 INSERT INTO comments (created_by,addressed_to,commenttext,appId)
-VALUES (:userid,:useridto,:commenttext,/*~ (if (:appid params) */ :appid /*~*/ NULL /*~ ) ~*/)
+VALUES (:userid, /*~ (if (:useridto params) */ :useridto /*~*/ NULL /*~ ) ~*/, :commenttext,/*~ (if (:appid params) */ :appid /*~*/ NULL /*~ ) ~*/)
 ON CONFLICT (id) DO NOTHING
 RETURNING id;
 

@@ -11,22 +11,13 @@
 
 (s/defschema CreateCommentCommand
   {(s/optional-key :appid) s/Int
-   :useridto s/Str
+   (s/optional-key :useridto) s/Str
    :commenttext s/Str})
 
 (s/defschema CommentResponse
   {:success s/Bool
    (s/optional-key :comment/id) s/Int
    (s/optional-key :errors) [s/Any]})
-
-(s/defschema Comment
-  {:id s/Int
-   (s/optional-key :appid) s/Int
-   :created_by s/Str
-   :addressed_to s/Str
-   :created_at DateTime
-   (s/optional-key :read_at) DateTime
-   :commenttext s/Str})
 
 (s/defschema CommentDataResponse
   {:success s/Bool
