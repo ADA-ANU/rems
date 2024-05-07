@@ -33,14 +33,27 @@
         (update-existing :created_by users/get-user))))
 
 (defn create-comment! [data]
-  (if (or (:useridto data) (:appid data))
-  (if-let [id (db/add-comment! data)]
-    {:success (not (nil? id))
-     :comment/id (:id id)}
+  (cond (:appid data)
+    (if-let [allmyapps (applications/get-my-applications (:userid data))]
+      (if (contains? (set (map :application/id allmyapps)) (:appid data))
+        (if-let [id (db/add-comment! data)]
+          {:success (not (nil? id))
+           :comment/id (:id id)}
+          {:success false
+           :errors [{:type :t.create-comment.errors/invalid-data}]})
+        {:success false
+         :errors [{:type :t.create-comment.errors/no-app-permission}]})
+      {:success false
+       :errors [{:type :t.create-comment.errors/no-app-id}]})
+  (and (:useridto data) (not (:appid data)))
+    (if-let [id (db/add-comment! data)]
+      {:success (not (nil? id))
+       :comment/id (:id id)}
+      {:success false
+       :errors [{:type :t.create-comment.errors/invalid-data}]})
+  :else
     {:success false
-     :errors [{:type :t.create-comment.errors/invalid-data}]})
-  {:success false
-  :errors [{:type :t.create-comment.errors/invalid-data}]}))
+     :errors [{:type :t.create-comment.errors/invalid-data}]}))
 
 
 (defn get-comments  [cmd]
@@ -54,7 +67,14 @@
      :errors [{:type :t.get-comment.errors/no-comments}]}))
 
 (defn get-app-comments [appid userid]
-  (get-comments {:appid appid}))
+  (if-let [allmyapps (applications/get-my-applications userid)]
+    (if (contains? (set (map :application/id allmyapps)) appid)
+      (get-comments {:appid appid})
+      {:success false
+       :errors [{:type :t.get-app-comments.errors/no-app-comments}]}
+      )
+    {:success false
+     :errors [{:type :t.get-app-comments.errors/no-app-comments}]}))
 
 (defn markread-comment! [cmd]
   (if-let [comments (db/get-comments cmd)]

@@ -46,11 +46,11 @@
                                             (when (some? appid) {:appid appid})))))
 
     (GET "/get-comments-by-appid" []
-      :summary "Get comments related to me and this appid"
+      :summary "Get comments related to this appid"
       :roles #{:logged-in}
       :query-params [{appid :- (describe s/Int "Application id") false}]
       :return CommentDataResponse
-      (ok (comments/get-comments {:useridf (getx-user-id) :useridt (getx-user-id) :appid appid})))
+      (ok (comments/get-app-comments appid (getx-user-id))))
 
     (GET "/get-my-comments" []
       :summary "Get comments related to me (to and from)"
