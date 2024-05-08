@@ -100,12 +100,12 @@
   (coerce/coercer! Invitation json/coercion-matcher))
 
 (defn- invitation-json [result]
-   (-> (:eventdata result)
-       json/parse-string
-       (dissoc :application/member)
-       (dissoc :event/type)
-       (update-existing :event/actor users/get-user)
-       coerce-Invitation))
+  (-> (:eventdata result)
+      json/parse-string
+      (dissoc :application/member)
+      (dissoc :event/type)
+      (update-existing :event/actor users/get-user)
+      coerce-Invitation))
 
 (defn- filter-with-search [query apps]
   (if (str/blank? query)
