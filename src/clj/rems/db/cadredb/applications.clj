@@ -62,6 +62,9 @@
          (into workflow-licenses)
          (distinct-by :license/id))))
 
+(defn get-my-application-invitations [userid]
+  (db/get-my-application-invitations {:userid userid}))
+
 (defn get-application-by-invitation-token [invitation-token]
   (:id (db/get-application-by-invitation-token {:token invitation-token})))
 

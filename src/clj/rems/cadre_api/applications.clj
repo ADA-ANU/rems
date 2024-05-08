@@ -24,9 +24,12 @@
             [rems.schema-base-cadre :as schema-base-cadre]
             [rems.text :refer [with-language]]
             [rems.util :refer [getx-user-id]]
+            [schema.coerce :as coerce]
+            [rems.json :as json]
             [ring.util.http-response :refer :all]
             [schema.core :as s])
-  (:import java.io.ByteArrayInputStream))
+  (:import java.io.ByteArrayInputStream)
+  (:import (org.joda.time DateTime)))
 
 ;; Response models
 
@@ -51,6 +54,15 @@
 
 (s/defschema Deciders
   [Decider])
+
+(s/defschema Invitation
+  {:invitation/token s/Str
+   :application/id s/Int
+   :event/time DateTime
+   :event/actor schema-base/UserWithAttributes})
+
+(s/defschema Invitations
+  [Invitation])
 
 (s/defschema ApplicationOverviewCadre
   (assoc schema/ApplicationOverview
@@ -82,6 +94,18 @@
          (s/optional-key :duo-codes) [schema-base/DuoCode]))
 
 ;; Api implementation
+
+
+(def ^:private coerce-Invitation
+  (coerce/coercer! Invitation json/coercion-matcher))
+
+(defn- invitation-json [result]
+   (-> (:eventdata result)
+       json/parse-string
+       (dissoc :application/member)
+       (dissoc :event/type)
+       (update-existing :event/actor users/get-user)
+       coerce-Invitation))
 
 (defn- filter-with-search [query apps]
   (if (str/blank? query)
@@ -237,6 +261,13 @@
       :query-params [invitation-token :- (describe s/Str "invitation token")]
       :return AcceptInvitationResult
       (ok (accept-invitation invitation-token)))
+
+    (GET "/invitations" []
+      :summary "Get all my outstading member invitations"
+      :roles #{:logged-in}
+      :return Invitations
+      (ok (->> (applications/get-my-application-invitations (getx-user-id))
+               (map invitation-json))))
 
     (POST "/validate" []
       :summary "Validate the form, like in save, but nothing is saved. NB: At the moment, both errors and validations are identical, but this may not always be so."
