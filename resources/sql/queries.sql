@@ -803,7 +803,7 @@ ORDER BY id ASC;
 -- :name get-my-application-invitations :? :*
 SELECT a.id, a.eventdata::TEXT
 FROM application_event as a
-JOIN users as u ON (a.eventdata->'application/member'->>'email' LIKE u.userattrs->>'email')
+JOIN users as u ON (a.eventdata->'application/member'->>'email' ILIKE u.userattrs->>'email')
 LEFT JOIN application_event as a2 ON (a2.eventdata->>'event/type' LIKE 'application.event/member-joined' AND a2.appid = a.appid AND a2.eventdata->>'event/actor' LIKE u.userid)
 WHERE u.userid = :userid
 AND a.eventdata->>'event/type' LIKE 'application.event/member-invited'
@@ -813,7 +813,7 @@ ORDER BY a.id ASC;
 -- :name get-my-invitations :? :*
 SELECT i.id, i.invitationdata::TEXT
 FROM invitation as i
-JOIN users as u ON (i.invitationdata->>'invitation/email' LIKE u.userattrs->>'email')
+JOIN users as u ON (i.invitationdata->>'invitation/email' ILIKE u.userattrs->>'email')
 WHERE u.userid = :userid
 ORDER BY i.id ASC;
 
