@@ -806,6 +806,7 @@ FROM application_event as a
 JOIN users as u ON (a.eventdata->'application/member'->>'email' LIKE u.userattrs->>'email')
 LEFT JOIN application_event as a2 ON (a2.eventdata->>'event/type' LIKE 'application.event/member-joined' AND a2.appid = a.appid AND a2.eventdata->>'event/actor' LIKE u.userid)
 WHERE u.userid = :userid
+AND a.eventdata->>'event/type' LIKE 'application.event/member-invited'
 AND a2.appid IS NULL
 ORDER BY a.id ASC;
 
