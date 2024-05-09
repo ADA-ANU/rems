@@ -801,13 +801,14 @@ WHERE 1 = 1
 ORDER BY id ASC;
 
 -- :name get-my-application-invitations :? :*
-SELECT a.id, a.eventdata::TEXT
+SELECT a.id, a.eventdata::TEXT, a2.eventdata->>'event/time' as joined, a3.eventdata->>'event/time' as removed, a4.eventdata->>'event/time' as uninvited
 FROM application_event as a
 JOIN users as u ON (a.eventdata->'application/member'->>'email' ILIKE u.userattrs->>'email')
 LEFT JOIN application_event as a2 ON (a2.eventdata->>'event/type' LIKE 'application.event/member-joined' AND a2.appid = a.appid AND a2.eventdata->>'event/actor' LIKE u.userid)
+LEFT JOIN application_event as a3 ON (a3.eventdata->>'event/type' LIKE 'application.event/member-removed' AND a3.appid = a.appid AND a3.eventdata->'application/member'->>'userid' LIKE u.userid)
+LEFT JOIN application_event as a4 ON (a4.eventdata->>'event/type' LIKE 'application.event/member-uninvited' AND a4.appid = a.appid AND a4.eventdata->'application/member'->>'email' ILIKE u.userattrs->>'email')
 WHERE u.userid = :userid
 AND a.eventdata->>'event/type' LIKE 'application.event/member-invited'
-AND a2.appid IS NULL
 ORDER BY a.id ASC;
 
 -- :name get-my-invitations :? :*

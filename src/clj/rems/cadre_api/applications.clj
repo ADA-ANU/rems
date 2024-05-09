@@ -59,7 +59,10 @@
   {:invitation/token s/Str
    :application/id s/Int
    :event/time DateTime
-   :event/actor schema-base/UserWithAttributes})
+   :event/actor schema-base/UserWithAttributes
+   (s/optional-key :joined) DateTime
+   (s/optional-key :removed) DateTime
+   (s/optional-key :uninvited) DateTime})
 
 (s/defschema Invitations
   [Invitation])
@@ -104,6 +107,9 @@
       json/parse-string
       (dissoc :application/member)
       (dissoc :event/type)
+      (cond-> (:joined result) (assoc :joined (:joined result)))
+      (cond-> (:removed result) (assoc :removed (:removed result)))
+      (cond-> (:uninvited result) (assoc :uninvited (:uninvited result)))
       (update-existing :event/actor users/get-user)
       coerce-Invitation))
 
