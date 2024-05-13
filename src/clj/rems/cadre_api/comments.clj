@@ -12,7 +12,8 @@
 (s/defschema CreateCommentCommand
   {(s/optional-key :appid) s/Int
    (s/optional-key :useridto) s/Str
-   :commenttext s/Str})
+   :commenttext s/Str
+   (s/optional-key :attachments) [comments/CommentAttachment]})
 
 (s/defschema CommentResponse
   {:success s/Bool

@@ -762,8 +762,13 @@ ON CONFLICT (id) DO NOTHING
 RETURNING id;
 
 -- :name add-comment! :insert
-INSERT INTO comments (created_by,addressed_to,commenttext,appId)
-VALUES (:userid, /*~ (if (:useridto params) */ :useridto /*~*/ NULL /*~ ) ~*/, :commenttext,/*~ (if (:appid params) */ :appid /*~*/ NULL /*~ ) ~*/)
+INSERT INTO comments (created_by,addressed_to,commenttext,appId,commentattrs)
+VALUES (:userid,
+        /*~ (if (:useridto params) */ :useridto /*~*/ NULL /*~ ) ~*/,
+        :commenttext,
+        /*~ (if (:appid params) */ :appid /*~*/ NULL /*~ ) ~*/,
+        /*~ (if (:commentattrs params) */ :commentattrs::jsonb /*~*/ NULL /*~ ) ~*/
+       )
 ON CONFLICT (id) DO NOTHING
 RETURNING id;
 
@@ -774,7 +779,7 @@ WHERE id = :id
 AND read_at IS NULL;
 
 -- :name get-comments :? :*
-SELECT id, appId as appid, created_by, addressed_to, created_at, read_at, commenttext
+SELECT id, appId as appid, created_by, addressed_to, created_at, read_at, commenttext, commentattrs::TEXT
 FROM comments
 WHERE 1 = 1
 /*~ (when (:useridt params) */

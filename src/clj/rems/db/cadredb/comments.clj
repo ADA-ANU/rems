@@ -9,6 +9,9 @@
             [schema.core :as s])
   (:import [org.joda.time DateTime]))
 
+(s/defschema CommentAttachment
+  {:id s/Int})
+
 (s/defschema Comment
   {:id s/Int
    (s/optional-key :appid) s/Int
@@ -16,7 +19,8 @@
    (s/optional-key :addressed_to) schema-base/UserWithAttributes
    :created_at DateTime
    (s/optional-key :read_at) DateTime
-   :commenttext s/Str})
+   :commenttext s/Str
+   (s/optional-key :attachments) [CommentAttachment]})
 
 (defn- remove-nils [m]
   (let [f (fn [x]
@@ -26,17 +30,26 @@
               x))]
     (clojure.walk/postwalk f m)))
 
+(defn- jsonattach [comm]
+  (if (:attachments comm)
+      (-> comm
+         (assoc :commentattrs (json/generate-string (:attachments comm)))
+         (dissoc :attachments))
+      comm))
+
 (defn- join-dependencies [comm]
   (when comm
     (-> comm
         (update-existing :addressed_to users/get-user)
-        (update-existing :created_by users/get-user))))
+        (update-existing :created_by users/get-user)
+        (cond-> (:commentattrs comm) (assoc :attachments (json/parse-string (:commentattrs comm))))
+        (cond-> (:commentattrs comm) (dissoc :commentattrs)))))
 
 (defn create-comment! [data]
   (cond (:appid data)
         (if-let [allmyapps (applications/get-my-applications (:userid data))]
           (if (contains? (set (map :application/id allmyapps)) (:appid data))
-            (if-let [id (db/add-comment! data)]
+            (if-let [id (db/add-comment! (jsonattach data))]
               {:success (not (nil? id))
                :comment/id (:id id)}
               {:success false
@@ -46,7 +59,7 @@
           {:success false
            :errors [{:type :t.create-comment.errors/no-app-id}]})
         (and (:useridto data) (not (:appid data)))
-        (if-let [id (db/add-comment! data)]
+        (if-let [id (db/add-comment! (jsonattach data))]
           {:success (not (nil? id))
            :comment/id (:id id)}
           {:success false
