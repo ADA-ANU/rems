@@ -32,10 +32,10 @@
 
 (defn- jsonattach [comm]
   (if (:attachments comm)
-      (-> comm
-         (assoc :commentattrs (json/generate-string (:attachments comm)))
-         (dissoc :attachments))
-      comm))
+    (-> comm
+        (assoc :commentattrs (json/generate-string (:attachments comm)))
+        (dissoc :attachments))
+    comm))
 
 (defn- join-dependencies [comm]
   (when comm
