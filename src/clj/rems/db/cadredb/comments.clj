@@ -43,8 +43,8 @@
   (-> comm
       (assoc :commentattrs
              (json/generate-string
-               (merge {:attachments (:attachments comm)}
-                      {:readby (:readby comm)})))
+              (merge {:attachments (:attachments comm)}
+                     {:readby (:readby comm)})))
       (dissoc :attachments)))
 
 (defn- join-dependencies [comm]
@@ -104,30 +104,29 @@
 
 (defn- markread [cmd comm]
   (jsonattach (-> comm
-     (update :readby conj {:userid (:addressed_to cmd) :readat (DateTime/now)})
-  )))
+                  (update :readby conj {:userid (:addressed_to cmd) :readat (DateTime/now)}))))
 
 (defn markread-comment! [cmd]
   (if-let [comments (db/get-comments (dissoc cmd :addressed_to))]
     (if (< 0 (count comments))
       (let [comm (first (remove-nils (mapv join-dependencies comments)))]
-      (if (and (:addressed_to comm) (= (:addressed_to comm) (:addressed_to cmd)))
-        (if (db/markread-comment! cmd)
-          {:success true
-           :comment/id (:id cmd)}
-          {:success false
-           :errors [{:type :t.get-comment.errors/couldnt-update}]})
-        (if-let [allmyapps (applications/get-my-applications (:addressed_to cmd))]
-          (if (contains? (set (map :application/id allmyapps)) (:appid comm))
-            (if (db/update-comment! (markread cmd comm))
-              {:success true
-               :comment/id (:id cmd)}
+        (if (and (:addressed_to comm) (= (:addressed_to comm) (:addressed_to cmd)))
+          (if (db/markread-comment! cmd)
+            {:success true
+             :comment/id (:id cmd)}
+            {:success false
+             :errors [{:type :t.get-comment.errors/couldnt-update}]})
+          (if-let [allmyapps (applications/get-my-applications (:addressed_to cmd))]
+            (if (contains? (set (map :application/id allmyapps)) (:appid comm))
+              (if (db/update-comment! (markread cmd comm))
+                {:success true
+                 :comment/id (:id cmd)}
+                {:success false
+                 :errors [{:type :t.get-comment.errors/couldnt-update}]})
               {:success false
                :errors [{:type :t.get-comment.errors/couldnt-update}]})
             {:success false
-             :errors [{:type :t.get-comment.errors/couldnt-update}]})
-          {:success false
-           :errors [{:type :t.get-comment.errors/couldnt-update}]})))
+             :errors [{:type :t.get-comment.errors/couldnt-update}]})))
       {:success false
        :errors [{:type :t.get-comment.errors/no-comments}]})
     {:success false
