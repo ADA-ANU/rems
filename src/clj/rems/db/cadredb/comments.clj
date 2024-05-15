@@ -6,11 +6,16 @@
             [rems.db.users :as users]
             [medley.core :refer [update-existing]]
             [rems.schema-base :as schema-base]
+            [schema.coerce :as coerce]
             [schema.core :as s])
   (:import [org.joda.time DateTime]))
 
 (s/defschema CommentAttachment
   {:id s/Int})
+
+(s/defschema CommentReadBy
+  {:userid s/Str
+   :readat DateTime})
 
 (s/defschema Comment
   {:id s/Int
@@ -20,7 +25,11 @@
    :created_at DateTime
    (s/optional-key :read_at) DateTime
    :commenttext s/Str
+   (s/optional-key :readby) [CommentReadBy]
    (s/optional-key :attachments) [CommentAttachment]})
+
+(def ^:private coerce-Comment
+  (coerce/coercer! Comment json/coercion-matcher))
 
 (defn- remove-nils [m]
   (let [f (fn [x]
@@ -31,19 +40,23 @@
     (clojure.walk/postwalk f m)))
 
 (defn- jsonattach [comm]
-  (if (:attachments comm)
-    (-> comm
-        (assoc :commentattrs (json/generate-string (:attachments comm)))
-        (dissoc :attachments))
-    comm))
+  (-> comm
+      (assoc :commentattrs
+             (json/generate-string
+               (merge {:attachments (:attachments comm)}
+                      {:readby (:readby comm)})))
+      (dissoc :attachments)))
 
 (defn- join-dependencies [comm]
   (when comm
     (-> comm
         (update-existing :addressed_to users/get-user)
         (update-existing :created_by users/get-user)
-        (cond-> (:commentattrs comm) (assoc :attachments (json/parse-string (:commentattrs comm))))
-        (cond-> (:commentattrs comm) (dissoc :commentattrs)))))
+        (cond-> (:commentattrs comm) (assoc :attachments (:attachments (json/parse-string (:commentattrs comm)))))
+        (cond-> (:commentattrs comm) (assoc :readby (:readby (json/parse-string (:commentattrs comm)))))
+        (cond-> (:commentattrs comm) (dissoc :commentattrs))
+        remove-nils
+        coerce-Comment)))
 
 (defn create-comment! [data]
   (cond (:appid data)
@@ -73,7 +86,7 @@
   (if-let [comments (db/get-comments cmd)]
     (if (< 0 (count comments))
       {:success true
-       :comments (mapv join-dependencies (remove-nils comments))}
+       :comments (remove-nils (mapv join-dependencies comments))}
       {:success false
        :errors [{:type :t.get-comment.errors/no-comments}]})
     {:success false
@@ -88,14 +101,33 @@
     {:success false
      :errors [{:type :t.get-app-comments.errors/no-app-comments}]}))
 
+
+(defn- markread [cmd comm]
+  (jsonattach (-> comm
+     (update :readby conj {:userid (:addressed_to cmd) :readat (DateTime/now)})
+  )))
+
 (defn markread-comment! [cmd]
-  (if-let [comments (db/get-comments cmd)]
+  (if-let [comments (db/get-comments (dissoc cmd :addressed_to))]
     (if (< 0 (count comments))
-      (if (db/markread-comment! cmd)
-        {:success true
-         :comment/id (:id cmd)}
-        {:success false
-         :errors [{:type :t.get-comment.errors/couldnt-update}]})
+      (let [comm (first (remove-nils (mapv join-dependencies comments)))]
+      (if (and (:addressed_to comm) (= (:addressed_to comm) (:addressed_to cmd)))
+        (if (db/markread-comment! cmd)
+          {:success true
+           :comment/id (:id cmd)}
+          {:success false
+           :errors [{:type :t.get-comment.errors/couldnt-update}]})
+        (if-let [allmyapps (applications/get-my-applications (:addressed_to cmd))]
+          (if (contains? (set (map :application/id allmyapps)) (:appid comm))
+            (if (db/update-comment! (markread cmd comm))
+              {:success true
+               :comment/id (:id cmd)}
+              {:success false
+               :errors [{:type :t.get-comment.errors/couldnt-update}]})
+            {:success false
+             :errors [{:type :t.get-comment.errors/couldnt-update}]})
+          {:success false
+           :errors [{:type :t.get-comment.errors/couldnt-update}]})))
       {:success false
        :errors [{:type :t.get-comment.errors/no-comments}]})
     {:success false

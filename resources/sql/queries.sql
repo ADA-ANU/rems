@@ -778,6 +778,11 @@ SET read_at = NOW()
 WHERE id = :id 
 AND read_at IS NULL;
 
+-- :name update-comment! :!
+UPDATE comments
+SET commentattrs = :commentattrs::jsonb
+WHERE id = :id;
+
 -- :name get-comments :? :*
 SELECT id, appId as appid, created_by, addressed_to, created_at, read_at, commenttext, commentattrs::TEXT
 FROM comments
