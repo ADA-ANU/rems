@@ -11,7 +11,8 @@
   (:import [org.joda.time DateTime]))
 
 (s/defschema CommentAttachment
-  {:id s/Int})
+  {:id s/Int
+   (s/optional-key :filename) s/Str})
 
 (s/defschema CommentReadBy
   {:userid s/Str
@@ -58,6 +59,16 @@
         remove-nils
         coerce-Comment)))
 
+(defn- add-attach-fn [att]
+  (when att
+    (-> att
+        (assoc :filename (:filename (db/get-attachment-metadata att))))))
+
+(defn- add-attach-filename [comm]
+  (when comm
+    (-> comm
+        (update-in [:attachments] (partial map add-attach-fn)))))
+
 (defn create-comment! [data]
   (cond (:appid data)
         (if-let [allmyapps (applications/get-my-applications (:userid data))]
@@ -81,12 +92,11 @@
         {:success false
          :errors [{:type :t.create-comment.errors/invalid-data}]}))
 
-
 (defn get-comments  [cmd]
   (if-let [comments (db/get-comments cmd)]
     (if (< 0 (count comments))
       {:success true
-       :comments (remove-nils (mapv join-dependencies comments))}
+       :comments (remove-nils (mapv add-attach-filename (mapv join-dependencies comments)))}
       {:success false
        :errors [{:type :t.get-comment.errors/no-comments}]})
     {:success false
