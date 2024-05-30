@@ -6,8 +6,8 @@
             [cheshire.core :as cheshire-json]))
 
 ;; Append new key-value pair to the map
-(defn append-remaining-key-value-pairs-to-json [existing-map dsr_count dsa_count projects_count]
-  (assoc existing-map :number_projects projects_count :number_dsrs dsr_count :number_dsas dsa_count))
+(defn append-remaining-key-value-pairs-to-json [existing-map dsr_count dsa_count projects_count external_training_count training_count]
+  (assoc existing-map :number_projects projects_count :number_dsrs dsr_count :number_dsas dsa_count :number_external_trainings external_training_count :number_trainings training_count))
 
 (defn fetch-user-profile
   "fetch dashboard - user profile page"
@@ -17,10 +17,12 @@
   (let [userattrs-json (:userattrs (db/get-user-profile {:userid userid}))
         dsr_count (:dsr_count (db/get-dsr-count-for-userprofile {:userid userid}))
         dsa_count (:dsa_count (db/get-dsa-count-for-userprofile {:userid userid}))
+        external_training_count (:external_training_count (db/get-my-trainings-count {:userid userid}))
+        training_count 0
         projects_count (:projects_count (db/get-projects-count-for-userprofile {:userid userid}))]
 
     (if (seq userattrs-json)
-      (cheshire-json/generate-string (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json) dsr_count dsa_count projects_count))
+      (cheshire-json/generate-string (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json) dsr_count dsa_count projects_count external_training_count training_count))
       (cheshire-json/generate-string {}))))
 
 ;; Append new key-value pair to the user dashboard mapping
@@ -43,6 +45,8 @@
   (let [userattrs-json (:userattrs (db/get-user-profile {:userid userid}))
         dsr_count (:dsr_count (db/get-dsr-count-for-userprofile {:userid userid}))
         dsa_count (:dsa_count (db/get-dsa-count-for-userprofile {:userid userid}))
+        external_training_count (:external_training_count (db/get-my-trainings-count {:userid userid}))
+        training_count 0
         projects_count (:projects_count (db/get-projects-count-for-userprofile {:userid userid}))
         datasets_count 0
         projects (db/get-dashboard-projects-tabular-data {:userid userid})
@@ -57,6 +61,8 @@
                                                                     projects_count
                                                                     dsr_count
                                                                     dsa_count
+                                                                    external_training_count
+                                                                    training_count
                                                                     projects
                                                                     dsrs
                                                                     dsas)))
@@ -73,10 +79,12 @@
         userattrs-json (:userattrs (db/get-user-profile {:userid userid}))
         dsr_count (:dsr_count (db/get-dsr-count-for-userprofile {:userid userid}))
         dsa_count (:dsa_count (db/get-dsa-count-for-userprofile {:userid userid}))
+        external_training_count (:external_training_count (db/get-my-trainings-count {:userid userid}))
+        training_count 0
         projects_count (:projects_count (db/get-projects-count-for-userprofile {:userid userid}))]
 
     (if (seq userattrs-json)
-      (cheshire-json/generate-string (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json) dsr_count dsa_count projects_count))
+      (cheshire-json/generate-string (append-remaining-key-value-pairs-to-json (json/parse-string userattrs-json) dsr_count dsa_count projects_count external_training_count training_count))
       (cheshire-json/generate-string {}))))
 
 (defn fetch-logged-in-user-role
