@@ -105,7 +105,7 @@
 
     (GET "/available-owners" []
       :summary "List of available owners"
-      :roles #{:logged-in}
+      :roles #{:owner}
       :return AvailableOwners
       (ok (projects/get-available-owners)))
 
