@@ -113,10 +113,10 @@
       :summary "Fetches training details of the specified user from partner trainings"
       :roles #{:owner :organization-owner :handler}
       :query-params [{organization-short-name :- (describe s/Str "Short name of the organisations") nil}
-                     {partner-platform-user-id :- (describe s/Str "Partner platform user id") nil}]
+                     {user-id :- (describe s/Str "CADRE user id") nil}]
       :return [AddUserTrainingsCommand]
       (ok (get-trainings {:organization-short-name organization-short-name
-                          :partner-platform-user-id partner-platform-user-id})))
+                          :user-id user-id})))
 
     (GET "/trainings/my-training-details" []
       :summary "Fetches training details of the logged in user from partner trainings"

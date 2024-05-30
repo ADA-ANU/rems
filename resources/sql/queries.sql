@@ -1008,10 +1008,11 @@ JOIN users as u on (u.userid = :user-id)
 WHERE LOWER(t.data->>'mail') = LOWER(u.userattrs->>'email');
 
 -- :name get-user-trainings-details :? :*
-SELECT organization_short_name, partner_platform_user_id, data::TEXT as data
-FROM trainings
+SELECT t.organization_short_name, t.partner_platform_user_id, t.data::TEXT as data
+FROM trainings as t
+JOIN users as u on (u.userid = :user-id)
 WHERE organization_short_name = :organization-short-name
-AND partner_platform_user_id = :partner-platform-user-id;
+AND LOWER(t.data->>'mail') = LOWER(u.userattrs->>'email');
 
 -- :name save-user-trainings-details! :!
 INSERT INTO trainings (organization_short_name, partner_platform_user_id, data)
