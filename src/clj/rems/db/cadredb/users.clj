@@ -2,6 +2,7 @@
   (:require [clojure.test :refer :all]
             [rems.db.core :as db]
             [rems.json :as json]
+            [rems.service.cadre.moodle :as moodle]
             [clojure.tools.logging :as log]
             [cheshire.core :as cheshire-json]))
 
@@ -18,7 +19,7 @@
         dsr_count (:dsr_count (db/get-dsr-count-for-userprofile {:userid userid}))
         dsa_count (:dsa_count (db/get-dsa-count-for-userprofile {:userid userid}))
         external_training_count (:external_training_count (db/get-my-trainings-count {:userid userid}))
-        training_count 0
+        training_count (if-let [moodle-user-id (moodle/get-moodle-user userid)] (count (moodle/get-moodle-enrolled-courses moodle-user-id)) 0)
         projects_count (:projects_count (db/get-projects-count-for-userprofile {:userid userid}))]
 
     (if (seq userattrs-json)
@@ -46,7 +47,7 @@
         dsr_count (:dsr_count (db/get-dsr-count-for-userprofile {:userid userid}))
         dsa_count (:dsa_count (db/get-dsa-count-for-userprofile {:userid userid}))
         external_training_count (:external_training_count (db/get-my-trainings-count {:userid userid}))
-        training_count 0
+        training_count (if-let [moodle-user-id (moodle/get-moodle-user userid)] (count (moodle/get-moodle-enrolled-courses moodle-user-id)) 0)
         projects_count (:projects_count (db/get-projects-count-for-userprofile {:userid userid}))
         datasets_count 0
         projects (db/get-dashboard-projects-tabular-data {:userid userid})
@@ -80,7 +81,7 @@
         dsr_count (:dsr_count (db/get-dsr-count-for-userprofile {:userid userid}))
         dsa_count (:dsa_count (db/get-dsa-count-for-userprofile {:userid userid}))
         external_training_count (:external_training_count (db/get-my-trainings-count {:userid userid}))
-        training_count 0
+        training_count (if-let [moodle-user-id (moodle/get-moodle-user userid)] (count (moodle/get-moodle-enrolled-courses moodle-user-id)) 0)
         projects_count (:projects_count (db/get-projects-count-for-userprofile {:userid userid}))]
 
     (if (seq userattrs-json)
