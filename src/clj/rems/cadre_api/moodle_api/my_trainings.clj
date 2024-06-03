@@ -33,6 +33,14 @@
       :return s/Any
       (ok (moodle/get-moodle-course-completed course-id (moodle/get-moodle-user (get-user-id)))))
 
+    (GET "/get-course-completion-status-by-user" request
+      :summary "Get the CADRE Moodle course completion status of a specific user for a specific course."
+      :query-params [{course-id :- (describe s/Str "Input the CADRE Moodle App courseID for which the course completion status needs to be checked.") nil}
+                     {user-id :- (describe s/Str "The user id.") nil}]
+      :roles #{:owner :handler}
+      :return s/Any
+      (ok (moodle/get-moodle-course-completed course-id (moodle/get-moodle-user user-id))))
+
     (POST "/get-course-completion-status" request
       :summary "Get the CADRE Moodle course completion status of a user for a specific course."
       :body [req-body CourseCompletionStatusRequestBody]
