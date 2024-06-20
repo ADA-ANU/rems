@@ -343,6 +343,10 @@ WHERE appid = :application-id;
 DELETE FROM attachment
 WHERE appid = :application;
 
+-- :name delete-application-comments! :!
+DELETE FROM comments
+WHERE appId = :application;
+
 -- :name delete-attachment! :!
 DELETE FROM attachment
 WHERE id = :id;
