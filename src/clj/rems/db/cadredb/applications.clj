@@ -16,6 +16,7 @@
             [rems.db.attachments :as attachments]
             [rems.db.blacklist :as blacklist]
             [rems.db.catalogue :as catalogue]
+            [rems.db.category :as category]
             [rems.db.core :as db]
             [rems.db.csv :as csv]
             [rems.db.events :as events]
@@ -78,6 +79,15 @@
 (def ^:private workflow-cache (cache/ttl-cache-factory {}))
 (def ^:private blacklist-cache (cache/ttl-cache-factory {}))
 
+(defn- join-dependencies-catalogue [item]
+  (when item
+    (-> item
+        (update :categories category/enrich-categories))))
+
+(defn- get-localized-catalogue-item [id]
+  (->> (catalogue/get-localized-catalogue-item id)
+       join-dependencies-catalogue))
+
 (defn empty-injections-cache! []
   (swap! form-template-cache empty)
   (swap! catalogue-item-cache empty)
@@ -90,8 +100,7 @@
 (def fetcher-injections
   {:get-attachments-for-application attachments/get-attachments-for-application
    :get-form-template #(cache/lookup-or-miss form-template-cache % form/get-form-template)
-   :get-catalogue-item #(cache/lookup-or-miss catalogue-item-cache % (fn [id] (catalogue/get-localized-catalogue-item id {:expand-names? true
-                                                                                                                          :expand-resource-data? true})))
+   :get-catalogue-item get-localized-catalogue-item
    :get-config (fn [] env)
    :get-license #(cache/lookup-or-miss license-cache % licenses/get-license)
    :get-user #(cache/lookup-or-miss user-cache % users/get-user)

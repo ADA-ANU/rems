@@ -474,6 +474,7 @@
                      :resource/id (:resource-id item)
                      :catalogue-item/title (localization-for :title item)
                      :catalogue-item/infourl (localization-for :infourl item)
+                     :catalogue-item/categories (:categories item)
                  ;; TODO: remove unused keys
                      :catalogue-item/start (:start item)
                      :catalogue-item/end (:end item)

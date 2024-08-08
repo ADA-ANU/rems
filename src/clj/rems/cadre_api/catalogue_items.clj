@@ -31,6 +31,7 @@
                   (when-not archived {:archived false}))
            (catalogue/get-localized-catalogue-items {:resource resource
                                                      :expand-names? (str/includes? (or expand "") "names")
+                                                     :expand-catalogue-data? true
                                                      :archived archived
                                                      :limit limit
                                                      :offset offset}))))))
