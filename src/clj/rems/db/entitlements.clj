@@ -13,7 +13,8 @@
             [rems.ga4gh :as ga4gh]
             [rems.json :as json]
             [rems.scheduler :as scheduler]
-            [rems.service.ega :as ega]))
+            [rems.service.ega :as ega]
+            [rems.service.comanage :as comanage]))
 
 (defn- get-entitlements-payload [entitlements action]
   (case action
@@ -27,6 +28,15 @@
 
 (defn- post-entitlements! [{:keys [action type entitlements config]}]
   (case type
+    :comanage
+    (when config
+      (try (doseq [entitlement entitlements] ; technically these could be grouped per user & api-key
+             (comanage/entitlement-push action entitlement config))
+           (catch Exception e
+             (log/error "POST failed" e)
+             (or (ex-data e)
+                 {:status "exception"}))))
+
     :ega
     (when config
       (try (doseq [entitlement entitlements] ; technically these could be grouped per user & api-key
