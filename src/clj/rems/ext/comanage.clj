@@ -28,7 +28,7 @@
           id)
         (throw (ex-info "Non-200 status code returned: " {:response response}))))
     (catch Exception e
-      (log/error "Error invoking CoManage API - " "co_group_members.json :" (.getMessage e)))))
+      (log/error "Error invoking CoManage GET API - " "co_group_members.json :" (.getMessage e)))))
 
 
 (defn get-person-id
@@ -45,7 +45,7 @@
           id)
         (throw (ex-info "Non-200 status code returned: " {:response response}))))
     (catch Exception e
-      (log/error "Error invoking CoManage API - " "co_people.json :" (.getMessage e)))))
+      (log/error "Error invoking CoManage GET API - " "co_people.json :" (.getMessage e)))))
 
 (defn get-group-id
   "Get CoManage group id for a given entitlement resource id"
@@ -62,7 +62,7 @@
           id)
         (throw (ex-info "Non-200 status code returned: " {:response response}))))
     (catch Exception e
-      (log/error "Error invoking CoManage API - " "co_groups.json :" (.getMessage e)))))
+      (log/error "Error invoking CoManage GET API - " "co_groups.json :" (.getMessage e)))))
 
 
 (defn post-create-or-update-permissions
@@ -79,7 +79,7 @@
           id)
         (throw (ex-info "Non-200 status code returned: " {:response response}))))
     (catch Exception e
-      (log/error "Error invoking CoManage API - " "co_group_members.json :" (.getMessage e)))))
+      (log/error "Error invoking CoManage POST API - " "co_group_members.json :" (.getMessage e)))))
 
 
 (defn delete-permissions
@@ -92,5 +92,5 @@
         (cogroupmemberid)
         (throw (ex-info "Non-200 status code returned: " {:response response}))))
     (catch Exception e
-      (log/error "Error invoking CoManage API - " "co_group_members.json :" (.getMessage e)))))
+      (log/error "Error invoking CoManage DELETE API - " "co_group_members.json :" (.getMessage e)))))
 
