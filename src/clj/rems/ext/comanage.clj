@@ -20,9 +20,9 @@
     (let [url (str (getx config :comanage-registry-url) "/co_group_members.json?cogroupid=" cogroupid)
           response (http/get url (merge +common-opts+ {:basic-auth [(getx config :comanage-core-api-userid) (getx config :comanage-core-api-key)]}))]
       (if (= 200 (:status response))
-        (let [parsed-json (json/parse-string (:body response))
+        (let [parsed-json (:body response)
               groups (:CoGroupMembers parsed-json)
-              group-members (filter (= copersonid (:Id :Person)) groups)
+              group-members (filterv #(= (:Id (:Person %)) copersonid) groups)
               first-group-member (first group-members)
               id (:Id first-group-member)]
           id)
@@ -38,7 +38,7 @@
     (let [url (str (getx config :comanage-registry-url) "/co_people.json?coid=" (getx config :comanage-registry-coid) "&search.identifier=" userid)
           response (http/get url (merge +common-opts+ {:basic-auth [(getx config :comanage-core-api-userid) (getx config :comanage-core-api-key)]}))]
       (if (= 200 (:status response))
-        (let [parsed-json (json/parse-string (:body response))
+        (let [parsed-json (:body response)
               people (:CoPeople parsed-json)
               person (first people)
               id (:Id person)]
@@ -54,9 +54,9 @@
     (let [url (str (getx config :comanage-registry-url) "/co_groups.json?coid=" (getx config :comanage-registry-coid))
           response (http/get url (merge +common-opts+ {:basic-auth [(getx config :comanage-core-api-userid) (getx config :comanage-core-api-key)]}))]
       (if (= 200 (:status response))
-        (let [parsed-json (json/parse-string (:body response))
+        (let [parsed-json (:body response)
               groups (:CoGroups parsed-json)
-              resource-groups (filter (str/includes? resourceid :Name) groups)
+              resource-groups (filterv #(str/includes? (:Name %) resourceid) groups)
               first-resource-group (first resource-groups)
               id (:Id first-resource-group)]
           id)
@@ -74,7 +74,7 @@
                                          {:basic-auth [(getx config :comanage-core-api-userid) (getx config :comanage-core-api-key)]
                                           :body post}))]
       (if (= 200 (:status response))
-        (let [parsed-json (json/parse-string (:body response))
+        (let [parsed-json (:body response)
               id (:Id parsed-json)]
           id)
         (throw (ex-info "Non-200 status code returned: " {:response response}))))
