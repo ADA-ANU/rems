@@ -20,7 +20,7 @@
    :CoGroupMembers [{:Version "1.0"
                      :CoGroupId (comanage/get-group-id (:resid entitlement) config)
                      :Person {:Type "CO"
-                               :Id (comanage/get-person-id (:userid entitlement) config)}
+                              :Id (comanage/get-person-id (:userid entitlement) config)}
                      :Member true
                      :Owner false}]})
 

@@ -92,6 +92,5 @@
         cogroupmemberid
         (throw (ex-info "Non-200 status code returned: " {:response response}))))
     (catch Exception e
-      (log/error "Error invoking CoManage DELETE API - " "co_group_members.json :" (.getMessage e) (str (getx config :comanage-registry-url) "/co_group_members/" cogroupmemberid ".json")
-))))
+      (log/error "Error invoking CoManage DELETE API - " "co_group_members.json :" (.getMessage e) (str (getx config :comanage-registry-url) "/co_group_members/" cogroupmemberid ".json")))))
 
