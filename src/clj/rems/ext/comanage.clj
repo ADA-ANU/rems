@@ -72,14 +72,14 @@
     (let [url (str (getx config :comanage-registry-url) "/co_group_members.json")
           response (http/post url (merge +common-opts+
                                          {:basic-auth [(getx config :comanage-core-api-userid) (getx config :comanage-core-api-key)]
-                                          :body post}))]
-      (if (= 200 (:status response))
+                                          :body (json/generate-string post)}))]
+      (if (= 201 (:status response))
         (let [parsed-json (:body response)
               id (:Id parsed-json)]
           id)
         (throw (ex-info "Non-200 status code returned: " {:response response}))))
     (catch Exception e
-      (log/error "Error invoking CoManage POST API - " "co_group_members.json :" (.getMessage e)))))
+      (log/error "Error invoking CoManage POST API - " "co_group_members.json :" (.getMessage e) "tried to post: " (json/generate-string post)))))
 
 
 (defn delete-permissions
@@ -87,10 +87,11 @@
   [cogroupmemberid config]
   (try
     (let [url (str (getx config :comanage-registry-url) "/co_group_members/" cogroupmemberid ".json")
-          response (http/delete url (merge +common-opts+ :basic-auth [(getx config :comanage-core-api-userid) (getx config :comanage-core-api-key)]))]
+          response (http/delete url (merge +common-opts+ {:basic-auth [(getx config :comanage-core-api-userid) (getx config :comanage-core-api-key)]}))]
       (if (= 200 (:status response))
-        (cogroupmemberid)
+        cogroupmemberid
         (throw (ex-info "Non-200 status code returned: " {:response response}))))
     (catch Exception e
-      (log/error "Error invoking CoManage DELETE API - " "co_group_members.json :" (.getMessage e)))))
+      (log/error "Error invoking CoManage DELETE API - " "co_group_members.json :" (.getMessage e) (str (getx config :comanage-registry-url) "/co_group_members/" cogroupmemberid ".json")
+))))
 

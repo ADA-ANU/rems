@@ -19,10 +19,10 @@
    :Version "1.0"
    :CoGroupMembers [{:Version "1.0"
                      :CoGroupId (comanage/get-group-id (:resid entitlement) config)
-                     :Person [{:Type "CO"
-                               :Id (comanage/get-person-id (:userid entitlement) config)}]
-                     :Member "true"
-                     :Owner "false"}]})
+                     :Person {:Type "CO"
+                               :Id (comanage/get-person-id (:userid entitlement) config)}
+                     :Member true
+                     :Owner false}]})
 
 (defn entitlement-push [action entitlement config]
   (let [common-fields {:config config}]
@@ -31,5 +31,5 @@
                      (comanage/post-create-or-update-permissions (entitlement->update entitlement config) config)
 
                      :remove
-                     (comanage/delete-permissions (comanage/get-group-member-id (comanage/get-group-id (:resid entitlement) config) (comanage/get-person-id (:userid entitlement) config)) config))]
+                     (comanage/delete-permissions (comanage/get-group-member-id (comanage/get-group-id (:resid entitlement) config) (comanage/get-person-id (:userid entitlement) config) config) config))]
       response)))
