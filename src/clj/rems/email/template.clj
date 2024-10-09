@@ -341,7 +341,7 @@
                 (text-format :t.email.project-handler-invitation/message
                              (:invitation/name invitation)
                              (get-in invitation [:invitation/invited-by :name])
-                             (:project/name project)
+                             (get-in project [:project/name :en])
                              (invitation-link (:invitation/token invitation)))
                 (text :t.email/regards)
                 (text :t.email/footer))}))))
