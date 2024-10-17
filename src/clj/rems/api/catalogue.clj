@@ -59,5 +59,5 @@
       :responses {200 {:schema schema/CatalogueItem}
                   404 {:schema s/Any :description "Not found"}}
       (if-let [it (first (catalogue/get-localized-catalogue-items {:resource resource}))]
-        (ok it)
+        (ok "{\"success\": \"" (:resource) "\"}")
         (not-found-json-response)))))
