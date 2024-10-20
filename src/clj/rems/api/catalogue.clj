@@ -2,7 +2,7 @@
   (:require [compojure.api.sweet :refer :all]
             [rems.api.schema :as schema]
             [rems.service.catalogue :as catalogue]
-            [rems.api.util] ; required for route :roles
+            [rems.api.util :refer [not-found-json-response]] ; required for route :roles
             [rems.auth.util :refer [throw-forbidden throw-unauthorized]]
             [rems.config :refer [env]]
             [rems.common.roles :as roles]
@@ -51,4 +51,13 @@
         (throw-unauthorized)
 
         :else
-        (throw-forbidden)))))
+        (throw-forbidden)))
+
+    (GET "/:resource" []
+      :summary "Get a specific catalogue of item"
+      :path-params [resource :- (describe s/Str "resource id")]
+      :responses {200 {:schema schema/CatalogueItemFound}
+                  404 {:schema s/Any :description "Not found"}}
+      (if-let [it (first (catalogue/get-localized-catalogue-items {:resource resource}))]
+        (ok {:success true})
+        (not-found-json-response)))))
