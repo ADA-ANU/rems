@@ -307,3 +307,5 @@
 (s/defschema DeleteCategoryCommand
   schema-base/CategoryId)
 
+(s/defschema CatalogueItemFound
+  {:success s/Bool})

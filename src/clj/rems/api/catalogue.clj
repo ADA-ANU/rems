@@ -56,8 +56,8 @@
     (GET "/:resource" []
       :summary "Get a specific catalogue of item"
       :path-params [resource :- (describe s/Str "resource id")]
-      :responses {200 {:schema schema/CatalogueItem}
+      :responses {200 {:schema schema/CatalogueItemFound}
                   404 {:schema s/Any :description "Not found"}}
       (if-let [it (first (catalogue/get-localized-catalogue-items {:resource resource}))]
-        (ok "{\"success\": \"" (:resource) "\"}")
+        (ok {:success true })
         (not-found-json-response)))))
