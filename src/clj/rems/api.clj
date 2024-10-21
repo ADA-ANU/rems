@@ -136,7 +136,7 @@
 (def cors-middleware
   #(wrap-cors
     %
-    :access-control-allow-origin #".*"
+    :access-control-allow-origin [#".*ada.edu.au" #".*cadre5safes.org.au" #".*localhost.*"]
     :access-control-allow-methods [:get :put :post :delete]))
 
 (defn- read-only? [request]
