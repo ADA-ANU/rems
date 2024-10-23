@@ -29,6 +29,13 @@
    (s/optional-key :readby) [CommentReadBy]
    (s/optional-key :attachments) [CommentAttachment]})
 
+(defn- comment-application? [application]
+  (some #{:applicant :member :handler :decider} (:application/roles application)))
+
+(defn get-the-applications [user-id]
+  (->> (applications/get-all-applications user-id)
+       (filter comment-application?)))
+
 (def ^:private coerce-Comment
   (coerce/coercer! Comment json/coercion-matcher))
 
@@ -71,7 +78,7 @@
 
 (defn create-comment! [data]
   (cond (:appid data)
-        (if-let [allmyapps (applications/get-my-applications (:userid data))]
+        (if-let [allmyapps (get-the-applications (:userid data))]
           (if (contains? (set (map :application/id allmyapps)) (:appid data))
             (if-let [id (db/add-comment! (jsonattach data))]
               {:success (not (nil? id))
@@ -103,7 +110,7 @@
      :errors [{:type :t.get-comment.errors/no-comments}]}))
 
 (defn get-app-comments [appid userid]
-  (if-let [allmyapps (applications/get-my-applications userid)]
+  (if-let [allmyapps (get-the-applications userid)]
     (if (contains? (set (map :application/id allmyapps)) appid)
       (get-comments {:appid appid})
       {:success false
@@ -126,7 +133,7 @@
              :comment/id (:id cmd)}
             {:success false
              :errors [{:type :t.get-comment.errors/couldnt-update}]})
-          (if-let [allmyapps (applications/get-my-applications (:addressed_to cmd))]
+          (if-let [allmyapps (get-the-applications (:addressed_to cmd))]
             (if (contains? (set (map :application/id allmyapps)) (:appid comm))
               (if (db/update-comment! (markread cmd comm))
                 {:success true
