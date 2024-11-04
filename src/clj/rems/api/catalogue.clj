@@ -53,11 +53,11 @@
         :else
         (throw-forbidden)))
 
-    (GET "/:resource" []
+    (GET "/resource" []
       :summary "Get a specific catalogue of item"
-      :path-params [resource :- (describe s/Str "resource id")]
+      :query-params [{resource :- (describe s/Str "resource id") ""}]
       :responses {200 {:schema schema/CatalogueItemFound}
                   404 {:schema s/Any :description "Not found"}}
-      (if-let [it (first (catalogue/get-localized-catalogue-items {:resource resource}))]
+      (if-let [it (first (catalogue/get-localized-catalogue-items {:resource resource}))]  ; TODO, hotfix because path param fails for string with slashes
         (ok {:success true})
         (not-found-json-response)))))
