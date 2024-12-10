@@ -159,12 +159,13 @@
             (str "failed sending email: " e)))))))
 
 (defn try-send-emails! []
-  (doseq [email (outbox/get-due-entries :email)]
-    (if-let [error (send-email! (:outbox/email email))]
-      (let [email (outbox/attempt-failed! email error)]
-        (when (not (:outbox/next-attempt email))
-          (log/warn "all attempts to send email" (:outbox/id email) "failed")))
-      (outbox/attempt-succeeded! (:outbox/id email)))))
+  (when (and (:smtp-host env) (:smtp-port env))
+    (doseq [email (outbox/get-due-entries :email)]
+      (if-let [error (send-email! (:outbox/email email))]
+        (let [email (outbox/attempt-failed! email error)]
+          (when (not (:outbox/next-attempt email))
+            (log/warn "all attempts to send email" (:outbox/id email) "failed")))
+        (outbox/attempt-succeeded! (:outbox/id email))))))
 
 (mount/defstate email-poller
   :start (scheduler/start! "email-poller" try-send-emails! (Duration/standardSeconds 10))
