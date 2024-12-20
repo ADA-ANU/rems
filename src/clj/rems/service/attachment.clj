@@ -32,7 +32,7 @@
                                         (find-first #(= attachment-id (:attachment/id %))))
             redacted? (= :filename/redacted (:attachment/filename application-attachment))]
         (when (some #{:applicant :member :handler :decider} (:application/roles application)) (assoc-some attachment :attachment/filename (when redacted?
-                                                                                                      "redacted")))
+                                                                                                                                            "redacted")))
         (if (some? application-attachment) ; user can see the attachment
           (assoc-some attachment :attachment/filename (when redacted?
                                                         "redacted"))
