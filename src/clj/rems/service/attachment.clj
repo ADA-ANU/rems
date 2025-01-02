@@ -31,7 +31,7 @@
             application-attachment (->> (:application/attachments application)
                                         (find-first #(= attachment-id (:attachment/id %))))
             redacted? (= :filename/redacted (:attachment/filename application-attachment))]
-        (if (some? application-attachment) ; user can see the attachment
+        (if (some #{:applicant :member :handler :decider} (:application/roles application)) ; user can see all attachments if they are within the application
           (assoc-some attachment :attachment/filename (when redacted?
                                                         "redacted"))
           (throw-forbidden))))))
