@@ -7,6 +7,7 @@
             [rems.auth.util :refer [throw-forbidden]]
             [rems.db.applications :as applications]
             [rems.db.attachments :as attachments]
+            [rems.db.cadredb.comments :as comments]
             [rems.util :refer [getx]]
             [ring.util.http-response :refer [ok content-type header]])
   (:import [java.io ByteArrayInputStream ByteArrayOutputStream]
@@ -30,7 +31,8 @@
       (let [application (applications/get-application-for-user user-id (:application/id attachment))
             application-attachment (->> (:application/attachments application)
                                         (find-first #(= attachment-id (:attachment/id %))))
-            redacted? (= :filename/redacted (:attachment/filename application-attachment))]
+            redacted? (= :filename/redacted (:attachment/filename application-attachment))
+            comments (comments/get-app-comments (:application/id application) user-id)]
         (if (some? application-attachment) ; user can see the attachment
           (assoc-some attachment :attachment/filename (when redacted?
                                                         "redacted"))
