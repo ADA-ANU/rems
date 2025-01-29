@@ -18,6 +18,25 @@
       (header "Content-Disposition" (str "attachment;filename=" (pr-str (:attachment/filename attachment))))
       (content-type (:attachment/type attachment))))
 
+;; Where returned hashmap has the key of the attachment and the value of it's comment id
+(defn extract-comment-hashmap [seq-of-hmaps]
+  (reduce (fn [acc parent]
+            (let [parent-id (:id parent)
+                  attachments (:attachments parent)]
+              (reduce (fn [inner-acc attachment]
+                        (assoc inner-acc (:id attachment) parent-id))
+                      acc
+                      attachments)))
+          {}
+          seq-of-hmaps))
+
+;; Convert sequence of comments to hashmap where :id is the key and the value is the full comment itself
+(defn map-commentid-to-comment [seq-of-hmaps]
+  (reduce (fn [acc item]
+            (assoc acc (:id item) item))
+          {}
+          seq-of-hmaps))
+
 (defn get-application-attachment [user-id attachment-id]
   (let [attachment (attachments/get-attachment attachment-id)]
     (cond
@@ -32,11 +51,20 @@
             application-attachment (->> (:application/attachments application)
                                         (find-first #(= attachment-id (:attachment/id %))))
             redacted? (= :filename/redacted (:attachment/filename application-attachment))
-            comments (comments/get-app-comments (:application/id application) user-id)]
-        (if (some? application-attachment) ; user can see the attachment
-          (assoc-some attachment :attachment/filename (when redacted?
-                                                        "redacted"))
-          (throw-forbidden))))))
+            comments (comments/get-app-comments (:application/id application) user-id)
+            comment-id-hmap (->> (map-commentid-to-comment (:comments comments)))
+            comments-attachments-hmap (->> (extract-comment-hashmap (:comments comments)))]
+        (if (contains? comments-attachments-hmap attachment-id)
+          (let [target-comment (get comment-id-hmap (get comments-attachments-hmap attachment-id))]
+            (if (not (contains? target-comment :addressed_to))
+              (assoc-some attachment :attachment/filename (when redacted? "redacted")) ;; Return attachment
+              (if (= (get-in target-comment [:addressed_to :userid]) user-id)
+                (assoc-some attachment :attachment/filename (when redacted? "redacted")) ;; Return attachment
+                (throw-forbidden))))
+          (if (some? application-attachment) ; user can see the attachment
+            (assoc-some attachment :attachment/filename (when redacted?
+                                                          "redacted"))
+            (throw-forbidden)))))))
 
 (defn add-application-attachment [user-id application-id file]
   (attachments/check-size file)
