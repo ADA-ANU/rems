@@ -33,3 +33,10 @@
                      :remove
                      (comanage/delete-permissions (comanage/get-group-member-id (comanage/get-group-id (:resid entitlement) config) (comanage/get-person-id (:userid entitlement) config) config) config))]
       response)))
+
+(defn get-orcid-identifier [userid]
+  (let [identifier (comanage/get-orcid-identifier (comanage/get-person-id userid env) env)]
+    (if (= nil identifier) false identifier)))
+
+(defn unlink-orcid [userid]
+  (comanage/delete-identifier (comanage/get-orcid-identifier (comanage/get-person-id userid env) env) env))

@@ -47,6 +47,25 @@
     (catch Exception e
       (log/error "Error invoking CoManage GET API - " "co_people.json :" (.getMessage e)))))
 
+
+(defn get-orcid-identifier
+  "Get CoManage identifier for a given copersonid"
+  [copersonid config]
+  (try
+    (let [url (str (getx config :comanage-registry-url) "/identifiers.json?coid=" (getx config :comanage-registry-coid) "&copersonid=" copersonid)
+          response (http/get url (merge +common-opts+ {:basic-auth [(getx config :comanage-core-api-userid) (getx config :comanage-core-api-key)]}))]
+      (if (= 200 (:status response))
+        (let [parsed-json (:body response)
+              identifiers (:Identifiers parsed-json)
+              orcids (filterv #(str/includes? (:Type %) "orcid") identifiers)
+              first-identifier (first orcids)
+              id (:Id first-identifier)]
+          id)
+        (throw (ex-info "Non-200 status code returned: " {:response response}))))
+    (catch Exception e
+      (log/error "Error invoking CoManage GET API - " "identifiers.json :" (.getMessage e)))))
+
+
 (defn get-group-id
   "Get CoManage group id for a given entitlement resource id"
   [resourceid config]
@@ -80,6 +99,19 @@
         (throw (ex-info "Non-200 status code returned: " {:response response}))))
     (catch Exception e
       (log/error "Error invoking CoManage POST API - " "co_group_members.json :" (.getMessage e) "tried to post: " (json/generate-string post)))))
+
+
+(defn delete-identifier
+  "Delete a CoManage identifier"
+  [identifierid config]
+  (try
+    (let [url (str (getx config :comanage-registry-url) "/identifiers/" identifierid ".json")
+          response (http/delete url (merge +common-opts+ {:basic-auth [(getx config :comanage-core-api-userid) (getx config :comanage-core-api-key)]}))]
+      (if (= 200 (:status response))
+        identifierid
+        (throw (ex-info "Non-200 status code returned: " {:response response}))))
+    (catch Exception e
+      (log/error "Error invoking CoManage DELETE API - " "identifiers.json :" (.getMessage e) (str (getx config :comanage-registry-url) "/identifiers/" identifierid ".json")))))
 
 
 (defn delete-permissions
