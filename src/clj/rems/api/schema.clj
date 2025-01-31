@@ -96,6 +96,7 @@
 (s/defschema V2Resource
   {:resource/id s/Int
    :resource/ext-id s/Str
+   :resource/organization s/Str
    :catalogue-item/id s/Int
    :catalogue-item/categories [schema-base/Category]
    :catalogue-item/title schema-base/LocalizedString

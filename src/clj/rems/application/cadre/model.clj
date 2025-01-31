@@ -10,6 +10,7 @@
             [rems.common.util :refer [assoc-some-in conj-vec getx]]
             [rems.permissions :as permissions]
             [rems.json :as json]
+            [rems.db.core :as db]
             [rems.schema-base :as schema-base]
             [schema.coerce :as coerce]
             [rems.ext.duo :as duo]))
@@ -471,6 +472,7 @@
                                   coerce-DuoCodesDb)]
                 (-> {:catalogue-item/id (:catalogue-item/id resource)
                      :resource/ext-id (:resource/ext-id resource)
+                     :resource/organization (:organization (db/get-resource (:resource-id item)))
                      :resource/id (:resource-id item)
                      :catalogue-item/title (localization-for :title item)
                      :catalogue-item/infourl (localization-for :infourl item)
