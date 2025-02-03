@@ -94,3 +94,17 @@
     (catch Exception e
       (log/error "Error invoking CoManage DELETE API - " "co_group_members.json :" (.getMessage e) (str (getx config :comanage-registry-url) "/co_group_members/" cogroupmemberid ".json")))))
 
+
+(defn get-user
+  "Get a given user's ORCiD"
+  [user-id config]
+  (try
+    (let [url (str (getx config :comanage-registry-url) "/api/co/" (getx config :comanage-registry-coid) "/core/v1/people?identifier=" user-id)
+          response (http/get url (merge +common-opts+ {:basic-auth [(getx config :comanage-core-api-userid) (getx config :comanage-core-api-key)]}))]
+      (if (= 200 (:status response))
+        (let [parsed-json (:body response)
+              id (:0 parsed-json)]
+          id)
+        (throw (ex-info "Non-200 status code returned: " {:response response}))))
+    (catch Exception e
+      (log/error "Error invoking CoManage GET API - " (.getMessage e) (str (getx config :comanage-registry-url) "/api/co/" (getx config :comanage-registry-coid) "/core/v1/people?identifier=" user-id)))))
