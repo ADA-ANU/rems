@@ -1,21 +1,44 @@
 (ns rems.cadre-api.cadre-users
-  (:require [compojure.api.sweet :refer :all]
-            [rems.api.util] ; required for route :roles
+  (:require [clojure.string :as str]
+            [compojure.api.sweet :refer :all]
+            [rems.api.util :refer [not-found-json-response]] ; required for route :roles
+            [rems.common.roles :refer [+admin-read-roles+]]
             [rems.config :refer [env]]
+            [rems.service.cadre.util :as utils]
             [rems.ext.comanage :as comanage]
             [ring.util.http-response :refer :all]
+            [schema.core :as s]
             [clojure.tools.logging :as log]
             [rems.util :refer [get-user-id]]))
 
-(def cadre-users-api
-  (context "/cadre-users" []
-    :tags ["cadre-users"]
+(defn handle-identity-response [identity response-json]
+  (if (empty? response-json)
+    (not-found-json-response)
+    (if (str/blank? identity)
+      (ok response-json)
+      (if (nil? (get response-json identity))
+        (not-found-json-response)
+        (ok (get response-json identity))))))
 
-    (GET "/orcid" request
-      :summary "Get orcid of self from comanage-registry-url"
+(def cadre-users-api
+  (context "/identities" []
+    :tags ["identities"]
+
+    (GET "/" request
+      :summary "Get identity information from yourself from comanage-registry-url"
       :roles #{:logged-in}
+      :query-params [{identity :- (describe s/Str "which user identity value to get") nil}]
+      :return s/Any
       (let [user-id (get-user-id)
-            response-json (comanage/get-user user-id env)]
-        {:status 200
-         :headers {"Content-Type" "application/json"}
-         :body response-json}))))
+            response-json (utils/map-type-to-identity (:Identifier (comanage/get-user user-id env)))]
+        (handle-identity-response identity response-json)))
+
+    (GET "/:user" request
+      :summary "Get identity information from a given user by their userid from comanage-registry-url"
+      :roles +admin-read-roles+
+      :path-params [user :- (describe s/Str "return permissions for this user, required")]
+      :query-params [{identity :- (describe s/Str "which user identity value to get") nil}]
+      :return s/Any
+      (let [response-json (utils/map-type-to-identity (:Identifier (comanage/get-user user env)))]
+        (handle-identity-response identity response-json)))))
+          
