@@ -41,4 +41,3 @@
       :return s/Any
       (let [response-json (utils/map-type-to-identity (:Identifier (comanage/get-user user env)))]
         (handle-identity-response identity response-json)))))
-          
