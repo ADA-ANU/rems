@@ -21,15 +21,15 @@
         (ok (get response-json identity))))))
 
 (def cadre-users-api
-  (context "/identities" []
-    :tags ["identities"]
+  (context "/orcid" []
+    :tags ["orcid"]
 
     (GET "/" request
       :summary "Get identity information from yourself from comanage-registry-url"
       :roles #{:logged-in}
-      :query-params [{identity :- (describe s/Str "which user identity value to get") nil}]
       :return s/Any
       (let [user-id (get-user-id)
+            identity "orcid"
             response-json (utils/map-type-to-identity (:Identifier (comanage/get-user user-id env)))]
         (handle-identity-response identity response-json)))
 
@@ -37,7 +37,7 @@
       :summary "Get identity information from a given user by their userid from comanage-registry-url"
       :roles +admin-read-roles+
       :path-params [user :- (describe s/Str "return permissions for this user, required")]
-      :query-params [{identity :- (describe s/Str "which user identity value to get") nil}]
       :return s/Any
-      (let [response-json (utils/map-type-to-identity (:Identifier (comanage/get-user user env)))]
+      (let [identity "orcid"
+            response-json (utils/map-type-to-identity (:Identifier (comanage/get-user user env)))]
         (handle-identity-response identity response-json)))))

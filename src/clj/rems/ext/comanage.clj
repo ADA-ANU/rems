@@ -96,7 +96,7 @@
 
 
 (defn get-user
-  "Get a given user's ORCiD"
+  "Get a given user's identities"
   [user-id config]
   (try
     (let [url (str (getx config :comanage-registry-url) "/api/co/" (getx config :comanage-registry-coid) "/core/v1/people?identifier=" user-id)
