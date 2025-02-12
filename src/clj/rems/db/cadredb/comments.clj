@@ -118,6 +118,19 @@
     {:success false
      :errors [{:type :t.get-app-comments.errors/no-app-comments}]}))
 
+(defn get-comments-only  [cmd]
+  (let [comments (db/get-comments cmd)]
+    (if (< 0 (count comments))
+      (remove-nils (mapv add-attach-filename (mapv join-dependencies comments)))
+      comments)))
+
+(defn get-every-app-comments [userid]
+  (if-let [allmyapps (get-the-applications userid)]
+    (let [app-comments (mapcat #(get-comments-only {:appid %}) (map :application/id allmyapps))]
+      {:success true
+       :comments app-comments})
+    {:success false
+     :errors [{:type :t.get-every-app-comments.errors/no-applications}]}))
 
 (defn- markread [cmd comm]
   (jsonattach (-> comm
