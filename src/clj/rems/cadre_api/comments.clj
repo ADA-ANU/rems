@@ -54,7 +54,7 @@
       (ok (comments/get-app-comments appid (getx-user-id))))
 
     (GET "/get-associated-comments" []
-      :summary "Get all comments which are associated to the given user (same application,)"
+      :summary "Get all comments which are associated to the given user"
       :roles #{:logged-in}
       :return CommentDataResponse
       (ok (comments/get-every-app-comments (getx-user-id))))
