@@ -6,6 +6,7 @@
             [clojure.string :as str]
             [clojure.tools.logging :as log]
             [rems.json :as json]
+            [rems.config :refer [env]]
             [rems.util :refer [getx]]))
 
 (def ^:private +common-opts+
@@ -15,10 +16,10 @@
 
 (defn get-group-member-id
   "Get CoManage group member id for a given co-group-id"
-  [cogroupid copersonid config]
+  [cogroupid copersonid]
   (try
-    (let [url (str (getx config :comanage-registry-url) "/co_group_members.json?cogroupid=" cogroupid)
-          response (http/get url (merge +common-opts+ {:basic-auth [(getx config :comanage-core-api-userid) (getx config :comanage-core-api-key)]}))]
+    (let [url (str (getx env :comanage-registry-url) "/co_group_members.json?cogroupid=" cogroupid)
+          response (http/get url (merge +common-opts+ {:basic-auth [(getx env :comanage-core-api-userid) (getx env :comanage-core-api-key)]}))]
       (if (= 200 (:status response))
         (let [parsed-json (:body response)
               groups (:CoGroupMembers parsed-json)
@@ -33,10 +34,10 @@
 
 (defn get-person-id
   "Get CoManage person id for a given user identifier"
-  [userid config]
+  [userid]
   (try
-    (let [url (str (getx config :comanage-registry-url) "/co_people.json?coid=" (getx config :comanage-registry-coid) "&search.identifier=" userid)
-          response (http/get url (merge +common-opts+ {:basic-auth [(getx config :comanage-core-api-userid) (getx config :comanage-core-api-key)]}))]
+    (let [url (str (getx env :comanage-registry-url) "/co_people.json?coid=" (getx env :comanage-registry-coid) "&search.identifier=" userid)
+          response (http/get url (merge +common-opts+ {:basic-auth [(getx env :comanage-core-api-userid) (getx env :comanage-core-api-key)]}))]
       (if (= 200 (:status response))
         (let [parsed-json (:body response)
               people (:CoPeople parsed-json)
@@ -49,10 +50,10 @@
 
 (defn get-group-id
   "Get CoManage group id for a given entitlement resource id"
-  [resourceid config]
+  [resourceid]
   (try
-    (let [url (str (getx config :comanage-registry-url) "/co_groups.json?coid=" (getx config :comanage-registry-coid))
-          response (http/get url (merge +common-opts+ {:basic-auth [(getx config :comanage-core-api-userid) (getx config :comanage-core-api-key)]}))]
+    (let [url (str (getx env :comanage-registry-url) "/co_groups.json?coid=" (getx env :comanage-registry-coid))
+          response (http/get url (merge +common-opts+ {:basic-auth [(getx env :comanage-core-api-userid) (getx env :comanage-core-api-key)]}))]
       (if (= 200 (:status response))
         (let [parsed-json (:body response)
               groups (:CoGroups parsed-json)
@@ -67,11 +68,11 @@
 
 (defn post-create-or-update-permissions
   "Get add member to comanage group"
-  [post config]
+  [post]
   (try
-    (let [url (str (getx config :comanage-registry-url) "/co_group_members.json")
+    (let [url (str (getx env :comanage-registry-url) "/co_group_members.json")
           response (http/post url (merge +common-opts+
-                                         {:basic-auth [(getx config :comanage-core-api-userid) (getx config :comanage-core-api-key)]
+                                         {:basic-auth [(getx env :comanage-core-api-userid) (getx env :comanage-core-api-key)]
                                           :body (json/generate-string post)}))]
       (if (= 201 (:status response))
         (let [parsed-json (:body response)
@@ -84,27 +85,27 @@
 
 (defn delete-permissions
   "Delete a CoManage group member id"
-  [cogroupmemberid config]
+  [cogroupmemberid]
   (try
-    (let [url (str (getx config :comanage-registry-url) "/co_group_members/" cogroupmemberid ".json")
-          response (http/delete url (merge +common-opts+ {:basic-auth [(getx config :comanage-core-api-userid) (getx config :comanage-core-api-key)]}))]
+    (let [url (str (getx env :comanage-registry-url) "/co_group_members/" cogroupmemberid ".json")
+          response (http/delete url (merge +common-opts+ {:basic-auth [(getx env :comanage-core-api-userid) (getx env :comanage-core-api-key)]}))]
       (if (= 200 (:status response))
         cogroupmemberid
         (throw (ex-info "Non-200 status code returned: " {:response response}))))
     (catch Exception e
-      (log/error "Error invoking CoManage DELETE API - " "co_group_members.json :" (.getMessage e) (str (getx config :comanage-registry-url) "/co_group_members/" cogroupmemberid ".json")))))
+      (log/error "Error invoking CoManage DELETE API - " "co_group_members.json :" (.getMessage e) (str (getx env :comanage-registry-url) "/co_group_members/" cogroupmemberid ".json")))))
 
 
 (defn get-user
   "Get a given user's identities"
-  [user-id config]
+  [user-id]
   (try
-    (let [url (str (getx config :comanage-registry-url) "/api/co/" (getx config :comanage-registry-coid) "/core/v1/people?identifier=" user-id)
-          response (http/get url (merge +common-opts+ {:basic-auth [(getx config :comanage-core-api-userid) (getx config :comanage-core-api-key)]}))]
+    (let [url (str (getx env :comanage-registry-url) "/api/co/" (getx env :comanage-registry-coid) "/core/v1/people?identifier=" user-id)
+          response (http/get url (merge +common-opts+ {:basic-auth [(getx env :comanage-core-api-userid) (getx env :comanage-core-api-key)]}))]
       (if (= 200 (:status response))
         (let [parsed-json (:body response)
               id (:0 parsed-json)]
           id)
         (throw (ex-info "Non-200 status code returned: " {:response response}))))
     (catch Exception e
-      (log/error "Error invoking CoManage GET API - " (.getMessage e) (str (getx config :comanage-registry-url) "/api/co/" (getx config :comanage-registry-coid) "/core/v1/people?identifier=" user-id)))))
+      (log/error "Error invoking CoManage GET API - " (.getMessage e) (str (getx env :comanage-registry-url) "/api/co/" (getx env :comanage-registry-coid) "/core/v1/people?identifier=" user-id)))))

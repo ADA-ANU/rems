@@ -3,7 +3,6 @@
             [compojure.api.sweet :refer :all]
             [rems.api.util :refer [not-found-json-response]] ; required for route :roles
             [rems.common.roles :refer [+admin-read-roles+]]
-            [rems.config :refer [env]]
             [rems.service.cadre.util :as utils]
             [rems.ext.comanage :as comanage]
             [ring.util.http-response :refer :all]
@@ -30,7 +29,7 @@
       :return s/Any
       (let [user-id (get-user-id)
             identity "orcid"
-            response-json (utils/map-type-to-identity (:Identifier (comanage/get-user user-id env)))]
+            response-json (utils/map-type-to-identity (:Identifier (comanage/get-user user-id)))]
         (handle-identity-response identity response-json)))
 
     (GET "/:user" request
@@ -39,5 +38,5 @@
       :path-params [user :- (describe s/Str "return permissions for this user, required")]
       :return s/Any
       (let [identity "orcid"
-            response-json (utils/map-type-to-identity (:Identifier (comanage/get-user user env)))]
+            response-json (utils/map-type-to-identity (:Identifier (comanage/get-user user)))]
         (handle-identity-response identity response-json)))))
