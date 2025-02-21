@@ -253,7 +253,7 @@
       (assoc-in [:params :multipart] {:store (rems.multipart/size-limiting-temp-file-store {:max-size (:attachment-max-size env) :expires-in 3600})})
       ;; ring-defaults sets the cookies with strict same-site limits, but this breaks OpenID Connect logins.
       ;; Different options for using lax cookies are described in the authentication ADR.
-      (assoc-in [:session :cookie-attrs] {:http-only true, :same-site :lax})))
+      (assoc-in [:session :cookie-attrs] {:http-only true, :same-site :lax, :secure true})))
 
 (defn wrap-base [handler]
   (-> handler

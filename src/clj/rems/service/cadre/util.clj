@@ -69,3 +69,10 @@
         (is (not (may-edit-project? proj-bob)))
         (is (not (may-edit-project? proj-carl)))
         (is (not (may-edit-project? proj-bob-carl)))))))
+
+;; Hash-Map Identifier CO-Person Record
+(defn map-type-to-identity [seq-of-hmaps]
+  (reduce (fn [acc item]
+            (assoc acc (:type item) (:identifier item)))
+          {}
+          seq-of-hmaps))
