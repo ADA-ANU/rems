@@ -20,6 +20,18 @@
         (not-found-json-response)
         (ok (get response-json identity))))))
 
+(defn get-identity [identity response-json]
+  (if (empty? response-json)
+    nil
+    (get response-json identity)))
+
+(defn get-user-identity [user-id identity]
+  (get-identity identity (utils/map-type-to-identity (:Identifier (comanage/get-user user-id env)))))
+
+(defn user-orcid-map [user-ids]
+  (let [identity "orcid"]
+    (into {} (map (fn [user-id] [user-id (get-user-identity user-id identity)]) user-ids))))
+
 (def cadre-users-api
   (context "/orcid" []
     :tags ["orcid"]
@@ -33,11 +45,11 @@
             response-json (utils/map-type-to-identity (:Identifier (comanage/get-user user-id env)))]
         (handle-identity-response identity response-json)))
 
-    (GET "/:user" request
+    (GET "/bulk" request
       :summary "Get identity information from a given user by their userid from comanage-registry-url"
       :roles +admin-read-roles+
-      :path-params [user :- (describe s/Str "return permissions for this user, required")]
+      :query-params [{user-ids :- (describe [s/Str] "user ids") ""}]
       :return s/Any
-      (let [identity "orcid"
-            response-json (utils/map-type-to-identity (:Identifier (comanage/get-user user env)))]
-        (handle-identity-response identity response-json)))))
+      (if (empty? user-ids)
+        (not-found-json-response)
+        (ok (user-orcid-map user-ids))))))
