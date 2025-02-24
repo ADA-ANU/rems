@@ -30,7 +30,7 @@
     (get response-json identity)))
 
 (defn get-user-identity [user-id identity]
-  (get-identity identity (utils/map-type-to-identity (:Identifier (comanage/get-user user-id env)))))
+  (get-identity identity (utils/map-type-to-identity (:Identifier (comanage/get-user user-id)))))
 
 (defn user-orcid-map [user-ids]
   (let [identity "orcid"]
