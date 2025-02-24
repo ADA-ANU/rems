@@ -8,6 +8,7 @@
             [cheshire.core :as cheshire-json]
             [rems.json :as json]
             [schema.core :as s]
+            [rems.db.organizations :as organizations]
             [schema.coerce :as coerce]
             [rems.util :refer [getx get-user-id]]
             [rems.db.core :as db]))
@@ -84,13 +85,20 @@
           (log/info "reqbody == " reqbody)
           (log/info "json/generate-string reqbody == " (json/generate-string reqbody)))
         (when reqbody
-          (let [db-response (db/save-user-trainings-details! {:organization-short-name (:organization-short-name reqbody)
-                                                              :partner-platform-user-id ""
-                                                              :data (json/generate-string reqbody)})]
-            (when (:log-authentication-details env)
-              (log/info "db-response == " db-response)
-              (log/info "db-response == " (:flag db-response)))
-            (ok {:success true})))
+          (let [organizations (->> (organizations/get-organizations-raw) (map :organization/id) set)
+                valid-organization? (fn [organization] (contains? organizations (:organization-short-name organization)))]
+            (if (valid-organization? reqbody)
+              (let [db-response (db/save-user-trainings-details! {:organization-short-name (:organization-short-name reqbody)
+                                                                  :partner-platform-user-id ""
+                                                                  :data (json/generate-string reqbody)})]
+                (when (:log-authentication-details env)
+                  (log/info "db-response == " db-response)
+                  (log/info "db-response == " (:flag db-response)))
+                (ok {:success true}))
+              {:status 500
+               :headers {"Content-Type" "Application/json"}
+               :body (cheshire-json/encode {:error {:code "Not Found"
+                                                    :message "Organisation short name not found"}})})))
         (catch Exception e
           (log/error "Error invoking API add-user-training-details :" (.getMessage e))
           (log/error "Type: " (.getClass e))
