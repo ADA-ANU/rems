@@ -99,11 +99,11 @@
               first-identifier (first orcids)
               id (if (nil? first-identifier) nil org)]
           id)
-        (throw (ex-info "Non-200 status code returned: " {:response response}))))
+        (if (= 204 (:status response))
+          nil
+          (throw (ex-info "Non-200 status code returned: " {:response response})))))
     (catch Exception e
       (log/error "Error invoking CoManage GET API - " "identifiers.json :" (.getMessage e)))))
-
-
 
 (defn get-group-id
   "Get CoManage group id for a given entitlement resource id"
