@@ -168,7 +168,7 @@
                 user-data (merge id-data user-info researcher-status)
                 user (find-or-create-user! user-data)]
             (when (:log-authentication-details env)
-              (log/info "logged in" user-data user))
+              (log/info "logged in" access-token id-data user-info researcher-status user))
             (-> (redirect (str (getx env :cadre-url)))
                 (assoc :session (:session request))
                 (assoc-in [:session :access-token] access-token)

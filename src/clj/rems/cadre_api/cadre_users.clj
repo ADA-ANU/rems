@@ -1,15 +1,19 @@
 (ns rems.cadre-api.cadre-users
   (:require [clojure.string :as str]
             [compojure.api.sweet :refer :all]
-            [rems.api.util :refer [not-found-json-response]] ; required for route :roles
+            [rems.api.util :refer [not-found-json-response]]
+            [rems.api.util]
             [rems.common.roles :refer [+admin-read-roles+]]
-            [rems.config :refer [env]]
+            [rems.db.cadredb.users :as users]
             [rems.service.cadre.util :as utils]
-            [rems.ext.comanage :as comanage]
+            [rems.service.comanage :as comanage]
             [ring.util.http-response :refer :all]
-            [schema.core :as s]
+            [rems.api.util :refer [unprocessable-entity-json-response]] ; required for route :roles
             [clojure.tools.logging :as log]
+            [rems.api.schema :as schema]
+            [schema.core :as s]
             [rems.util :refer [get-user-id]]))
+
 
 (defn handle-identity-response [identity response-json]
   (if (empty? response-json)
@@ -42,7 +46,7 @@
       :return s/Any
       (let [user-id (get-user-id)
             identity "orcid"
-            response-json (utils/map-type-to-identity (:Identifier (comanage/get-user user-id env)))]
+            response-json (utils/map-type-to-identity (:Identifier (comanage/get-user user-id)))]
         (handle-identity-response identity response-json)))
 
     (GET "/bulk" request
@@ -52,4 +56,15 @@
       :return s/Any
       (if (empty? user-ids)
         (not-found-json-response)
-        (ok (user-orcid-map user-ids))))))
+        (ok (user-orcid-map user-ids))))
+
+    (POST "/unlink-orcid" []
+      :summary "Unlink orcid record from comanage registry if exists"
+      :roles #{:logged-in}
+      :return schema/SuccessResponse
+      (let [identifier (comanage/get-orcid-org-id (get-user-id))]
+        (if (nil? identifier)
+          (unprocessable-entity-json-response "orcid identifier not found")
+          (if (nil? (comanage/unlink-orcid identifier))
+            (unprocessable-entity-json-response "cannot unlink identifier")
+            (ok {:success true})))))))
