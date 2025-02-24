@@ -8,6 +8,7 @@
             [cheshire.core :as cheshire-json]
             [rems.json :as json]
             [schema.core :as s]
+            [schema.coerce :as coerce]
             [rems.util :refer [getx get-user-id]]
             [rems.db.core :as db]))
 
@@ -26,38 +27,28 @@
 ;; and your handler logic will not be executed.Therefore, the validation errors are not caught in the try/catch block!
 (s/defschema AddUserTrainingsCommand
   {:organization-short-name s/Str
-   :partner-platform-user-id s/Str
-   (s/optional-key :honorific) (s/maybe s/Str)
    :given-name s/Str
-   (s/optional-key :middle-name) (s/maybe s/Str)
    (s/optional-key :family-name) (s/maybe s/Str)
-   (s/optional-key :suffix) (s/maybe s/Str)
-   (s/optional-key :affiliation) (s/maybe s/Str)
-   (s/optional-key :title) (s/maybe s/Str)
-   (s/optional-key :date-of-birth) (s/maybe (s/constrained s/Str valid-date-or-empty? "Must be either null or in the format 'YYYY-MM-DD'"))
    (s/optional-key :valid-from) (s/maybe (s/constrained s/Str valid-date-or-empty? "Must be either null or in the format 'YYYY-MM-DD'"))
    (s/optional-key :valid-through) (s/maybe (s/constrained s/Str valid-date-or-empty? "Must be either null or in the format 'YYYY-MM-DD'"))
-   (s/optional-key :o) (s/maybe s/Str)
-   (s/optional-key :ou) (s/maybe s/Str)
-   (s/optional-key :manager-identifier) (s/maybe s/Str)
-   (s/optional-key :sponsor-identifier) (s/maybe s/Str)
    :mail s/Str
-   (s/optional-key :identifier) (s/maybe s/Str)
-   (s/optional-key :telephone-number) (s/maybe s/Str)
-   (s/optional-key :address) (s/maybe s/Str)
-   (s/optional-key :url) (s/maybe s/Str)
    :courses [CourseData]})
+
+(def ^:private coerce-Trainings
+  (coerce/coercer! AddUserTrainingsCommand json/coercion-matcher))
 
 (defn- parse-trainings [raw]
   (json/parse-string (:data raw)))
 
 (defn get-trainings [query-params]
   (->> (db/get-user-trainings-details query-params)
-       (mapv parse-trainings)))
+       (mapv parse-trainings)
+       (mapv coerce-Trainings)))
 
 (defn get-my-trainings [query-params]
   (->> (db/get-my-trainings-details query-params)
-       (mapv parse-trainings)))
+       (mapv parse-trainings)
+       (mapv coerce-Trainings)))
 
 
 (def partner-generic-api
@@ -90,12 +81,11 @@
         (when (:log-authentication-details env)
           (log/info "#### add-user-training-details ####")
           (log/info "organization-short-name === " (:organization-short-name reqbody))
-          (log/info "partner-platform-user-id === " (:partner-platform-user-id reqbody))
           (log/info "reqbody == " reqbody)
           (log/info "json/generate-string reqbody == " (json/generate-string reqbody)))
         (when reqbody
           (let [db-response (db/save-user-trainings-details! {:organization-short-name (:organization-short-name reqbody)
-                                                              :partner-platform-user-id (:partner-platform-user-id reqbody)
+                                                              :partner-platform-user-id ""
                                                               :data (json/generate-string reqbody)})]
             (when (:log-authentication-details env)
               (log/info "db-response == " db-response)
