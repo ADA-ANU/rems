@@ -33,9 +33,17 @@
                      (comanage/delete-permissions (comanage/get-group-member-id (comanage/get-group-id (:resid entitlement)) (comanage/get-person-id (:userid entitlement)))))]
       response)))
 
-(defn get-orcid-identifier [userid]
-  (let [identifier (comanage/get-orcid-identifier (comanage/get-person-id userid env) env)]
-    (if (= nil identifier) false identifier)))
 
-(defn unlink-orcid [userid]
-  (comanage/delete-identifier (comanage/get-orcid-identifier (comanage/get-person-id userid env) env) env))
+(defn get-orcid-org-id
+  "Get CoManage organisation identity for a user if they have and orcid identifier"
+  [userid]
+  (let [orgs (comanage/get-org-identity-links (comanage/get-person-id userid))]
+    (some #(comanage/get-orcid-identifiers %) orgs)))
+
+(defn unlink-orcid [orglink]
+  (if (= nil (:Id orglink))
+    nil
+    (comanage/unlink-orcid orglink)))
+
+(defn get-user [user-id]
+  (comanage/get-user user-id))
