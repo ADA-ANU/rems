@@ -25,12 +25,12 @@
     nil
     (get response-json identity)))
 
-(defn get-orcid-user-identity [user-id identity]
+(defn get-user-identity [user-id identity]
   (get-identity identity (utils/map-type-to-identity (:Identifier (comanage/get-user user-id env)))))
 
 (defn user-orcid-map [user-ids]
   (let [identity "orcid"]
-    (into {} (map (fn [user-id] [user-id (get-orcid-user-identity user-id identity)]) user-ids))))
+    (into {} (map (fn [user-id] [user-id (get-user-identity user-id identity)]) user-ids))))
 
 (def cadre-users-api
   (context "/orcid" []
@@ -50,7 +50,6 @@
       :roles +admin-read-roles+
       :query-params [{user-ids :- (describe [s/Str] "user ids") ""}]
       :return s/Any
-      (let [identity "orcid"]
-        (if (empty? user-ids)
-          (not-found-json-response)
-          (ok (user-orcid-map user-ids)))))))
+      (if (empty? user-ids)
+        (not-found-json-response)
+        (ok (user-orcid-map user-ids))))))
