@@ -89,7 +89,7 @@
                 valid-organization? (fn [organization] (contains? organizations (:organization-short-name organization)))]
             (if (valid-organization? reqbody)
               (let [db-response (db/save-user-trainings-details! {:organization-short-name (:organization-short-name reqbody)
-                                                                  :partner-platform-user-id ""
+                                                                  :partner-platform-user-id (:mail reqbody) ; key on email address and org shortname
                                                                   :data (json/generate-string reqbody)})]
                 (when (:log-authentication-details env)
                   (log/info "db-response == " db-response)
