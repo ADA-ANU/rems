@@ -179,3 +179,44 @@
         (throw (ex-info "Non-200 status code returned: " {:response response}))))
     (catch Exception e
       (log/error "Error invoking CoManage GET API - " (.getMessage e) (str (getx env :comanage-registry-url) "/api/co/" (getx env :comanage-registry-coid) "/core/v1/people?identifier=" user-id)))))
+
+
+(defn get-terms-and-conditions
+  "Get all of the terms and conditions for the CO"
+  []
+  (try
+    (let [url (str (getx env :comanage-registry-url) "/co_terms_and_conditions.json?coid=" (getx env :comanage-registry-coid))
+          response (http/get url (merge +common-opts+ {:basic-auth [(getx env :comanage-core-api-userid) (getx env :comanage-core-api-key)]}))]
+      (if (= 200 (:status response))
+        (:body response)
+        (throw (ex-info "Non-200 status code returned: " {:response response}))))
+    (catch Exception e
+      (log/error "Error invoking CoManage GET API - " (.getMessage e) (str (getx env :comanage-registry-url) "/co_terms_and_conditions.json?coid=" (getx env :comanage-registry-coid))))))
+
+
+(defn get-accepted-terms-and-conditions
+  "Get a given user's accepted terms and conditions (using their Person Id)"
+  [person-id]
+  (let [url (str (getx env :comanage-registry-url) "/co_t_and_c_agreements.json?copersonid=" (str person-id) "&coid=" (getx env :comanage-registry-coid))]
+    (try
+      (let [response (http/get url (merge +common-opts+ {:basic-auth [(getx env :comanage-core-api-userid) (getx env :comanage-core-api-key)]}))]
+        (if (= 200 (:status response))
+          (:body response)
+          (throw (ex-info "Non-200 status code returned: " {:response response}))))
+      (catch Exception e
+        (log/error "Error invoking CoManage GET API - " (.getMessage e) url)))))
+
+
+(defn post-terms-and-conditions-acceptance
+  "Given a JSON body containing 'CoTAndCAgreements', POST the agreements to CoManage"
+  [post]
+  (let [url (str (getx env :comanage-registry-url) "/co_t_and_c_agreements.json?coid=" (getx env :comanage-registry-coid))]
+    (try
+      (let [response (http/post url (merge +common-opts+
+                                           {:basic-auth [(getx env :comanage-core-api-userid) (getx env :comanage-core-api-key)]
+                                            :body (json/generate-string post)}))]
+        (if (= 201 (:status response))
+          (:body response)
+          (throw (ex-info "Non-200 status code returned: " {:response response}))))
+      (catch Exception e
+        (log/error "Error invoking CoManage GET API - " (.getMessage e) url)))))
