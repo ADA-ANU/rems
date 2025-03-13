@@ -278,6 +278,22 @@
 (defn- my-application? [application]
   (some #{:applicant :member} (:application/roles application)))
 
+(defn- has-catalogue-item?
+  [catalogue-item-id resource]
+  (= catalogue-item-id (:catalogue-item/id resource)))
+
+(defn- catalogue-item-in-application?
+  "True if a particular catalogue item id is in the application"
+  [application catalogue-item-id]
+  (some (partial has-catalogue-item? catalogue-item-id) (:application/resources application)))
+
+(defn duplicate-application?
+  "True if both has a catalogue item id matching and in draft, returned or submitted stage"
+  [catalogue-item-ids application]
+  (and
+   (some (partial = (:application/state application)) [:application.state/draft :application.state/returned :application.state/submitted])
+   (some (partial catalogue-item-in-application? application) catalogue-item-ids)))
+
 (defn get-my-applications [user-id]
   (->> (get-all-applications user-id)
        (filter my-application?)))
