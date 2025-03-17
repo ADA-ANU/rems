@@ -96,7 +96,8 @@
         (let [parsed-json (:body response)
               identifiers (:Identifiers parsed-json)
               orcids (filterv #(str/includes? (:Type %) "orcid") identifiers)
-              first-identifier (first orcids)
+              orcidsenrolled (filterv #(not (str/includes? (:Identifier %) "http")) orcids)
+              first-identifier (first orcidsenrolled)
               id (if (nil? first-identifier) nil org)]
           id)
         (if (= 204 (:status response))
