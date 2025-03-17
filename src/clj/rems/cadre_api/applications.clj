@@ -209,9 +209,9 @@
       :body [request CreateApplicationCommand]
       :return CreateApplicationResponse
       (if (some (partial applications/duplicate-application? (:catalogue-item-ids request)) (applications/get-my-applications (getx-user-id)))
-           (ok {:success false
+        (ok {:success false
              :errors [{:type :must-not-be-duplicate}]})
-           (ok (api-command :application.command/create request))))
+        (ok (api-command :application.command/create request))))
 
     (POST "/copy-as-new" []
       :summary "Create a new application as a copy of an existing application."
