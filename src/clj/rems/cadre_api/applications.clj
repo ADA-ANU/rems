@@ -6,6 +6,7 @@
             [rems.api.schema :as schema]
             [rems.service.attachment :as attachment]
             [rems.service.cadre.command :as command]
+            [rems.service.comanage :as comanage]
             [rems.service.licenses :as licenses]
             [rems.service.cadre.todos :as todos]
             [rems.api.util :as api-util] ; required for route :roles
@@ -208,10 +209,13 @@
       :roles #{:logged-in}
       :body [request CreateApplicationCommand]
       :return CreateApplicationResponse
-      (if (some (partial applications/duplicate-application? (:catalogue-item-ids request)) (applications/get-my-applications (getx-user-id)))
+      (if (not (nil? (comanage/get-outstanding-terms-and-conditions (getx-user-id))))
         (ok {:success false
-             :errors [{:type :must-not-be-duplicate}]})
-        (ok (api-command :application.command/create request))))
+             :errors [{:type :must-accept-terms-and-conditions}]})
+        (if (some (partial applications/duplicate-application? (:catalogue-item-ids request)) (applications/get-my-applications (getx-user-id)))
+          (ok {:success false
+               :errors [{:type :must-not-be-duplicate}]})
+          (ok (api-command :application.command/create request)))))
 
     (POST "/copy-as-new" []
       :summary "Create a new application as a copy of an existing application."

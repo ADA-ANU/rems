@@ -6,7 +6,7 @@
             [ring.util.http-response :refer :all]
             [clojure.tools.logging :as log]
             [cheshire.core :as cheshire-json]
-            [rems.ext.comanage :as comanage]
+            [rems.service.comanage :as comanage]
             [rems.json :as json]
             [rems.util :refer [getx getx-user-id get-user-id]]
             [schema.core :as s]
@@ -20,22 +20,6 @@
 
 (defn is-vector-empty? [v]
   (empty? v))
-
-(defn update-key [m k f & args]
-  (update m k #(apply f % args)))  ;; Apply f with existing value + extra args
-
-(defn update-terms-and-conditions [co-terms-and-conditions accepted-terms]
-  (map #(assoc % :Accepted (contains? accepted-terms (:Id %))) co-terms-and-conditions))
-
-(defn format-terms-and-conditions [ts-and-cs person-id]
-  {:RequestType "CoTAndCAgreements"
-   :Version "1.0"
-   :CoTAndCAgreements (mapv (fn [n]
-                              {:Version "1.0"
-                               :CoTermsAndConditionsId n
-                               :Person {:Type "CO"
-                                        :Id person-id}})
-                            ts-and-cs)})
 
 (def dashboard-api
   (context "/dashboard" []
@@ -68,22 +52,14 @@
       :summary "Get user's terms and conditions"
       :roles #{:logged-in}
       :return s/Any
-      (let [person-id (comanage/get-person-id (get-user-id))
-            terms-and-conditions (comanage/get-terms-and-conditions)
-            accepted-terms (reduce (fn [acc item]
-                                     (assoc acc (:CoTermsAndConditionsId item) item))
-                                   {}
-                                   (:CoTAndCAgreements (comanage/get-accepted-terms-and-conditions person-id)))]
-        (ok (update-key terms-and-conditions :CoTermsAndConditions update-terms-and-conditions accepted-terms))))
+      (ok (comanage/get-terms-and-conditions-with-accepted (get-user-id))))
 
     (POST "/terms-and-conditions" request
       :summary "Accept list of CoTermsAndConditionsId"
       :roles #{:logged-in}
       :body [ts-and-cs AcceptedTermsAndConditions]
       :return s/Any
-      (let [person-id (comanage/get-person-id (get-user-id))
-            post-body (format-terms-and-conditions (:terms-and-conditions ts-and-cs) person-id)]
-        (ok (comanage/post-terms-and-conditions-acceptance post-body))))
+      (ok (comanage/post-terms-and-conditions-acceptance (get-user-id) ts-and-cs)))
 
     (GET "/user-profile" request
       :summary "Fetches the details of the current logged-in user for dashboard purpose"
