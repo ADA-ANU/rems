@@ -10,8 +10,8 @@
             [rems.util :refer [getx]]))
 
 (def ^:private +common-opts+
-  {:socket-timeout 5500
-   :conn-timeout 5500
+  {:socket-timeout 9500
+   :conn-timeout 9500
    :as :json})
 
 (defn get-group-member-id
