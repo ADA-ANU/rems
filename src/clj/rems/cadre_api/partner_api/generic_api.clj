@@ -13,7 +13,12 @@
             [rems.util :refer [getx get-user-id]]
             [rems.db.core :as db]))
 
+
 (def YYYY-MM-DD-regex #"\d{4}-\d{2}-\d{2}")
+
+(defn valid-email? [email]
+  (let [pattern #"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?"]
+    (and (string? email) (re-matches pattern email))))
 
 (defn valid-date-or-empty? [str]
   (or (empty? str) (re-matches YYYY-MM-DD-regex str)))
@@ -87,18 +92,24 @@
         (when reqbody
           (let [organizations (->> (organizations/get-organizations-raw) (map :organization/id) set)
                 valid-organization? (fn [organization] (contains? organizations (:organization-short-name organization)))]
-            (if (valid-organization? reqbody)
-              (let [db-response (db/save-user-trainings-details! {:organization-short-name (:organization-short-name reqbody)
-                                                                  :partner-platform-user-id (:mail reqbody) ; key on email address and org shortname
-                                                                  :data (json/generate-string reqbody)})]
-                (when (:log-authentication-details env)
-                  (log/info "db-response == " db-response)
-                  (log/info "db-response == " (:flag db-response)))
-                (ok {:success true}))
+            (if (valid-email? (:mail reqbody))
+              (if (valid-organization? reqbody)
+                (let [db-response (db/save-user-trainings-details! {:organization-short-name (:organization-short-name reqbody)
+                                                                    :partner-platform-user-id (:mail reqbody) ; key on email address and org shortname
+                                                                    :data (json/generate-string reqbody)})]
+                  (when (:log-authentication-details env)
+                    (log/info "db-response == " db-response)
+                    (log/info "db-response == " (:flag db-response)))
+                  (ok {:success true}))
+                {:status 500
+                 :headers {"Content-Type" "Application/json"}
+                 :body (cheshire-json/encode {:error {:code "Not Found"
+                                                      :message "Organisation short name not found"}})})
               {:status 500
                :headers {"Content-Type" "Application/json"}
-               :body (cheshire-json/encode {:error {:code "Not Found"
-                                                    :message "Organisation short name not found"}})})))
+               :body (cheshire-json/encode {:error {:code "Invalid email"
+                                                    :message "Email address is not valid"}})})))
+
         (catch Exception e
           (log/error "Error invoking API add-user-training-details :" (.getMessage e))
           (log/error "Type: " (.getClass e))
