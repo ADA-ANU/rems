@@ -5,6 +5,7 @@
             [rems.config :refer [env]]
             [ring.util.http-response :refer :all]
             [clojure.tools.logging :as log]
+            [clojure.string :as str]
             [cheshire.core :as cheshire-json]
             [rems.json :as json]
             [schema.core :as s]
@@ -17,7 +18,7 @@
 (def YYYY-MM-DD-regex #"\d{4}-\d{2}-\d{2}")
 
 (defn valid-email? [email]
-  (let [pattern #"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?"]
+  (let [pattern #"[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?"]
     (and (string? email) (re-matches pattern email))))
 
 (defn valid-date-or-empty? [str]
@@ -95,8 +96,8 @@
             (if (valid-email? (:mail reqbody))
               (if (valid-organization? reqbody)
                 (let [db-response (db/save-user-trainings-details! {:organization-short-name (:organization-short-name reqbody)
-                                                                    :partner-platform-user-id (:mail reqbody) ; key on email address and org shortname
-                                                                    :data (json/generate-string reqbody)})]
+                                                                    :partner-platform-user-id (str/lower-case (:mail reqbody)) ; key on email address and org shortname
+                                                                    :data (json/generate-string (assoc reqbody :mail (str/lower-case (:mail reqbody))))})]
                   (when (:log-authentication-details env)
                     (log/info "db-response == " db-response)
                     (log/info "db-response == " (:flag db-response)))
