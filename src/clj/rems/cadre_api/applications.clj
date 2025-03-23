@@ -225,7 +225,10 @@
       (if (some (partial = (:application/state (applications/get-application (:application-id request)))) [:application.state/draft :application.state/returned :application.state/submitted])
         (ok {:success false
              :errors [{:type :must-not-be-duplicate}]})
-        (ok (api-command :application.command/copy-as-new request))))
+        (if (some (partial applications/duplicate-application? (mapv :catalogue-item/id (:application/resources (applications/get-application (:application-id request))))) (applications/get-my-applications (getx-user-id)))
+          (ok {:success false
+               :errors [{:type :must-not-be-duplicate}]})
+          (ok (api-command :application.command/copy-as-new request)))))
 
     (GET "/reviewers" []
       :summary "Available reviewers"
