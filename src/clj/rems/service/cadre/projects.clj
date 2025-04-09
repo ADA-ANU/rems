@@ -12,16 +12,9 @@
 
 (defn- apply-user-permissions [userid projects]
   (let [user-roles (set/union (roles/get-roles userid)
-                              (projects/get-all-project-roles userid)
                               (applications/get-all-application-roles userid))
-        can-see-all? (some? (some #{:owner :project-owner :handler :reporter} user-roles))]
-    (for [proj projects]
-      (if (or (nil? userid) can-see-all?)
-        proj
-        (dissoc proj
-                :project/owners
-                :enabled
-                :archived)))))
+        can-see-all? (some? (some #{:owner :handler :reporter} user-roles))]
+    (filter #(or (nil? userid) can-see-all? (rems.service.cadre.util/may-view-projects? userid %)) projects)))
 
 (defn- owner-filter-match? [owner proj]
   (or (nil? owner) ; return all when not specified

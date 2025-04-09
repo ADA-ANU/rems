@@ -5,6 +5,16 @@
             [rems.context :as context]
             [rems.util :refer [getx-user-id]]))
 
+(defn may-view-projects? [userid project]
+  (let [owner? (contains? context/*roles* :owner)
+        project-owners (set (map :userid (:project/owners project)))
+        project-owner? (contains? project-owners userid)
+        project-collaborators (set (map :userid (:project/collaborators project)))
+        project-collaborators? (contains? project-collaborators userid)]
+    (or owner?
+        project-owner?
+        project-collaborators?)))
+
 (defn- may-edit-project? [project]
   (let [owner? (contains? context/*roles* :owner)
         project-owners (set (map :userid (:project/owners project)))
