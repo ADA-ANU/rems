@@ -58,6 +58,7 @@
       :query-params [{resource :- (describe s/Str "resource id") ""}]
       :responses {200 {:schema schema/CatalogueItemFound}
                   404 {:schema s/Any :description "Not found"}}
-      (if-let [it (first (catalogue/get-localized-catalogue-items {:resource resource}))]  ; TODO, hotfix because path param fails for string with slashes
+      (if-let [it (first (catalogue/get-localized-catalogue-items {:resource resource
+                                                                   :enabled true}))]  ; TODO, hotfix because path param fails for string with slashes
         (ok {:success true})
         (not-found-json-response)))))
