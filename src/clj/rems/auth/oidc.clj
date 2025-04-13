@@ -125,11 +125,11 @@
         code (get-in request [:params :code])]
     (cond error
           (do (log/warn "Login error in oidc-callback" (pr-str error))
-              (redirect "/error?key=:t.login.errors/unknown"))
+              (redirect (str (getx env :cadre-url) "/error?error=" error)))
 
           (str/blank? code)
           (do (log/warn "Missing code in oidc-callback" (pr-str code))
-              (redirect "/error?key=:t.login.errors/unknown"))
+              (redirect (str (getx env :cadre-url) "/error")))
 
           :else
           (let [response (-> (http/post (:token_endpoint oidc-configuration)
