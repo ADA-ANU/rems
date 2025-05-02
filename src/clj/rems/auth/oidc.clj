@@ -153,13 +153,14 @@
                 id-token (:id_token response)
                 issuer (:issuer oidc-configuration)
                 audience (getx env :oidc-client-id)
+                leeway (try (getx env :oidc-jwt-leeway) (catch Exception e 30))
                 now (Instant/now)
                 ;; id-data has keys:
                 ;; sub – unique ID
                 ;; name - non-unique name
                 ;; locale – could be used to set preferred lang on first login
                 ;; email – non-unique (!) email
-                id-data (jwt/validate id-token issuer audience now)
+                id-data (jwt/validate id-token issuer audience now leeway)
                 user-info (when-let [url (:userinfo_endpoint oidc-configuration)]
                             (-> (http/get url {:headers {"Authorization" (str "Bearer " access-token)}})
                                 :body
