@@ -153,7 +153,7 @@
                 id-token (:id_token response)
                 issuer (:issuer oidc-configuration)
                 audience (getx env :oidc-client-id)
-                leeway (getx env :oidc-jwt-leeway)
+                leeway (try (getx env :oidc-jwt-leeway) (catch Exception e 30))
                 now (Instant/now)
                 ;; id-data has keys:
                 ;; sub – unique ID
