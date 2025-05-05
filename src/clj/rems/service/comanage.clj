@@ -4,10 +4,10 @@
             [clojure.string :as str]
             [clojure.test :refer [deftest is]]
             [clojure.tools.logging :as log]
+            [rems.config :refer [env]]
             [medley.core :refer [find-first]]
             [rems.ext.comanage :as comanage]
             [rems.util :refer [getx]]))
-
 
 
 (defn- update-key [m k f & args]
@@ -42,15 +42,15 @@
                      :Owner false}]})
 
 (defn entitlement-push [action entitlement config]
-  (let [common-fields {:config config}]
-    (let [response (case action
-                     :add
-                     (comanage/post-create-or-update-permissions (entitlement->update entitlement config))
-
-                     :remove
-                     (comanage/delete-permissions (comanage/get-group-member-id (comanage/get-group-id (:resid entitlement)) (comanage/get-person-id (:userid entitlement)))))]
-      response)))
-
+  "Push the entitlements to comanage only if we have a config block to support it"
+  (let [config (find-first (comp #{:comanage} :type) (:entitlement-push env))]
+    (if (seq config)
+      (let [response (case action
+                       :add
+                       (comanage/post-create-or-update-permissions (entitlement->update entitlement config))
+                       :remove
+                       (comanage/delete-permissions (comanage/get-group-member-id (comanage/get-group-id (:resid entitlement)) (comanage/get-person-id (:userid entitlement)))))]
+        response))))
 
 (defn get-terms-and-conditions-with-accepted
   "Return comange terms and conditions including key for acceptance"
