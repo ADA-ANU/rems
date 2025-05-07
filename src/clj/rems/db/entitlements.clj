@@ -14,6 +14,7 @@
             [rems.json :as json]
             [rems.scheduler :as scheduler]
             [rems.service.ega :as ega]
+            [medley.core :refer [find-first]]
             [rems.service.comanage :as comanage]))
 
 (defn- get-entitlements-payload [entitlements action]
@@ -78,14 +79,16 @@
       (update-in [:outbox/entitlement-post :config :type] keyword)))
 
 (defn process-outbox! []
-  (doseq [entry (mapv fix-entry-from-db
-                      (outbox/get-due-entries :entitlement-post))]
-    ;; TODO could send multiple entitlements at once instead of one outbox entry at a time
-    (if-let [error (post-entitlements! (:outbox/entitlement-post entry))]
-      (let [entry (outbox/attempt-failed! entry error)]
-        (when (not (:outbox/next-attempt entry))
-          (log/warn "all attempts to send entitlement post id " (:outbox/id entry) "failed")))
-      (outbox/attempt-succeeded! (:outbox/id entry)))))
+  (let [config (find-first (comp #{:comanage} :type) (:entitlement-push env))]
+    (if (seq config)
+      (doseq [entry (mapv fix-entry-from-db
+                          (outbox/get-due-entries :entitlement-post))]
+        ;; TODO could send multiple entitlements at once instead of one outbox entry at a time
+        (if-let [error (post-entitlements! (:outbox/entitlement-post entry))]
+          (let [entry (outbox/attempt-failed! entry error)]
+            (when (not (:outbox/next-attempt entry))
+              (log/warn "all attempts to send entitlement post id " (:outbox/id entry) "failed")))
+          (outbox/attempt-succeeded! (:outbox/id entry)))))))
 
 (mount/defstate entitlement-poller
   :start (scheduler/start! "entitlement-poller" process-outbox! (.toStandardDuration (time/seconds 10)))
