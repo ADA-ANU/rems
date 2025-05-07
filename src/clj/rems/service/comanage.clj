@@ -50,7 +50,8 @@
                        (comanage/post-create-or-update-permissions (entitlement->update entitlement config))
                        :remove
                        (comanage/delete-permissions (comanage/get-group-member-id (comanage/get-group-id (:resid entitlement)) (comanage/get-person-id (:userid entitlement)))))]
-        response))))
+        response)
+      (throw (Exception. "not configured to push to comanage")))))
 
 (defn get-terms-and-conditions-with-accepted
   "Return comange terms and conditions including key for acceptance"
