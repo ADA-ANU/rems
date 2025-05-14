@@ -278,6 +278,36 @@ WHERE catAppId = :application
 /*~ ) ~*/
 ;
 
+-- :name get-entitlements-still-active :?
+-- :doc
+-- Params:
+--   :application -- application id to ignore checking
+--   :user -- user id to limit select to
+--   :resource -- resid to limit select to
+--   :active-at -- only return entitlements with start<=active-at<end (or end undefined)
+SELECT entitlement.id AS entitlementId, res.id AS resourceId, res.resId, catAppId, entitlement.userId, entitlement.start, entitlement.endt AS "end", users.userAttrs->>'email' AS mail,
+entitlement.approvedby FROM entitlement
+LEFT OUTER JOIN resource res ON entitlement.resId = res.id
+LEFT OUTER JOIN users on entitlement.userId = users.userId
+WHERE 1=1
+/*~ (when (:application params) */
+  AND catAppId != :application
+/*~ ) ~*/
+/*~ (when (:user params) */
+  AND entitlement.userId = :user
+/*~ ) ~*/
+/*~ (when (:resource params) */
+  AND res.id = :resource
+/*~ ) ~*/
+/*~ (when (:resource-ext-id params) */
+  AND res.resid = :resource-ext-id
+/*~ ) ~*/
+/*~ (when (:active-at params) */
+  AND entitlement.start <= :active-at AND (entitlement.endt is NULL OR :active-at < entitlement.endt)
+/*~ ) ~*/
+ORDER BY entitlement.userId, res.resId, catAppId, entitlement.start, entitlement.endt;
+
+
 -- :name get-entitlements :?
 -- :doc
 -- Params:
