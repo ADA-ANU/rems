@@ -128,8 +128,8 @@
     (let [entitlements (db/get-entitlements {:application application-id :user user-id :resource resource-id})]
       (add-to-outbox! :remove :basic entitlements nil)
       (doseq [config (:entitlement-push env)]
-        (if-some [entitlementsstillactive (db/get-entitlements-still-active {:application application-id :user user-id :resource resource-id :active-at (time/now)})]
-          nil
+        (if (< 0 (count (db/get-entitlements-still-active {:application application-id :user user-id :resource resource-id :active-at (time/now)})))
+          (log/info "not revoking access to resources" resource-ids "for user" user-id "as alternative entitlements still exist")
           (add-to-outbox! :remove (:type config) entitlements config))))))
 
 (defn- get-entitlements-by-user [application-id]
