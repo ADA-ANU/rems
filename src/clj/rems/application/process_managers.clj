@@ -7,8 +7,7 @@
             [rems.service.blacklist :as blacklist]
             [rems.common.application-util :as application-util]
             [rems.db.applications :as applications]
-            [rems.db.attachments :as attachments]
-            [rems.db.cadredb.comments :as comments]))
+            [rems.db.attachments :as attachments]))
 
 (defn revokes-to-blacklist
   "Revokation causes the users to be blacklisted."
@@ -32,16 +31,9 @@
 
 (defn delete-orphan-attachments [application-id]
   (let [application (applications/get-application-internal application-id)
-        application-comments (comments/get-comments {:appid application-id})
-        comment-attachments (if (:success application-comments)
-                              (->> (:comments application-comments)
-                                   (mapcat :attachments)
-                                   (map :id)
-                                   (set))
-                              #{})
         attachments-in-use (attachment/get-attachments-in-use application)
         all-attachments (set (map :attachment/id (:application/attachments application)))]
-    (doseq [attachment-id (difference all-attachments attachments-in-use comment-attachments)]
+    (doseq [attachment-id (difference all-attachments attachments-in-use)]
       (attachments/delete-attachment! attachment-id))))
 
 (defn delete-orphan-attachments-on-submit
