@@ -3,6 +3,7 @@
 
   NB: An event manager should return an empty sequence (or `nil`) if it doesn't create new events itself."
   (:require [clojure.set :refer [difference]]
+            [clojure.tools.logging :as log]
             [rems.service.attachment :as attachment]
             [rems.service.blacklist :as blacklist]
             [rems.common.application-util :as application-util]
@@ -36,6 +37,7 @@
         comment-attachments (if (:success application-comments)
                               (->> (:comments application-comments)
                                    (mapcat :attachments)
+                                   (map :id)
                                    (set))
                               #{})
         attachments-in-use (attachment/get-attachments-in-use application)
