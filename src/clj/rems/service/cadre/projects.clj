@@ -61,7 +61,7 @@
 
 (defn link-project! [cmd]
   (let [id (:project/id cmd)]
-    (rems.service.cadre.util/check-allowed-project! cmd)
+    (rems.service.cadre.util/check-allowed-link-project! cmd)
     (if-let [apid (projects/link-project! (:application/id cmd) id)]
       {:success true
        :project-application/id apid}
