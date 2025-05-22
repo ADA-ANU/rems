@@ -54,10 +54,10 @@
     :tags ["CADRE Projects"]
 
     (GET "/" []
-      :summary "Get projects. Returns more information for owners and handlers."
+      :summary "Get projects. If both 'owner' and 'collaborator' are provided, returns the union of projects. Returns more information for owners and handlers."
       :roles #{:logged-in}
-      :query-params [{owner :- (describe s/Str "return only projects that are owned by owner") nil}
-                     {collaborator :- (describe s/Str "return only projects where the user is a collaborator") nil}
+      :query-params [{owner :- (describe s/Str "return projects where the user is an owner") nil}
+                     {collaborator :- (describe s/Str "return projects where the user is a collaborator") nil}
                      {disabled :- (describe s/Bool "whether to include disabled projects") false}
                      {archived :- (describe s/Bool "whether to include archived projects") false}]
       :return [schema-base-cadre/ProjectFull]
