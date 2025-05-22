@@ -25,11 +25,29 @@
   (or (nil? collaborator) ; return all when not specified
       (contains? (set (map :userid (:project/collaborators proj))) collaborator)))
 
+(defn- owner-collaborator-union-filter? [owner collaborator project]
+  (let [owner-ids (set (map :userid (:project/owners project)))
+        collaborator-ids (set (map :userid (:project/collaborators project)))
+        combined-ids (set/union owner-ids collaborator-ids)]
+    (cond
+      ;; Neither owner nor collaborator provided — return all
+      (and (nil? owner) (nil? collaborator))
+      true
+      ;; Both provided — check if either is in combined set
+      (and owner collaborator)
+      (or (contains? combined-ids owner)
+          (contains? combined-ids collaborator))
+      ;; Only owner — check owners set
+      owner
+      (contains? owner-ids owner)
+      ;; Only collaborator — check collaborators set
+      collaborator
+      (contains? collaborator-ids collaborator))))
+
 (defn- project-filters [userid owner collaborator projects]
   (->> projects
        (apply-user-permissions userid)
-       (filter (partial owner-filter-match? owner))
-       (filter (partial collaborator-filter-match? collaborator))
+       (filter (partial owner-collaborator-union-filter? owner collaborator))
        (doall)))
 
 (defn get-projects [& [{:keys [userid owner collaborator enabled archived]}]]
