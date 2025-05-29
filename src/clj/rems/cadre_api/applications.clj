@@ -215,7 +215,8 @@
         (if (some (partial applications/duplicate-application? (:catalogue-item-ids request)) (applications/get-my-applications (getx-user-id)))
           (ok {:success false
                :errors [{:type :must-not-be-duplicate}]})
-          (ok (api-command :application.command/create request)))))
+          (let [request (update request :catalogue-item-ids distinct)]
+            (ok (api-command :application.command/create request))))))
 
     (POST "/copy-as-new" []
       :summary "Create a new application as a copy of an existing application."
