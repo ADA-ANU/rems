@@ -100,15 +100,14 @@
 
 (defn decline-invitation! [{:keys [userid email token]}]
   (if-let [invitation (first (invitation/get-invitations {:token token}))]
-    (if (or (not (nil? (:invitation/email invitation))) 
+    (if (or (not (nil? (:invitation/email invitation)))
             (.equalsIgnoreCase (.trim (:invitation/email invitation)) (.trim email)))
       (if (or (not (:invitation/declined invitation)) (not (:invitation/revoked invitation)))
         (if-let [project-id (get-in invitation [:invitation/project :project/id])]
           (let [project (projects/get-project-by-id-raw project-id)]
             (do
               (invitation/decline-invitation! userid token)
-              {:success true
-               :invitation/project {:project/id (:project/id project)}}))
+              {:success true}))
           {:success false
            :errors [{:key :t.decline-invitation.errors/invalid-invitation-type}]})
         {:success false
@@ -161,7 +160,7 @@
             {:success true
              :invitation/workflow {:workflow/id (:id workflow)}})))
       (if-let [project-id (get-in invitation [:invitation/project :project/id])]
-        
+
         (let [cmd (projects/get-project-by-id-raw project-id)]
           (do
             (invitation/accept-invitation! userid token)
