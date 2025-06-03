@@ -17,6 +17,7 @@
    :invitation/created DateTime
    (s/optional-key :invitation/sent) DateTime
    (s/optional-key :invitation/accepted) DateTime
+   (s/optional-key :invitation/declined) DateTime
    (s/optional-key :invitation/revoked) DateTime
    (s/optional-key :invitation/revoked-by) schema-base/User
    (s/optional-key :invitation/workflow) {:workflow/id s/Int}
@@ -72,6 +73,14 @@
     (let [amended (merge (dissoc invitation :invitation/id)
                          {:invitation/revoked-by {:userid userid}
                           :invitation/revoked (DateTime/now)})
+          json (json/generate-string (validate-InvitationData amended))]
+      (db/set-invitation! {:id (:invitation/id invitation)
+                           :invitationdata json}))))
+
+(defn decline-invitation! [userid token]
+  (when-let [invitation (first (get-invitations {:token [token]}))]
+    (let [amended (merge (dissoc invitation :invitation/id)
+                         {:invitation/declined (DateTime/now)})
           json (json/generate-string (validate-InvitationData amended))]
       (db/set-invitation! {:id (:invitation/id invitation)
                            :invitationdata json}))))

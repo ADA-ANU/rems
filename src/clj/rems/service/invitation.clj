@@ -98,9 +98,29 @@
 (defn- filter-user [data userid]
   (vec (filter #(not= (:userid %) userid) data)))
 
+(defn decline-invitation! [{:keys [userid email token]}]
+  (if-let [invitation (first (invitation/get-invitations {:token token}))]
+    (if (or (not (nil? (:invitation/email invitation))) 
+            (.equalsIgnoreCase (.trim (:invitation/email invitation)) (.trim email)))
+      (if (or (not (:invitation/declined invitation)) (not (:invitation/revoked invitation)))
+        (if-let [project-id (get-in invitation [:invitation/project :project/id])]
+          (let [project (projects/get-project-by-id-raw project-id)]
+            (do
+              (invitation/decline-invitation! userid token)
+              {:success true
+               :invitation/project {:project/id (:project/id project)}}))
+          {:success false
+           :errors [{:key :t.decline-invitation.errors/invalid-invitation-type}]})
+        {:success false
+         :errors [{:key :t.decline-invitation.errors/already-rejected}]})
+      {:success false
+       :errors [{:key :t.decline-invitation.errors/not-your-invitation}]})
+    {:success false
+     :errors [{:key :t.decline-invitation.errors/invalid-token :token token}]}))
+
 (defn revoke-invitation! [{:keys [userid id]}]
   (if-let [invitation (first (invitation/get-invitations {:ids [id]}))]
-    (if (not (:invitation/revoked invitation))
+    (if (or (not (:invitation/declined invitation)) (not (:invitation/revoked invitation)))
       (if-let [project-id (get-in invitation [:invitation/project :project/id])]
         (let [project (projects/get-project-by-id-raw project-id)]
           (do
@@ -121,7 +141,7 @@
         {:success false
          :errors [{:key :t.revoke-invitation.errors/invalid-invitation-type}]})
       {:success false
-       :errors [{:key :t.revoke-invitation.errors.already-revoked}]})
+       :errors [{:key :t.revoke-invitation.errors/already-rejected}]})
     {:success false
      :errors [{:key :t.revoke-invitation.errors/invalid-id :id id}]}))
 
@@ -141,6 +161,7 @@
             {:success true
              :invitation/workflow {:workflow/id (:id workflow)}})))
       (if-let [project-id (get-in invitation [:invitation/project :project/id])]
+        
         (let [cmd (projects/get-project-by-id-raw project-id)]
           (do
             (invitation/accept-invitation! userid token)

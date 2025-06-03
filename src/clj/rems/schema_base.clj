@@ -135,6 +135,7 @@
    :invitation/created DateTime
    (s/optional-key :invitation/sent) DateTime
    (s/optional-key :invitation/accepted) DateTime
+   (s/optional-key :invitation/decline) DateTime
    (s/optional-key :invitation/revoked) DateTime
    (s/optional-key :invitation/revoked-by) UserWithAttributes
    (s/optional-key :invitation/workflow) {:workflow/id s/Int}
