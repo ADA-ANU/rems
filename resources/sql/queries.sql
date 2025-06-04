@@ -844,6 +844,72 @@ WHERE 1 = 1
 /*~ ) ~*/
 ORDER BY id ASC;
 
+-- :name get-canned-responses :? :*
+SELECT id, orgId as orgid, response, title, created_at, updated_at, enabled
+FROM cannedresponses
+WHERE 1 = 1
+/*~ (when (:orgid params) */
+  AND (orgId = :orgid)
+/*~ ) ~*/
+/*~ (when (:id params) */
+  AND (id = :id)
+/*~ ) ~*/
+ORDER BY id ASC;
+
+-- :name get-canned-response-tags :? :*
+SELECT id, orgId as orgid, tag, created_at, updated_at, enabled
+FROM cannedresponsetags
+WHERE 1 = 1
+/*~ (when (:orgid params) */
+  AND (orgId = :orgid)
+/*~ ) ~*/
+/*~ (when (:id params) */
+  AND (id = :id)
+/*~ ) ~*/
+ORDER BY id ASC;
+
+-- :name add-canned-response! :insert
+INSERT INTO cannedresponses (orgid,response,title)
+VALUES (:orgid,:response,:title)
+ON CONFLICT (id) DO NOTHING
+RETURNING id;
+
+-- :name add-canned-response-tag! :insert
+INSERT INTO cannedresponsetags (orgid,tag)
+VALUES (:orgid,:tag)
+ON CONFLICT (id) DO NOTHING
+RETURNING id;
+
+-- :name update-canned-response! :!
+UPDATE cannedresponses
+SET response = :response, title = :title, updated_at = NOW()
+WHERE id = :id;
+
+-- :name update-canned-response-tag! :!
+UPDATE cannedresponsetags
+SET tag = :tag, updated_at = NOW()
+WHERE id = :id;
+
+-- :name tag-canned-response! :insert
+INSERT INTO cannedresponse_tag_mapping (cannedresponseId,cannedresponsetagId)
+VALUES (:cannedresponseid,:cannedresponsetagid)
+ON CONFLICT (id) DO NOTHING
+RETURNING id;
+
+-- :name delete-tag-canned-response! :!
+DELETE FROM cannedresponse_tag_mapping
+WHERE id = :id;
+
+-- :name set-canned-response-enabled! :!
+UPDATE cannedresponses
+SET enabled = :enabled
+WHERE id = :id;
+
+-- :name set-canned-response-tag-enabled! :!
+UPDATE cannedresponsetags
+SET enabled = :enabled
+WHERE id = :id;
+
 -- :name get-my-application-invitations :? :*
 SELECT a.id, a.eventdata::TEXT, a2.eventdata->>'event/time' as joined, a3.eventdata->>'event/time' as removed, a4.eventdata->>'event/time' as uninvited
 FROM application_event as a
