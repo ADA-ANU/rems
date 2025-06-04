@@ -104,8 +104,10 @@
       (if (.equalsIgnoreCase invite-email useremail)
         (if (and (nil? (get invitation :invitation/declined)) (nil? (get invitation :invitation/revoked)) (nil? (get invitation :invitation/accepted)))
           (if-let [project-id (get-in invitation [:invitation/project :project/id])]
-            (let [project (projects/get-project-by-id-raw project-id)]
+            (let [project (projects/get-project-by-id-raw project-id)
+                  id (:id invitation)]
               (do
+                (email/generate-decline-emails! (get-invitations-full {:ids [id]}))
                 (invitation/decline-invitation! userid token)
                 {:success true}))
             {:success false

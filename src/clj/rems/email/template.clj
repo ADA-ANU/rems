@@ -5,6 +5,7 @@
             [rems.config :refer [env]]
             [rems.context :as context]
             [rems.db.user-settings :as user-settings]
+            [rems.db.users :as users]
             [rems.text :refer [localize-utc-date text text-no-fallback text-format with-language]]
             [rems.util :as util]))
 
@@ -362,3 +363,19 @@
                              (:project/name project))
                 (text :t.email/regards)
                 (text :t.email/footer))}))))
+
+(defn project-decline-email [lang invitation project]
+  (with-language lang
+    (fn []
+      (let [user (users/get-user (get-in invitation [:invitation/invited-by :userid]))]
+        (when project
+          {:to (:email user)
+           :subject (str :t.email.project-decline/subject)
+           :body (str
+                  (text-format :t.email.project-decline/message
+                              (:name user)
+                              (:invitation/name invitation)
+                              (:invitation/email invitation)
+                              (:project/name project))
+                  (text :t.email/regards)
+                  (text :t.email/footer))})))))

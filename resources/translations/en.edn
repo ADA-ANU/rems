@@ -452,7 +452,9 @@
           :project-handler-invitation {:message "Dear %1,\n\n%2 has invited you to be a member of project %3.\n\nYou can join the project at %4"
                                         :subject "Invitation to join project"}
           :project-handler-revocation {:message "Dear %1,\n\n%2 has removed you as a member of project %3."
-                                        :subject "Removed from project"}}
+                                        :subject "Removed from project"}
+          :project-decline {:message "Dear %1,\n\n%2 (%3) has rejected your invitation to join your project %4."
+                                        :subject "Declined your project invitation"}}
   :footer "CADRE 5 Safes"
   :form {:accepted-licenses "Accepted terms of use"
          :actions "Actions"
