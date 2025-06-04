@@ -49,7 +49,7 @@
     true (map fix-row-from-db)))
 
 (defn get-invitations
-  [{:keys [project-id workflow-id invited-user-id ids token sent accepted revoked]}]
+  [{:keys [project-id workflow-id invited-user-id ids token sent accepted revoked declined]}]
   (cond->> (db/get-invitations {:ids ids :token token})
     true (map fix-row-from-db)
     workflow-id (filter (comp #{workflow-id} :workflow/id :invitation/workflow))
@@ -57,7 +57,8 @@
     invited-user-id (filter (comp #{invited-user-id} :userid :invitation/invited-user))
     (some? sent) ((if sent filter remove) :invitation/sent)
     (some? revoked) ((if revoked filter remove) :invitation/revoked)
-    (some? accepted) ((if accepted filter remove) :invitation/accepted)))
+    (some? accepted) ((if accepted filter remove) :invitation/accepted)
+    (some? declined) ((if declined filter remove) :invitation/declined)))
 
 (defn accept-invitation! [userid token]
   (when-let [invitation (first (get-invitations {:token token}))]
@@ -78,7 +79,7 @@
                            :invitationdata json}))))
 
 (defn decline-invitation! [userid token]
-  (when-let [invitation (first (get-invitations {:token [token]}))]
+  (when-let [invitation (first (get-invitations {:token token}))]
     (let [amended (merge (dissoc invitation :invitation/id)
                          {:invitation/declined (DateTime/now)})
           json (json/generate-string (validate-InvitationData amended))]

@@ -98,22 +98,24 @@
 (defn- filter-user [data userid]
   (vec (filter #(not= (:userid %) userid) data)))
 
-(defn decline-invitation! [{:keys [userid email token]}]
+(defn decline-invitation! [{:keys [userid useremail token]}]
   (if-let [invitation (first (invitation/get-invitations {:token token}))]
-    (if (or (not (nil? (:invitation/email invitation)))
-            (.equalsIgnoreCase (.trim (:invitation/email invitation)) (.trim email)))
-      (if (or (not (:invitation/declined invitation)) (not (:invitation/revoked invitation)))
-        (if-let [project-id (get-in invitation [:invitation/project :project/id])]
-          (let [project (projects/get-project-by-id-raw project-id)]
-            (do
-              (invitation/decline-invitation! userid token)
-              {:success true}))
+    (if-let [invite-email (get invitation :invitation/email)]
+      (if (.equalsIgnoreCase invite-email useremail)
+        (if (and (nil? (get invitation :invitation/declined)) (nil? (get invitation :invitation/revoked)))
+          (if-let [project-id (get-in invitation [:invitation/project :project/id])]
+            (let [project (projects/get-project-by-id-raw project-id)]
+              (do
+                (invitation/decline-invitation! userid token)
+                {:success true}))
+            {:success false
+             :errors [{:key :t.decline-invitation.errors/invalid-invitation-type}]})
           {:success false
-           :errors [{:key :t.decline-invitation.errors/invalid-invitation-type}]})
+           :errors [{:key :t.decline-invitation.errors/already-rejected}]})
         {:success false
-         :errors [{:key :t.decline-invitation.errors/already-rejected}]})
+         :errors [{:key :t.decline-invitation.errors/not-your-invitation}]})
       {:success false
-       :errors [{:key :t.decline-invitation.errors/not-your-invitation}]})
+       :errors [{:key :t.decline-invitation.errors/no-invitee-found}]})
     {:success false
      :errors [{:key :t.decline-invitation.errors/invalid-token :token token}]}))
 
