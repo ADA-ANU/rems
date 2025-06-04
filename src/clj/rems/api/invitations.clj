@@ -75,4 +75,4 @@
       :roles #{:logged-in}
       :query-params [{token :- (describe s/Str "secret token of the invitation") false}]
       :return AcceptInvitationResponse
-      (ok (invitation/accept-invitation! {:userid (getx-user-id) :token token})))))
+      (ok (invitation/accept-invitation! {:userid (getx-user-id) :useremail (getx-user-email) :token token})))))

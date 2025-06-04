@@ -121,7 +121,7 @@
 
 (defn revoke-invitation! [{:keys [userid id]}]
   (if-let [invitation (first (invitation/get-invitations {:ids [id]}))]
-    (if (or (not (:invitation/declined invitation)) (not (:invitation/revoked invitation)))
+    (if (and (nil? (get invitation :invitation/declined)) (nil? (get invitation :invitation/revoked)))
       (if-let [project-id (get-in invitation [:invitation/project :project/id])]
         (let [project (projects/get-project-by-id-raw project-id)]
           (do
@@ -146,36 +146,41 @@
     {:success false
      :errors [{:key :t.revoke-invitation.errors/invalid-id :id id}]}))
 
-(defn accept-invitation! [{:keys [userid token]}]
+(defn accept-invitation! [{:keys [userid useremail token]}]
   (if-let [invitation (first (invitation/get-invitations {:token token}))]
-    (if-let [workflow-id (get-in invitation [:invitation/workflow :workflow/id])]
-      (let [workflow (workflow/get-workflow workflow-id)
-            handlers (set (map :userid (get-in workflow [:workflow :handlers])))]
-        (if (contains? handlers userid)
+    (if (.equalsIgnoreCase (get invitation :invitation/email) useremail)
+      (if-let [workflow-id (get-in invitation [:invitation/workflow :workflow/id])]
+        (let [workflow (workflow/get-workflow workflow-id)
+              handlers (set (map :userid (get-in workflow [:workflow :handlers])))]
+          (if (contains? handlers userid)
+            {:success false
+             :errors [{:key :t.accept-invitation.errors.already-member/workflow}]}
+            (do
+              (workflow/edit-workflow! {:id workflow-id
+                                        :handlers (conj handlers userid)})
+              (invitation/accept-invitation! userid token)
+              (applications/reload-cache!)
+              {:success true
+               :invitation/workflow {:workflow/id (:id workflow)}})))
+        (if-let [project-id (get-in invitation [:invitation/project :project/id])]
+          (if (and (nil? (get invitation :invitation/declined)) (nil? (get invitation :invitation/revoked)) (nil? (get invitation :invitation/accepted)))
+            (let [cmd (projects/get-project-by-id-raw project-id)]
+              (do
+                (invitation/accept-invitation! userid token)
+                (if (= (:invitation/role invitation) "owner")
+                  (projects/update-project! project-id (fn [project] (dissoc project :project/invitations
+                                                                             :project/applications)
+                                                         (update project :project/owners conj {:userid userid})))
+                  (projects/update-project! project-id (fn [project] (dissoc project :project/invitations
+                                                                             :project/applications)
+                                                         (update project :project/collaborators conj {:userid userid}))))
+                {:success true
+                 :invitation/project {:project/id (:project/id cmd)}}))
+            {:success false
+             :errors [{:key :t.accept-invitation.errors/token-already-consumed}]})
           {:success false
-           :errors [{:key :t.accept-invitation.errors.already-member/workflow}]}
-          (do
-            (workflow/edit-workflow! {:id workflow-id
-                                      :handlers (conj handlers userid)})
-            (invitation/accept-invitation! userid token)
-            (applications/reload-cache!)
-            {:success true
-             :invitation/workflow {:workflow/id (:id workflow)}})))
-      (if-let [project-id (get-in invitation [:invitation/project :project/id])]
-
-        (let [cmd (projects/get-project-by-id-raw project-id)]
-          (do
-            (invitation/accept-invitation! userid token)
-            (if (= (:invitation/role invitation) "owner")
-              (projects/update-project! project-id (fn [project] (dissoc project :project/invitations
-                                                                         :project/applications)
-                                                     (update project :project/owners conj {:userid userid})))
-              (projects/update-project! project-id (fn [project] (dissoc project :project/invitations
-                                                                         :project/applications)
-                                                     (update project :project/collaborators conj {:userid userid}))))
-            {:success true
-             :invitation/project {:project/id (:project/id cmd)}}))
-        {:success false
-         :errors [{:key :t.accept-invitation.errors/invalid-invitation-type}]}))
+           :errors [{:key :t.accept-invitation.errors/invalid-invitation-type}]}))
+      {:success false
+       :errors [{:key :t.accept-invitation.errors/not-your-invitation}]})
     {:success false
      :errors [{:key :t.accept-invitation.errors/invalid-token :token token}]}))
