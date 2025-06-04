@@ -102,7 +102,7 @@
   (if-let [invitation (first (invitation/get-invitations {:token token}))]
     (if-let [invite-email (get invitation :invitation/email)]
       (if (.equalsIgnoreCase invite-email useremail)
-        (if (and (nil? (get invitation :invitation/declined)) (nil? (get invitation :invitation/revoked)))
+        (if (and (nil? (get invitation :invitation/declined)) (nil? (get invitation :invitation/revoked)) (nil? (get invitation :invitation/accepted)))
           (if-let [project-id (get-in invitation [:invitation/project :project/id])]
             (let [project (projects/get-project-by-id-raw project-id)]
               (do
@@ -111,7 +111,7 @@
             {:success false
              :errors [{:key :t.decline-invitation.errors/invalid-invitation-type}]})
           {:success false
-           :errors [{:key :t.decline-invitation.errors/already-rejected}]})
+           :errors [{:key :t.decline-invitation.errors/token-already-consumed}]})
         {:success false
          :errors [{:key :t.decline-invitation.errors/not-your-invitation}]})
       {:success false
