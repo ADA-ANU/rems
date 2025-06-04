@@ -373,9 +373,9 @@
            :subject (str :t.email.project-decline/subject)
            :body (str
                   (text-format :t.email.project-decline/message
-                              (:name user)
-                              (:invitation/name invitation)
-                              (:invitation/email invitation)
-                              (:project/name project))
+                               (:name user)
+                               (:invitation/name invitation)
+                               (:invitation/email invitation)
+                               (:project/name project))
                   (text :t.email/regards)
                   (text :t.email/footer))})))))
