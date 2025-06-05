@@ -32,6 +32,7 @@
             [rems.cadre-api.partner-api.generic-api :refer [partner-generic-api]]
             [rems.cadre-api.projects :refer [projects-api]]
             [rems.cadre-api.comments :refer [comments-api]]
+            [rems.cadre-api.cannedresponses :refer [cannedresponses-api]]
             [rems.cadre-api.applications :refer [cadre-applications-api cadre-my-applications-api]]
             [rems.api.workflows :refer [workflows-api]]
             [rems.auth.auth :as auth]
@@ -241,6 +242,7 @@
       cadre-my-applications-api
       cadre-applications-api
       comments-api
+      cannedresponses-api
 
       ;; keep this last
       (undocumented not-found-handler)))))
