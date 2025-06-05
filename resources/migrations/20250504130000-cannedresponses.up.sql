@@ -20,5 +20,6 @@ CREATE TABLE cannedresponsetags (
 CREATE TABLE cannedresponse_tag_mapping (
   id serial NOT NULL PRIMARY KEY,
   cannedresponseId integer REFERENCES cannedresponses(id),
-  cannedresponsetagId integer REFERENCES cannedresponsetags(id)
+  cannedresponsetagId integer REFERENCES cannedresponsetags(id),
+  UNIQUE(cannedresponseId,cannedresponsetagId)
 );
