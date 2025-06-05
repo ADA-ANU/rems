@@ -129,4 +129,4 @@
       :query-params [{id :- (describe s/Int "Canned response mapping id") false}]
       :body [command CreateCannedResponseCommand]
       :return CannedResponseResponse
-      (ok (cannedresponses/delete-cannedresponse-mapping! id)))))
+      (ok (cannedresponses/delete-cannedresponse-mapping! {:id id})))))
