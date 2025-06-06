@@ -108,7 +108,7 @@
                   id (:id invitation)]
               (do
                 (email/generate-decline-emails! (get-invitations-full {:ids [id]}))
-                (invitation/decline-invitation! userid token)
+                (invitation/decline-invitation! token)
                 {:success true}))
             {:success false
              :errors [{:key :t.decline-invitation.errors/invalid-invitation-type}]})

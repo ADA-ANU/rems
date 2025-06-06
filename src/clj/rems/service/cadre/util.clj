@@ -22,7 +22,7 @@
     (or owner?
         project-owner?)))
 
-(defn- may-link-project? [project]
+(defn- is-project-member? [project]
   (let [project-owners (set (map :userid (:project/owners project)))
         project-owner? (contains? project-owners (getx-user-id))
         project-collaborators (set (map :userid (:project/collaborators project)))
@@ -30,10 +30,10 @@
     (or project-owner?
         project-collaborators?)))
 
-(defn check-allowed-link-project! [project]
+(defn check-project-membership! [project]
   (assert (:project/id project) {:error "invalid project"
                                  :project project})
-  (when-not (may-link-project? (rems.db.cadredb.projects/get-project-by-id-raw
+  (when-not (is-project-member? (rems.db.cadredb.projects/get-project-by-id-raw
                                 (:project/id project)))
     (throw-forbidden (str "no access to project " (pr-str (:project/id project))))))
 

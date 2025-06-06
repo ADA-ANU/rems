@@ -3,6 +3,7 @@
             [medley.core :refer [assoc-some find-first]]
             [rems.service.dependencies :as dependencies]
             [rems.service.cadre.util]
+            [rems.service.invitation :as invitation]
             [rems.auth.util]
             [rems.db.applications :as applications]
             [rems.db.core :as db]
@@ -15,6 +16,25 @@
                               (applications/get-all-application-roles userid))
         can-see-all? (some? (some #{:owner :handler :reporter} user-roles))]
     (filter #(or (nil? userid) can-see-all? (rems.service.cadre.util/may-view-projects? userid %)) projects)))
+
+(defn- remove-user-from-role? [id project userid role-key]
+  (let [user-ids (set (map :userid (role-key project)))
+        has-role? (contains? user-ids userid)]
+    (if has-role?
+      (do
+        (projects/update-project!
+         id
+         (fn [project]
+           (-> project
+               (dissoc :project/invitations :project/applications)
+               (update role-key #(filter (fn [u] (not= (:userid u) userid)) %)))))
+        true)
+      false)))
+
+(defn- decline-accepted-project-invites? [id userid]
+  (when-let [accepted-invites (seq (invitation/get-invitations-full {:project-id id :invited-user-id userid :accepted true}))]
+    (doseq [invite accepted-invites]
+      (invitation/decline-invitation! (:invitation/token invite)))))
 
 (defn- owner-filter-match? [owner proj]
   (or (nil? owner) ; return all when not specified
@@ -79,7 +99,7 @@
 
 (defn link-project! [cmd]
   (let [id (:project/id cmd)]
-    (rems.service.cadre.util/check-allowed-link-project! cmd)
+    (rems.service.cadre.util/check-project-membership! cmd)
     (if-let [apid (projects/link-project! (:application/id cmd) id)]
       {:success true
        :project-application/id apid}
@@ -98,5 +118,17 @@
         (do
           (projects/update-project! id (fn [project] (assoc project :archived archived)))
           {:success true}))))
+
+(defn leave-project! [cmd]
+  (let [id (:project/id cmd)
+        project (projects/getx-project-by-id id)]
+    (rems.service.cadre.util/check-project-membership! cmd) ;; only project-owners & project-collaborator, not CADRE owners
+    (if (< 1 ((count (:project/owners project)) + (count (:project/collaborators project)))) ;; don't let user leave if they're the last user.
+      (do
+        (invitation/get-my-invitations {})
+        ({:success (or (remove-user-from-role? id project userid :project/owners)
+                       (remove-user-from-role? id project userid :project/collaborators))}))
+      {:success false
+       :errors [{:type :t.leave-project.errors/last-user-cannot-leave}]})))
 
 (defn get-available-owners [] (users/get-users))

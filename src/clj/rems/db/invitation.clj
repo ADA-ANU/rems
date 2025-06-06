@@ -78,7 +78,7 @@
       (db/set-invitation! {:id (:invitation/id invitation)
                            :invitationdata json}))))
 
-(defn decline-invitation! [userid token]
+(defn decline-invitation! [token]
   (when-let [invitation (first (get-invitations {:token token}))]
     (let [amended (merge (dissoc invitation :invitation/id)
                          {:invitation/declined (DateTime/now)})
