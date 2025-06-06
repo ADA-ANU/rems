@@ -45,6 +45,9 @@
   {:project/id s/Int
    :archived s/Bool})
 
+(s/defschema ProjectLeaveCommand
+  {:project/id s/Int})
+
 ;; TODO: deduplicate or decouple with /api/applications/reviewers API?
 (s/defschema AvailableOwner schema-base-cadre/UserWithAttributesCadre)
 (s/defschema AvailableOwners [AvailableOwner])
@@ -102,6 +105,13 @@
       :body [command ProjectEnabledCommand]
       :return schema/SuccessResponse
       (ok (projects/set-project-enabled! command)))
+
+    (POST "/leave" []
+      :summary "Leave a project."
+      :roles #{:logged-in}
+      :body [command ProjectLeaveCommand]
+      :return schema/SuccessResponse
+      (ok (projects/leave-project! command)))
 
     (GET "/available-owners" []
       :summary "List of available owners"
