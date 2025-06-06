@@ -34,7 +34,7 @@
   (assert (:project/id project) {:error "invalid project"
                                  :project project})
   (when-not (is-project-member? (rems.db.cadredb.projects/get-project-by-id-raw
-                                (:project/id project)))
+                                 (:project/id project)))
     (throw-forbidden (str "no access to project " (pr-str (:project/id project))))))
 
 (defn check-allowed-project! [project]
