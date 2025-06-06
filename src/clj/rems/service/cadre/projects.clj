@@ -18,7 +18,7 @@
         can-see-all? (some? (some #{:owner :handler :reporter} user-roles))]
     (filter #(or (nil? userid) can-see-all? (rems.service.cadre.util/may-view-projects? userid %)) projects)))
 
-(defn- remove-user-from-role? [id project userid role-key]
+(defn- remove-user-from-role! [id project userid role-key]
   (let [user-ids (set (map :userid (role-key project)))
         has-role? (contains? user-ids userid)]
     (if has-role?
@@ -125,11 +125,12 @@
         id (:project/id cmd)
         project (projects/getx-project-by-id id)]
     (rems.service.cadre.util/check-project-membership! cmd) ;; only project-owners & project-collaborator, not CADRE owners
-    (if (< 1 ((count (:project/owners project)) + (count (:project/collaborators project)))) ;; don't let user leave if they're the last user.
+    (if (< 1 (+ (count (:project/owners project))
+                (count (:project/collaborators project)))) ;; don't let user leave if they're the last user.
       (do
         (decline-accepted-project-invites! id userid)
-        ({:success (or (remove-user-from-role? id project userid :project/owners)
-                       (remove-user-from-role? id project userid :project/collaborators))}))
+        ({:success (or (remove-user-from-role! id project userid :project/owners)
+                       (remove-user-from-role! id project userid :project/collaborators))}))
       {:success false
        :errors [{:type :t.leave-project.errors/last-user-cannot-leave}]})))
 
