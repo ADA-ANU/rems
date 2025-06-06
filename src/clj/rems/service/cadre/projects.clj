@@ -9,7 +9,8 @@
             [rems.db.core :as db]
             [rems.db.cadredb.projects :as projects]
             [rems.db.roles :as roles]
-            [rems.db.users :as users]))
+            [rems.db.users :as users]
+            [rems.util :refer [getx-user-id]]))
 
 (defn- apply-user-permissions [userid projects]
   (let [user-roles (set/union (roles/get-roles userid)
@@ -31,7 +32,7 @@
         true)
       false)))
 
-(defn- decline-accepted-project-invites? [id userid]
+(defn- decline-accepted-project-invites! [id userid]
   (when-let [accepted-invites (seq (invitation/get-invitations-full {:project-id id :invited-user-id userid :accepted true}))]
     (doseq [invite accepted-invites]
       (invitation/decline-invitation! (:invitation/token invite)))))
@@ -120,12 +121,13 @@
           {:success true}))))
 
 (defn leave-project! [cmd]
-  (let [id (:project/id cmd)
+  (let [userid (getx-user-id)
+        id (:project/id cmd)
         project (projects/getx-project-by-id id)]
     (rems.service.cadre.util/check-project-membership! cmd) ;; only project-owners & project-collaborator, not CADRE owners
     (if (< 1 ((count (:project/owners project)) + (count (:project/collaborators project)))) ;; don't let user leave if they're the last user.
       (do
-        (invitation/get-my-invitations {})
+        (decline-accepted-project-invites! id userid)
         ({:success (or (remove-user-from-role? id project userid :project/owners)
                        (remove-user-from-role? id project userid :project/collaborators))}))
       {:success false
