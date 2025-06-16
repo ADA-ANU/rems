@@ -35,7 +35,7 @@
 (defn- decline-accepted-project-invites! [id userid]
   (when-let [accepted-invites (seq (invitation/get-invitations-full {:project-id id :invited-user-id userid :accepted true}))]
     (doseq [invite accepted-invites]
-      (invitation/decline-invitation! (:invitation/token invite)))))
+      (invitation/leave-after-invitation! (:invitation/id invite)))))
 
 (defn- owner-filter-match? [owner proj]
   (or (nil? owner) ; return all when not specified
@@ -129,8 +129,8 @@
                 (count (:project/collaborators project)))) ;; don't let user leave if they're the last user.
       (do
         (decline-accepted-project-invites! id userid)
-        ({:success (or (remove-user-from-role! id project userid :project/owners)
-                       (remove-user-from-role! id project userid :project/collaborators))}))
+        {:success (or (remove-user-from-role! id project userid :project/owners)
+                      (remove-user-from-role! id project userid :project/collaborators))})
       {:success false
        :errors [{:type :t.leave-project.errors/last-user-cannot-leave}]})))
 

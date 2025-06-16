@@ -98,6 +98,9 @@
 (defn- filter-user [data userid]
   (vec (filter #(not= (:userid %) userid) data)))
 
+(defn leave-after-invitation! [id]
+  (invitation/leave-after-invitation! id))
+
 (defn decline-invitation! [{:keys [userid useremail token]}]
   (if-let [invitation (first (invitation/get-invitations {:token token}))]
     (if-let [invite-email (get invitation :invitation/email)]
