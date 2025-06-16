@@ -4,7 +4,7 @@
             [rems.api.util :refer [not-found-json-response]] ; required for route :roles
             [rems.common.roles :refer [+admin-read-roles+ +admin-write-roles+]]
             [rems.schema-base :as schema-base]
-            [rems.util :refer [getx-user-id]]
+            [rems.util :refer [getx-user-id getx-user-email]]
             [ring.util.http-response :refer :all]
             [schema.core :as s])
   (:import [org.joda.time DateTime]))
@@ -63,9 +63,16 @@
       :return AcceptInvitationResponse
       (ok (invitation/revoke-invitation! {:userid (getx-user-id) :id id})))
 
+    (POST "/decline-invitation" []
+      :summary "Decline an invitation. The invitation token will be spent."
+      :roles #{:logged-in}
+      :query-params [{token :- (describe s/Str "secret token of the invitation") false}]
+      :return AcceptInvitationResponse
+      (ok (invitation/decline-invitation! {:userid (getx-user-id) :useremail (getx-user-email) :token token})))
+
     (POST "/accept-invitation" []
       :summary "Accept an invitation. The invitation token will be spent."
       :roles #{:logged-in}
       :query-params [{token :- (describe s/Str "secret token of the invitation") false}]
       :return AcceptInvitationResponse
-      (ok (invitation/accept-invitation! {:userid (getx-user-id) :token token})))))
+      (ok (invitation/accept-invitation! {:userid (getx-user-id) :useremail (getx-user-email) :token token})))))
