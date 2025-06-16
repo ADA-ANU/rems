@@ -40,6 +40,12 @@
   ([user]
    (getx user :userid)))
 
+(defn getx-user-email
+  ([]
+   (getx-user-email context/*user*))
+  ([user]
+   (getx user :email)))
+
 (defn secure-token
   []
   (let [randomdata (buddy-nonce/random-bytes 16)]
