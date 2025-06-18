@@ -12,7 +12,8 @@
 (s/defschema CreateCannedResponseCommand
   {:orgid s/Str
    :response s/Str
-   :title s/Str})
+   :title s/Str
+   (s/optional-key :tags) [s/Int]})
 
 (s/defschema CannedResponseResponse
   {:success s/Bool
