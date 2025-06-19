@@ -71,7 +71,7 @@
               (doseq [tag tags]
                 (create-cannedresponse-mapping! {:tagid tag :responseid (:id id)}))
               {:success true
-              :id (:id id)}))
+               :id (:id id)}))
           {:success false
            :errors [{:type :t.create-cannedresponse.errors/unable-to-generate}]})
         {:success false
