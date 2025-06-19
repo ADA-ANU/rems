@@ -68,7 +68,7 @@
         (if (not (nil? id))
           (if (not (nil? tags))
             (doseq [tag tags]
-              (create-cannedresponse-mapping! {:tagid tag :responseid id}))
+              (create-cannedresponse-mapping! {:tagid tag :responseid (:id id)}))
             {:success true
              :id (:id id)})
           {:success false
