@@ -66,12 +66,18 @@
       (util/check-allowed-organization! organization)
       (if-let [id (db/add-canned-response! data)]
         (if (not (nil? id))
-          (if (not (nil? tags))
-            (do
-              (doseq [tag tags]
-                (create-cannedresponse-mapping! {:tagid tag :responseid (:id id)}))
-              {:success true
-               :id (:id id)}))
+          (do
+            (let [base-response {:success true
+                                 :id (:id id)}]
+              (if (seq tags)
+                (let [mapping-results (mapv (fn [tag]
+                                              (let [result (create-cannedresponse-mapping!
+                                                            {:tagid tag :responseid (:id id)})]
+                                                {:tag tag
+                                                 :success (:success result)}))
+                                            tags)]
+                  (assoc base-response :mapping mapping-results))
+                base-response)))
           {:success false
            :errors [{:type :t.create-cannedresponse.errors/unable-to-generate}]})
         {:success false

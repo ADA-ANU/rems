@@ -20,6 +20,14 @@
    (s/optional-key :id) s/Int
    (s/optional-key :errors) [s/Any]})
 
+(s/defschema CreateCannedResponseMapping
+  {:success s/Bool
+   :tag s/Int})
+
+(s/defschema CannedResponseAndMappingResponse
+  (merge CannedResponseResponse
+         {(s/optional-key :mapping) [CreateCannedResponseMapping]}))
+
 (s/defschema CannedResponseDataResponse
   {:success s/Bool
    (s/optional-key :cannedresponses) [cannedresponses/CannedResponse]
@@ -88,7 +96,7 @@
       :summary "Create a canned response"
       :roles #{:owner :organization-owner}
       :body [command CreateCannedResponseCommand]
-      :return CannedResponseResponse
+      :return CannedResponseAndMappingResponse
       (ok (cannedresponses/create-cannedresponse! command)))
 
     (POST "/mapping" []
