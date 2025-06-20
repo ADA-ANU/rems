@@ -844,6 +844,114 @@ WHERE 1 = 1
 /*~ ) ~*/
 ORDER BY id ASC;
 
+-- :name get-canned-responses :? :*
+SELECT r.id, r.orgId as orgid, r.response, r.title, r.created_at, r.updated_at, r.enabled,
+ (SELECT json_agg(x.tag)
+  FROM cannedresponsetags as x
+  JOIN cannedresponse_tag_mapping as y ON (y.cannedresponseId = r.id and y.cannedresponsetagId = x.id))::text as tags
+FROM cannedresponses as r
+/*~ (when-not (nil? (:appid params)) */
+  JOIN application_event as a ON (a.eventdata->>'event/type' LIKE 'application.event/created' and a.appid = :appid)
+  JOIN catalogue_item c ON (c.id = (a.eventdata->'application/resources'->0->'catalogue-item/id')::int)
+  AND c.organization = r.orgId
+/*~ ) ~*/
+/*~ (when (:tagid params) */
+  JOIN cannedresponse_tag_mapping as t ON (t.cannedresponseId = r.id AND t.cannedresponsetagId = :tagid)
+/*~ ) ~*/
+WHERE 1 = 1
+/*~ (when (:orgid params) */
+  AND (r.orgId = :orgid)
+/*~ ) ~*/
+/*~ (when (:id params) */
+  AND (r.id = :id)
+/*~ ) ~*/
+/*~ (when-not (nil? (:enabled params)) */
+  AND r.enabled = :enabled
+/*~ ) ~*/
+ORDER BY r.id ASC;
+
+-- :name get-canned-response-tags :? :*
+SELECT r.id, r.orgId as orgid, r.tag, r.created_at, r.updated_at, r.enabled,
+ (SELECT json_agg(x.id)
+  FROM cannedresponses as x
+  JOIN cannedresponse_tag_mapping as y ON (y.cannedresponsetagId = r.id and y.cannedresponseId = x.id))::text as responses
+FROM cannedresponsetags as r
+/*~ (when-not (nil? (:appid params)) */
+  JOIN application_event as a ON (a.eventdata->>'event/type' LIKE 'application.event/created' and a.appid = :appid)
+  JOIN catalogue_item c ON (c.id = (a.eventdata->'application/resources'->0->'catalogue-item/id')::int)
+  AND c.organization = r.orgId
+/*~ ) ~*/
+WHERE 1 = 1
+/*~ (when (:orgid params) */
+  AND (r.orgId = :orgid)
+/*~ ) ~*/
+/*~ (when (:id params) */
+  AND (r.id = :id)
+/*~ ) ~*/
+/*~ (when-not (nil? (:enabled params)) */
+  AND r.enabled = :enabled
+/*~ ) ~*/
+ORDER BY r.id ASC;
+
+-- :name get-canned-response-mapping :? :*
+SELECT id, cannedresponseId as responseid, cannedresponsetagId as tagid
+FROM cannedresponse_tag_mapping
+WHERE 1 = 1
+/*~ (when (:id params) */
+  AND (id = :id)
+/*~ ) ~*/
+/*~ (when (:tagid params) */
+  AND (cannedresponsetagId = :tagid)
+/*~ ) ~*/
+/*~ (when (:responseid params) */
+  AND (cannedresponseId = :responseid)
+/*~ ) ~*/
+ORDER BY id ASC;
+
+-- :name add-canned-response! :insert
+INSERT INTO cannedresponses (orgid,response,title)
+VALUES (:orgid,:response,:title)
+ON CONFLICT (id) DO NOTHING
+RETURNING id;
+
+-- :name add-canned-response-tag! :insert
+INSERT INTO cannedresponsetags (orgid,tag)
+VALUES (:orgid,:tag)
+ON CONFLICT (id) DO NOTHING
+RETURNING id;
+
+-- :name update-canned-response! :!
+UPDATE cannedresponses
+SET response = :response, title = :title, updated_at = NOW()
+WHERE id = :id;
+
+-- :name update-canned-response-tag! :!
+UPDATE cannedresponsetags
+SET tag = :tag, updated_at = NOW()
+WHERE id = :id;
+
+-- :name tag-canned-response! :insert
+INSERT INTO cannedresponse_tag_mapping (cannedresponseId,cannedresponsetagId)
+VALUES (:responseid,:tagid)
+ON CONFLICT (id) DO NOTHING
+RETURNING id;
+
+-- :name delete-tag-canned-response! :!
+DELETE FROM cannedresponse_tag_mapping
+WHERE id = :id;
+
+-- :name set-canned-response-enabled! :!
+UPDATE cannedresponses
+SET enabled = :enabled
+WHERE id = :id
+RETURNING id;
+
+-- :name set-canned-response-tag-enabled! :!
+UPDATE cannedresponsetags
+SET enabled = :enabled
+WHERE id = :id
+RETURNING id;
+
 -- :name get-my-application-invitations :? :*
 SELECT a.id, a.eventdata::TEXT, a2.eventdata->>'event/time' as joined, a3.eventdata->>'event/time' as removed, a4.eventdata->>'event/time' as uninvited
 FROM application_event as a
