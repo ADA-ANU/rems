@@ -51,13 +51,35 @@
   (->> (applications/get-all-applications user-id)
        (filter cannedresponse-application?)))
 
+(defn create-cannedresponse-mapping! [data]
+  (if-let [id (db/tag-canned-response! data)]
+    {:success (not (nil? id))
+     :id (:id id)}
+    {:success false
+     :errors [{:type :t.create-cannedresponsemapping.errors/invalid-data}]}))
+
 (defn create-cannedresponse! [data]
   (if (:orgid data)
-    (let [organization  (organizations/getx-organization-by-id (:orgid data))]
+    (let [tags (:tags data)
+          canned-data (dissoc data :tags)
+          organization (organizations/getx-organization-by-id (:orgid data))]
       (util/check-allowed-organization! organization)
       (if-let [id (db/add-canned-response! data)]
-        {:success (not (nil? id))
-         :id (:id id)}
+        (if (not (nil? id))
+          (do
+            (let [base-response {:success true
+                                 :id (:id id)}]
+              (if (seq tags)
+                (let [mapping-results (mapv (fn [tag]
+                                              (let [result (create-cannedresponse-mapping!
+                                                            {:tagid tag :responseid (:id id)})]
+                                                {:tag tag
+                                                 :success (:success result)}))
+                                            tags)]
+                  (assoc base-response :mapping mapping-results))
+                base-response)))
+          {:success false
+           :errors [{:type :t.create-cannedresponse.errors/unable-to-generate}]})
         {:success false
          :errors [{:type :t.create-cannedresponse.errors/invalid-data}]}))
     {:success false
@@ -74,13 +96,6 @@
          :errors [{:type :t.create-cannedresponsetag.errors/invalid-data}]}))
     {:success false
      :errors [{:type :t.create-cannedresponsetag.errors/no-org-id}]}))
-
-(defn create-cannedresponse-mapping! [data]
-  (if-let [id (db/tag-canned-response! data)]
-    {:success (not (nil? id))
-     :id (:id id)}
-    {:success false
-     :errors [{:type :t.create-cannedresponsemapping.errors/invalid-data}]}))
 
 (defn delete-cannedresponse-mapping! [data]
   (db/delete-tag-canned-response! data)
