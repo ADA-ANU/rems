@@ -83,7 +83,7 @@
    #'api-routes
    (wrap-cacheable
     (routes resource-handler))
-  not-found-handler))
+   not-found-handler))
 
 ;; we use mount to construct the app so that middleware can access mount state
 (mount/defstate handler

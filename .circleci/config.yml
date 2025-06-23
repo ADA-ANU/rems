@@ -39,7 +39,7 @@ jobs:
             # fallback to using the latest cache if no exact match is found
             - v5-dependencies-
       # build shadow-cljs already so that all maven deps get cached
-      - run: lein do deps, shadow-build
+      - run: lein do deps
       - save_cache:
           paths:
             - ~/.m2
@@ -48,9 +48,9 @@ jobs:
       # persist shadow-cljs build for browser tests etc
       - persist_to_workspace:
           root: .
-          paths:
-            - target/shadow
-            - .shadow-cljs
+          # paths:
+          #   - target/shadow
+          #   - .shadow-cljs
 
   unit-test:
     executor: clojure
