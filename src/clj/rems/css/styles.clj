@@ -912,8 +912,3 @@
 
 (mount/defstate memoized-render-css
   :start (memoize render-css))
-
-(defroutes css-routes
-  (GET "/css/:language/screen.css" [language]
-    (binding [context/*lang* (keyword language)]
-      (memoized-render-css context/*lang*))))

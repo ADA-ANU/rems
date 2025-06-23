@@ -12,7 +12,6 @@
             [rems.context :as context]
             [rems.auth.auth :as auth]
             [rems.config :refer [env]]
-            [rems.css.styles :as styles]
             [rems.db.catalogue :as catalogue]
             [rems.email.core] ;; to enable email polling
             [rems.application.eraser] ;; to enable expired application clean-up job
@@ -42,27 +41,6 @@
       (not (apply = (mapv :wfid items))) (-> (bad-request "Unbundlable catalogue items: workflows don't match")
                                              (content-type "text/plain"))
       :else (redirect (str "/application?items=" (str/join "," (mapv :id items)))))))
-
-(defroutes redirects
-  (GET "/accept-invitation" [token]
-    (if-let [invitation (first (invitation/get-invitations {:token token}))]
-      (cond (:invitation/workflow invitation)
-            (redirect (str "/invitation/accept-invitation?type=workflow&token=" token)))
-      (redirect (str "/application/accept-invitation/" token))))
-
-  (GET "/apply-for" [resource] ;; can specify multiple resources
-    (if (vector? resource)
-      (apply-for-resources resource)
-      (apply-for-resources [resource])))
-
-  (GET "/landing_page" [] ; DEPRECATED: legacy url redirect
-    (redirect "/redirect"))
-
-  (GET "/favicon.ico" []
-    (redirect "/img/favicon.ico"))
-
-  (GET "/entitlements.csv" [] ; DEPRECATED: legacy url redirect 
-    (redirect "/api/entitlements/export-csv")))
 
 (defroutes attachment-routes
   (GET "/applications/attachment/:attachment-id" [attachment-id]
@@ -94,53 +72,18 @@
                         :title "Page not found"})
   (layout/home-page))
 
-(def home-route
-  (GET "/" [] (layout/home-page)))
-
-(defn extra-script-routes [{:keys [root files]}]
-  (let [files (set files)]
-    (fn [request]
-      (when (contains? files (:uri request))
-        (file-response (:uri request) {:root root})))))
-
-(defn extra-stylesheet-routes [{:keys [root files]}]
-  (let [files (set files)]
-    (fn [request]
-      (when (contains? files (:uri request))
-        (file-response (:uri request) {:root root})))))
-
-(defn- static-resources [path]
-  (if path
-    (route/files "/" {:root path})
-    never-match-route))
-
-(def ^:private webjar-handler
-  "Serves our webjar (https://www.webjars.org/) dependencies as /assets/<webjar>/<file>.
-   Weirdly ring-webjars only exposes a middleware and not a route."
-  (wrap-webjars never-match-route))
-
 (def ^:private resource-handler
   (route/resources "/" {:root "public"}))
 
 (defn app-routes []
   (routes
-   home-route
    (wrap-login-redirect
-    (routes attachment-routes
-            redirects))
+    (routes attachment-routes))
    (auth/auth-routes)
    #'api-routes
-   ;; TODO should we disable logging of resource requests?
    (wrap-cacheable
-    (routes
-     styles/css-routes
-     resource-handler
-     (extra-script-routes (:extra-scripts env))
-     (extra-stylesheet-routes (:extra-stylesheets env))
-     (static-resources (:extra-static-resources env))
-     (static-resources (:theme-static-resources env))
-     webjar-handler))
-   not-found-handler))
+    (routes resource-handler))
+  not-found-handler))
 
 ;; we use mount to construct the app so that middleware can access mount state
 (mount/defstate handler

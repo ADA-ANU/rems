@@ -20,7 +20,7 @@
             [rems.logging :refer [with-mdc]]
             [rems.middleware.dev :refer [wrap-dev]]
             [rems.multipart]
-            [rems.util :refer [getx-user-id]]
+            [rems.util :refer [getx getx-user-id]]
             [ring-ttl-session.core :refer [ttl-memory-store]]
             [ring.middleware.anti-forgery :refer [wrap-anti-forgery]]
             [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
@@ -121,9 +121,7 @@
       (catch Throwable t
         (log/error t "Internal error" (with-out-str (when-let [data (ex-data t)]
                                                       (pprint data))))
-        (error-page {:status 500
-                     :title "System error occurred!"
-                     :message "We are working on fixing the issue."})))))
+        (redirect (str (getx env :cadre-url) "error"))))))
 
 (defn wrap-i18n
   "Sets context/*lang*"

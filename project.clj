@@ -71,7 +71,7 @@
   :java-source-paths ["src/java"]
   :javac-options ["-source" "8" "-target" "8"]
   :test-paths ["src/clj" "src/cljc" "test/clj" "test/cljc"] ; also run tests from src files
-  :resource-paths ["resources" "target/shadow"]
+  :resource-paths ["resources"]
   :target-path "target/%s/"
   :main rems.main
   :migratus {:store :database :db ~(get (System/getenv) "DATABASE_URL" "postgresql://localhost/rems?user=rems")}
@@ -84,19 +84,13 @@
 
   :antq {}
 
-  :cljfmt {:paths ["project.clj" "src/clj" "src/cljc" "src/cljs" "test/clj" "test/cljc" "test/cljs"] ; need explicit paths to include cljs
+  :cljfmt {:paths ["project.clj" "src/clj" "src/cljc" "test/clj" "test/cljc"] ; need explicit paths to include cljs
            :remove-consecutive-blank-lines? false} ; too many changes for now, probably not desirable
 
   :clean-targets ["target"]
 
-  :aliases {"shadow-build" ["shell" "sh" "-c" "npm install && npx shadow-cljs compile app"]
-            "shadow-release" ["shell" "sh" "-c" "npm install && npx shadow-cljs release app"]
-            "shadow-test" ["shell" "sh" "-c" "npm install --include=dev && npx shadow-cljs compile cljs-test && ./node_modules/karma/bin/karma start"]
-            "shadow-watch" ["shell" "sh" "-c" "npm install --include=dev && npx shadow-cljs watch app"]
-            "kaocha" ["with-profile" "test" "run" "-m" "kaocha.runner"]
-            "browsertests" ["do" ["shadow-build"] ["kaocha" "browser"]]
-            "alltests" ["do" ["shadow-build"] ["kaocha"] ["shadow-test"]]
-            "test-ancient" ["do" ["shadow-build"] ["kaocha"] ["shadow-test"]]} ; for lein ancient to work and run all tests
+  :aliases {"kaocha" ["with-profile" "test" "run" "-m" "kaocha.runner"]
+            "alltests" ["do" ["kaocha"]]} ; for lein ancient to work and run all tests
 
   :profiles
   {:uberjar {:omit-source true
@@ -104,8 +98,7 @@
                           ["shell" "sh" "-c" "git describe --tags --long --always --dirty=-custom > target/uberjar/resources/git-describe.txt"]
                           ["shell" "sh" "-c" "git rev-parse HEAD > target/uberjar/resources/git-revision.txt"]
                           "javac"
-                          "compile"
-                          "shadow-release"]
+                          "compile"]
              :aot :all
              :uberjar-name "rems.jar"
              :source-paths ["env/prod/clj"]
