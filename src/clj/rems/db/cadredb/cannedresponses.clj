@@ -102,16 +102,16 @@
   {:success true})
 
 (defn set-cannedresponse-enabled! [data]
-  (if-let [id (db/set-canned-response-enabled! data)]
+  (if-let [id (first (db/set-canned-response-enabled! data))]
     {:success (not (nil? id))
-     :id (:id id)}
+     :id id}
     {:success false
      :errors [{:type :t.create-cannedresponseenabled.errors/invalid-data}]}))
 
 (defn set-cannedresponse-tag-enabled! [data]
-  (if-let [id (db/set-canned-response-tag-enabled! data)]
+  (if-let [id (first (db/set-canned-response-tag-enabled! data))]
     {:success (not (nil? id))
-     :id (:id id)}
+     :id id}
     {:success false
      :errors [{:type :t.create-cannedresponsetagenabled.errors/invalid-data}]}))
 

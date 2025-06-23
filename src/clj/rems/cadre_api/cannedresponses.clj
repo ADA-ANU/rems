@@ -24,6 +24,10 @@
   {:success s/Bool
    :tag s/Int})
 
+(s/defschema ToggleCannedResponseState
+  {:id s/Int
+   :enabled s/Bool})
+
 (s/defschema CannedResponseAndMappingResponse
   (merge CannedResponseResponse
          {(s/optional-key :mapping) [CreateCannedResponseMapping]}))
@@ -118,18 +122,16 @@
     (PUT "/enabled" []
       :summary "Enable or disable the canned response"
       :roles #{:owner}
-      :query-params [{id :- (describe s/Int "Canned response id") false}
-                     {enabled :- (describe s/Bool "Whether enabled or not") false}]
+      :body [command ToggleCannedResponseState]
       :return CannedResponseResponse
-      (ok (cannedresponses/set-cannedresponse-enabled! {:id id :enabled enabled})))
+      (ok (cannedresponses/set-cannedresponse-enabled! command)))
 
     (PUT "/tag/enabled" []
       :summary "Enable or disable the canned response tag"
       :roles #{:owner}
-      :query-params [{id :- (describe s/Int "Canned response tag id") false}
-                     {enabled :- (describe s/Bool "Whether enabled or not") false}]
+      :body [command ToggleCannedResponseState]
       :return CannedResponseResponse
-      (ok (cannedresponses/set-cannedresponse-tag-enabled! {:id id :enabled enabled})))
+      (ok (cannedresponses/set-cannedresponse-tag-enabled! command)))
 
 
     (DELETE "/mapping" []
