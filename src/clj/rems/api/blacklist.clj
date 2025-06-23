@@ -36,11 +36,11 @@
     (unprocessable-entity-json-response "resource not found")))
 
 (def blacklist-api
-  (context "/blacklist" []
-    :tags ["blacklist"]
+  (context "/blocklist" []
+    :tags ["blocklist"]
 
     (GET "/" []
-      :summary "Get blacklist entries"
+      :summary "Get blocklist entries"
       :roles +admin-read-roles+
       :query-params [{user :- schema-base/UserId nil}
                      {resource :- s/Str nil}]
@@ -49,7 +49,7 @@
                                     :resource/ext-id resource})))
 
     (GET "/users" []
-      :summary "Existing REMS users available for adding to the blacklist"
+      :summary "Existing REMS users available for adding to the blocklist"
       :roles  #{:owner :handler}
       :return [schema-base/UserWithAttributes]
       (ok (users/get-users)))
@@ -57,7 +57,7 @@
     ;; TODO write access to blacklist for organization-owner
 
     (POST "/add" []
-      :summary "Add a blacklist entry"
+      :summary "Add a blocklist entry"
       :roles #{:owner :handler}
       :body [command BlacklistCommand]
       :return schema/SuccessResponse
@@ -74,7 +74,7 @@
                 (ok {:success true})))))
 
     (POST "/remove" []
-      :summary "Remove a blacklist entry"
+      :summary "Remove a blocklist entry"
       :roles #{:owner :handler}
       :body [command BlacklistCommand]
       :return schema/SuccessResponse
