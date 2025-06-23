@@ -48,9 +48,9 @@ jobs:
       # persist shadow-cljs build for browser tests etc
       - persist_to_workspace:
           root: .
-          # paths:
-          #   - target/shadow
-          #   - .shadow-cljs
+          paths:
+            - target/shadow
+            - .shadow-cljs
 
   unit-test:
     executor: clojure
