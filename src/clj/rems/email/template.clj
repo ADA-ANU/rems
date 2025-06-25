@@ -368,7 +368,7 @@
   (with-language lang
     (fn []
       (when project
-        {:to (:email user)
+        {:to (get-in invitation [:invitation/invited-by :email])
          :subject (str :t.email.project-decline/subject)
          :body (str
                 (text-format :t.email.project-decline/message
