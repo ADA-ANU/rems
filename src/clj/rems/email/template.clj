@@ -367,15 +367,14 @@
 (defn project-decline-email [lang invitation project]
   (with-language lang
     (fn []
-      (let [user (users/get-user (get-in invitation [:invitation/invited-by :userid]))]
-        (when project
-          {:to (:email user)
-           :subject (str :t.email.project-decline/subject)
-           :body (str
-                  (text-format :t.email.project-decline/message
-                               (:name user)
-                               (:invitation/name invitation)
-                               (:invitation/email invitation)
-                               (:project/name project))
-                  (text :t.email/regards)
-                  (text :t.email/footer))})))))
+      (when project
+        {:to (:email user)
+         :subject (str :t.email.project-decline/subject)
+         :body (str
+                (text-format :t.email.project-decline/message
+                             (get-in invitation [:invitation/invited-by :name])
+                             (:invitation/name invitation)
+                             (:invitation/email invitation)
+                             (get-in project [:project/name :en]))
+                (text :t.email/regards)
+                (text :t.email/footer))}))))
