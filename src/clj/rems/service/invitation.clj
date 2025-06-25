@@ -110,8 +110,8 @@
             (let [project (projects/get-project-by-id-raw project-id)
                   id (:id invitation)]
               (do
-                (email/generate-decline-emails! (get-invitations-full {:ids [id]}))
                 (invitation/decline-invitation! token)
+                (email/generate-decline-emails! (get-invitations-full {:ids [id]}))
                 {:success true}))
             {:success false
              :errors [{:key :t.decline-invitation.errors/invalid-invitation-type}]})
@@ -131,8 +131,8 @@
         (let [project (projects/get-project-by-id-raw project-id)]
           (do
             (rems.service.cadre.util/check-allowed-project! project)
-            (email/generate-revocation-emails! (get-invitations-full {:ids [id]}))
             (invitation/revoke-invitation! userid id)
+            (email/generate-revocation-emails! (get-invitations-full {:ids [id]}))
             (if (= (:invitation/role invitation) "owner")
               (projects/update-project! project-id (fn [project] (-> project
                                                                      (dissoc :project/invitations
