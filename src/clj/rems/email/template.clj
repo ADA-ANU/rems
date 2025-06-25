@@ -355,12 +355,12 @@
          :subject (text-format :t.email.project-handler-revocation/subject
                                (:invitation/name invitation)
                                (get-in invitation [:invitation/revoked-by :name])
-                               (:project/name project))
+                               (get-in project [:project/name :en]))
          :body (str
                 (text-format :t.email.project-handler-revocation/message
                              (:invitation/name invitation)
                              (get-in invitation [:invitation/revoked-by :name])
-                             (:project/name project))
+                             (get-in project [:project/name :en]))
                 (text :t.email/regards)
                 (text :t.email/footer))}))))
 

@@ -89,13 +89,11 @@
 
 (defn generate-revocation-emails! [invitations]
   (doseq [invitation invitations
-          :when (not (:invitation/revoked invitation))
           :let [email (render-revocation-template invitation)]]
     (enqueue-email! email)))
 
 (defn generate-decline-emails! [invitations]
   (doseq [invitation invitations
-          :when (not (:invitation/declined invitation))
           :let [email (render-decline-template invitation)]]
     (enqueue-email! email)))
 
