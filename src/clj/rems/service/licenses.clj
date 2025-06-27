@@ -86,3 +86,9 @@
   [filters]
   (->> (licenses/get-all-licenses filters)
        (mapv organizations/join-organization)))
+
+(defn get-associated-licenses [filters]
+  (util/get-associated-assets
+   {:get-asset-fn get-all-licenses
+    :org-id-path [:organization :organization/id]
+    :filters filters}))

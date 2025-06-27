@@ -1,13 +1,15 @@
 (ns rems.db.cadredb.cannedresponses
   (:require [rems.common.util :refer [getx]]
             [rems.db.core :as db]
-            [rems.json :as json]
             [rems.db.applications :as applications]
             [rems.db.organizations :as organizations]
-            [rems.service.util :as util]
             [rems.db.users :as users]
-            [medley.core :refer [update-existing]]
+            [rems.json :as json]
             [rems.schema-base :as schema-base]
+            [rems.service.organizations :as service-organizations]
+            [rems.service.util :as util]
+            [rems.service.workflow :as workflow]
+            [medley.core :refer [update-existing]]
             [schema.coerce :as coerce]
             [schema.core :as s])
   (:import [org.joda.time DateTime]))
@@ -155,6 +157,25 @@
     {:success false
      :errors [{:type :t.get-app-cannedresponses.errors/no-app-cannedresponses}]}))
 
-
+(defn get-associated-cannedresponses [cmd]
+  (let [cannedresponses (db/get-canned-responses cmd)
+        organizations (service-organizations/get-organizations-by-id)
+        organization-handlers (workflow/get-organization-handlers {:enabled true
+                                                                   :archived false})]   
+    (if (< 0 (count cannedresponses))
+      (let [filtered-cannedresponses (->> cannedresponses
+                                          (mapv parse-response)
+                                          (filter (fn [cannedresponses]
+                                                    (let [org-id (:orgid cannedresponses)
+                                                          organization (get organizations org-id)]
+                                                      (util/may-view-organization-assets? organization organization-handlers))))
+                                          (vec))]
+        (if (< 0 (count filtered-cannedresponses))
+          {:success true
+           :cannedresponses filtered-cannedresponses}
+          {:success false
+           :errors [{:type :t.get-associated-cannedresponses.errors/no-cannedresponses}]}))
+      {:success false
+       :errors [{:type :t.get-associated-cannedresponses.errors/no-cannedresponses}]})))
 
 

@@ -59,6 +59,12 @@
   (->> (form/get-form-templates filters)
        (mapv join-dependencies)))
 
+(defn get-associated-form-templates [filters]
+  (util/get-associated-assets
+   {:get-asset-fn get-form-templates
+    :org-id-path [:organization :organization/id]
+    :filters filters}))
+
 (defn edit-form! [form]
   ;; need to check both previous and new organization
   (util/check-allowed-organization! (:organization (get-form-template (:form/id form))))

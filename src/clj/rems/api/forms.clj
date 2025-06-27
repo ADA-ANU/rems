@@ -12,7 +12,7 @@
 
 (defn- get-form-templates [filters]
   (doall
-   (for [form (form/get-form-templates filters)]
+   (for [form (form/get-associated-form-templates filters)]
      (select-keys form [:form/id :organization :form/title :form/internal-name :form/external-title :form/errors :enabled :archived]))))
 
 (s/defschema CreateFormCommand

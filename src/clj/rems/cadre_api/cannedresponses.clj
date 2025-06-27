@@ -61,11 +61,11 @@
                      {id :- (describe s/Int "Limit to this canned response id") nil}
                      {enabled :- (describe s/Bool "Limit to canned responses enabled or disabled") nil}]
       :return CannedResponseDataResponse
-      (ok (cannedresponses/get-cannedresponses (merge     (when (some? appid) {:appid appid})
-                                                          (when (some? enabled) {:enabled enabled})
-                                                          (when (some? orgid) {:orgid orgid})
-                                                          (when (some? tagid) {:tagid tagid})
-                                                          (when (some? id) {:id id})))))
+      (ok (cannedresponses/get-associated-cannedresponses (merge     (when (some? appid) {:appid appid})
+                                                                     (when (some? enabled) {:enabled enabled})
+                                                                     (when (some? orgid) {:orgid orgid})
+                                                                     (when (some? tagid) {:tagid tagid})
+                                                                     (when (some? id) {:id id})))))
 
     (GET "/tag" []
       :summary "Get canned response tags"

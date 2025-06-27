@@ -24,6 +24,12 @@
   (->> (resource/get-resources filters)
        (mapv join-dependencies)))
 
+(defn get-associated-resources [filters]
+  (util/get-associated-assets
+   {:get-asset-fn get-resources
+    :org-id-path [:organization :organization/id]
+    :filters filters}))
+
 (defn create-resource! [resource]
   (util/check-allowed-organization! (:organization resource))
   (let [id (resource/create-resource! resource)]

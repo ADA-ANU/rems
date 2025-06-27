@@ -45,9 +45,9 @@
                      {archived :- (describe s/Bool "whether to include archived resources") false}
                      {resid :- (describe s/Str "optionally filter by resid (external resource identifier)") nil}]
       :return Resources
-      (ok (resource/get-resources (merge (when-not disabled {:enabled true})
-                                         (when-not archived {:archived false})
-                                         (when resid {:resid resid})))))
+      (ok (resource/get-associated-resources (merge (when-not disabled {:enabled true})
+                                                    (when-not archived {:archived false})
+                                                    (when resid {:resid resid})))))
 
     (GET "/duo-codes" []
       :summary "Get DUO codes"

@@ -43,7 +43,7 @@
       :query-params [{disabled :- (describe s/Bool "whether to include disabled workflows") false}
                      {archived :- (describe s/Bool "whether to include archived workflows") false}]
       :return [schema/Workflow]
-      (ok (workflow/get-workflows (merge (when-not disabled {:enabled true})
+      (ok (workflow/get-associated-workflows (merge (when-not disabled {:enabled true})
                                          (when-not archived {:archived false})))))
 
     (POST "/create" []

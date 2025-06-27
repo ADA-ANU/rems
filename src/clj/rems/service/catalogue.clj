@@ -41,6 +41,14 @@
   (->> (catalogue/get-localized-catalogue-items (or query-params {}))
        (mapv #(join-dependencies % query-params))))
 
+(defn get-associated-localized-catalogue-items [associated query-params]
+  (if associated
+    (util/get-associated-assets
+      {:get-asset-fn get-localized-catalogue-items
+       :org-id-path [:organization :organization/id]
+       :filters query-params})
+    (get-localized-catalogue-items query-params)))
+
 (defn get-localized-catalogue-item [id]
   (-> (catalogue/get-localized-catalogue-item id)
       (join-dependencies nil)))

@@ -46,6 +46,11 @@
   (->> (get-organizations {:userid userid})
        (find-first (comp #{(:organization/id org)} :organization/id))))
 
+(defn get-organizations-by-id []
+  (->> (organizations/get-organizations)
+       (map (fn [org] [(get org :organization/id) org]))
+       (into {})))
+
 (defn add-organization! [cmd]
   (if-let [id (organizations/add-organization! cmd)]
     {:success true

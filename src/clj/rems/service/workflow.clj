@@ -97,3 +97,9 @@
                          workflows)]
     (->> handlers distinct (sort-by :userid))))
 
+
+(defn get-associated-workflows [filters]
+  (util/get-associated-assets
+   {:get-asset-fn get-workflows
+    :org-id-path [:organization :organization/id]
+    :filters filters}))

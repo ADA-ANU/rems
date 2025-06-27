@@ -23,7 +23,8 @@
                      {disabled :- (describe s/Bool "whether to include disabled items") false}
                      {expired :- (describe s/Bool "whether to include expired items") false}
                      {limit :- (describe s/Int "the number of records to return (optional)") nil}
-                     {offset :- (describe s/Int "starts on record OFFSET+1 (optional)") nil}]
+                     {offset :- (describe s/Int "starts on record OFFSET+1 (optional)") nil}
+                     {associated :-(describe s/Bool "shows only catalogue items which the user is associated with") false}]
       :return GetCatalogueItemsResponse
       (ok (db/apply-filters
            (merge (when-not expired {:expired false})
