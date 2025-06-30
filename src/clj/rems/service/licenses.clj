@@ -1,6 +1,7 @@
 (ns rems.service.licenses
   "Serving licenses for API."
   (:require [clj-time.core :as time]
+            [rems.service.asset-filter :as asset-filter]
             [rems.service.dependencies :as dependencies]
             [rems.service.util :as util]
             [rems.db.applications :as applications]
@@ -88,7 +89,7 @@
        (mapv organizations/join-organization)))
 
 (defn get-associated-licenses [filters]
-  (util/get-associated-assets
+  (asset-filter/get-associated-assets
    {:get-asset-fn get-all-licenses
     :org-id-path [:organization :organization/id]
     :filters filters}))

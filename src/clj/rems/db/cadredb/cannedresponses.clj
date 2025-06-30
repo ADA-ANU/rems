@@ -6,6 +6,7 @@
             [rems.db.users :as users]
             [rems.json :as json]
             [rems.schema-base :as schema-base]
+            [rems.service.asset-filter :as asset-filter]
             [rems.service.organizations :as service-organizations]
             [rems.service.util :as util]
             [rems.service.workflow :as workflow]
@@ -159,8 +160,8 @@
 
 (defn get-associated-cannedresponses [cmd]
   (let [cannedresponses (db/get-canned-responses cmd)
-        organizations (service-organizations/get-organizations-by-id)
-        organization-handlers (workflow/get-organization-handlers {:enabled true
+        organizations (asset-filter/get-organizations-by-id)
+        organization-handlers (asset-filter/get-organization-handlers {:enabled true
                                                                    :archived false})]   
     (if (< 0 (count cannedresponses))
       (let [filtered-cannedresponses (->> cannedresponses
@@ -168,7 +169,7 @@
                                           (filter (fn [cannedresponses]
                                                     (let [org-id (:orgid cannedresponses)
                                                           organization (get organizations org-id)]
-                                                      (util/may-view-organization-assets? organization organization-handlers))))
+                                                      (asset-filter/may-view-organization-assets? organization organization-handlers))))
                                           (vec))]
         (if (< 0 (count filtered-cannedresponses))
           {:success true

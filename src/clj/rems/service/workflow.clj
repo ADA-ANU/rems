@@ -1,5 +1,6 @@
 (ns rems.service.workflow
-  (:require [rems.service.dependencies :as dependencies]
+  (:require [rems.service.asset-filter :as asset-filter]
+            [rems.service.dependencies :as dependencies]
             [rems.service.util :as util]
             [rems.db.applications :as applications]
             [rems.db.core :as db]
@@ -99,7 +100,7 @@
 
 
 (defn get-associated-workflows [filters]
-  (util/get-associated-assets
+  (asset-filter/get-associated-assets
    {:get-asset-fn get-workflows
     :org-id-path [:organization :organization/id]
     :filters filters}))

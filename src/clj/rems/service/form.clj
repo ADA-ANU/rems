@@ -1,6 +1,7 @@
 (ns rems.service.form
   (:require [clojure.test :refer :all]
             [clojure.tools.logging :as log]
+            [rems.service.asset-filter :as asset-filter]
             [rems.service.dependencies :as dependencies]
             [rems.service.util :as util]
             [rems.common.form :as common-form]
@@ -60,7 +61,7 @@
        (mapv join-dependencies)))
 
 (defn get-associated-form-templates [filters]
-  (util/get-associated-assets
+  (asset-filter/get-associated-assets
    {:get-asset-fn get-form-templates
     :org-id-path [:organization :organization/id]
     :filters filters}))

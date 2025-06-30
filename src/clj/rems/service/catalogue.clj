@@ -1,5 +1,6 @@
 (ns rems.service.catalogue
   (:require [medley.core :refer [assoc-some]]
+            [rems.service.asset-filter :as asset-filter]
             [rems.service.dependencies :as dependencies]
             [rems.service.util :as util]
             [rems.db.applications :as applications]
@@ -43,7 +44,7 @@
 
 (defn get-associated-localized-catalogue-items [associated query-params]
   (if associated
-    (util/get-associated-assets
+    (asset-filter/get-associated-assets
       {:get-asset-fn get-localized-catalogue-items
        :org-id-path [:organization :organization/id]
        :filters query-params})

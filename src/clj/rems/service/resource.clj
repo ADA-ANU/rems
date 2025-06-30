@@ -1,5 +1,6 @@
 (ns rems.service.resource
   (:require [com.rpl.specter :refer [ALL transform]]
+            [rems.service.asset-filter :as asset-filter]
             [rems.service.dependencies :as dependencies]
             [rems.service.util :as util]
             [rems.db.core :as db]
@@ -25,7 +26,7 @@
        (mapv join-dependencies)))
 
 (defn get-associated-resources [filters]
-  (util/get-associated-assets
+  (asset-filter/get-associated-assets
    {:get-asset-fn get-resources
     :org-id-path [:organization :organization/id]
     :filters filters}))
