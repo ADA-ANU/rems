@@ -7,6 +7,7 @@
             [rems.ext.duo :as duo]
             [rems.ext.mondo :as mondo]
             [rems.schema-base :as schema-base]
+            [rems.util :refer [getx-user-id]]
             [ring.util.http-response :refer :all]
             [schema.core :as s]))
 
@@ -47,7 +48,8 @@
       :return Resources
       (ok (resource/get-resources (merge (when-not disabled {:enabled true})
                                          (when-not archived {:archived false})
-                                         (when resid {:resid resid})))))
+                                         (when resid {:resid resid})
+                                         {:userid (getx-user-id)}))))
 
     (GET "/duo-codes" []
       :summary "Get DUO codes"
