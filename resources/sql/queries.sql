@@ -113,7 +113,33 @@ SELECT
   archived,
   resourcedata::TEXT
 FROM resource
-WHERE 1=1
+WHERE 
+  1=1
+/*~ (when (:userid params) */
+  AND organization IN (
+    SELECT
+      DISTINCT org.id
+    FROM
+      organization org,
+      LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+    WHERE
+      owners->>'userid' = :userid
+
+    UNION ALL
+
+    SELECT
+      DISTINCT org.id
+    FROM
+      workflow w,
+      organization org,
+      LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+    WHERE
+      handlers::text = :userid
+      AND w.organization = org.id
+      AND w.enabled = true
+      AND w.archived = false
+  )
+/*~ ) ~*/
 /*~ (when (:resid params) */
   AND resid = :resid
 /*~ ) ~*/
