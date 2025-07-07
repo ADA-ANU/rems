@@ -75,7 +75,7 @@
       :roles +admin-read-roles+
       :path-params [resource-id :- (describe s/Int "resource id")]
       :return Resource
-      (if-let [resource (resource/get-resource resource-id)]
+      (if-let [resource (resource/get-resource resource-id (getx-user-id))]
         (ok resource)
         (not-found-json-response)))
 
