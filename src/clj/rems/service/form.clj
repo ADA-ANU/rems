@@ -51,13 +51,13 @@
     (->> form
          organizations/join-organization)))
 
-(defn get-form-template 
+(defn get-form-template
   ([id]
-    (-> (form/get-form-template id)
-        join-dependencies))
+   (-> (form/get-form-template id)
+       join-dependencies))
   ([id userid]
-    (-> (form/get-form-template id userid)
-        join-dependencies)))
+   (-> (form/get-form-template id userid)
+       join-dependencies)))
 
 (defn get-form-templates [filters]
   (->> (form/get-form-templates filters)

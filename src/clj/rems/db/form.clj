@@ -56,15 +56,15 @@
        (db/apply-filters (dissoc filters :userid))
        (map add-validation-errors)))
 
-(defn get-form-template 
+(defn get-form-template
   ([id]
-    (let [row (db/get-form-template {:id id})]
-      (when row
-        (add-validation-errors (parse-db-row row)))))
+   (let [row (db/get-form-template {:id id})]
+     (when row
+       (add-validation-errors (parse-db-row row)))))
   ([id userid]
-    (let [row (db/get-form-template {:id id :userid userid})]
-      (when row
-        (add-validation-errors (parse-db-row row))))))
+   (let [row (db/get-form-template {:id id :userid userid})]
+     (when row
+       (add-validation-errors (parse-db-row row))))))
 
 (defn- validate-given-ids
   "Check that `:field/id` values are distinct, not empty (or not given)."

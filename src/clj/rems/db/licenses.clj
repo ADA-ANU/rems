@@ -39,14 +39,14 @@
   "Get a single license by id"
   ([id]
    (when-let [license (db/get-license {:id id})]
-    (->> license
-         (format-license)
-         (localize-license (get-license-localizations)))))
+     (->> license
+          (format-license)
+          (localize-license (get-license-localizations)))))
   ([id userid]
    (when-let [license (db/get-license {:id id :userid userid})]
-    (->> license
-         (format-license)
-         (localize-license (get-license-localizations))))))
+     (->> license
+          (format-license)
+          (localize-license (get-license-localizations))))))
 
 (defn get-all-licenses
   "Get all licenses.
