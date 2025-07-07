@@ -79,13 +79,13 @@
         (update-in [:workflow :forms] (partial map enrich-workflow-form))
         (update-in [:workflow :licenses] (partial map enrich-workflow-license)))))
 
-(defn get-workflow 
+(defn get-workflow
   ([id]
    (->> (workflow/get-workflow id)
-       join-dependencies))
+        join-dependencies))
   ([id userid]
    (->> (workflow/get-workflow id userid)
-       join-dependencies)))
+        join-dependencies)))
 
 (defn get-workflows [filters]
   (->> (workflow/get-workflows filters)
