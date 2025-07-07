@@ -50,14 +50,15 @@
                      {archived :- (describe s/Bool "whether to include archived licenses") false}]
       :return schema/Licenses
       (ok (licenses/get-all-licenses (merge (when-not disabled {:enabled true})
-                                            (when-not archived {:archived false})))))
+                                            (when-not archived {:archived false})
+                                            {:userid (getx-user-id)}))))
 
     (GET "/:license-id" []
       :summary "Get license"
       :roles +admin-read-roles+
       :path-params [license-id :- (describe s/Int "license id")]
       :return schema/License
-      (if-let [license (licenses/get-license license-id)]
+      (if-let [license (licenses/get-license license-id (getx-user-id))]
         (ok license)
         (not-found-json-response)))
 

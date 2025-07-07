@@ -43,7 +43,8 @@
                      {archived :- (describe s/Bool "whether to include archived forms") false}]
       :return [schema/FormTemplateOverview]
       (ok (get-form-templates (merge (when-not disabled {:enabled true})
-                                     (when-not archived {:archived false})))))
+                                     (when-not archived {:archived false})
+                                     {:userid (getx-user-id)}))))
 
     (POST "/create" []
       :summary "Create form"
@@ -57,7 +58,7 @@
       :roles +admin-read-roles+
       :path-params [form-id :- (describe s/Int "form-id")]
       :return schema/FormTemplate
-      (let [form (form/get-form-template form-id)]
+      (let [form (form/get-form-template form-id (getx-user-id))]
         (if form
           (ok form)
           (not-found-json-response))))

@@ -62,9 +62,12 @@
 
 (defn get-license
   "Get a single license by id"
-  [id]
-  (when-let [license (licenses/get-license id)]
+  ([id]
+   (when-let [license (licenses/get-license id)]
     (organizations/join-organization license)))
+  ([id userid]
+   (when-let [license (licenses/get-license id userid)]
+      (organizations/join-organization license))))
 
 (defn set-license-enabled! [{:keys [id enabled]}]
   (util/check-allowed-organization! (:organization (get-license id)))

@@ -5,6 +5,7 @@
             [rems.service.catalogue :as catalogue]
             [rems.db.core :as db]
             [ring.util.http-response :refer :all]
+            [rems.util :refer [getx-user-id]]
             [schema.core :as s]))
 
 (s/defschema GetCatalogueItemsResponse
@@ -23,15 +24,17 @@
                      {disabled :- (describe s/Bool "whether to include disabled items") false}
                      {expired :- (describe s/Bool "whether to include expired items") false}
                      {limit :- (describe s/Int "the number of records to return (optional)") nil}
-                     {offset :- (describe s/Int "starts on record OFFSET+1 (optional)") nil}]
+                     {offset :- (describe s/Int "starts on record OFFSET+1 (optional)") nil}
+                     {associated :- (describe s/Bool "return only associated catalogue items") false}]
       :return GetCatalogueItemsResponse
       (ok (db/apply-filters
            (merge (when-not expired {:expired false})
                   (when-not disabled {:enabled true})
                   (when-not archived {:archived false}))
-           (catalogue/get-localized-catalogue-items {:resource resource
-                                                     :expand-names? (str/includes? (or expand "") "names")
-                                                     :expand-catalogue-data? true
-                                                     :archived archived
-                                                     :limit limit
-                                                     :offset offset}))))))
+           (catalogue/get-localized-catalogue-items (merge (when associated {:userid (getx-user-id)})
+                                                           {:resource resource
+                                                            :expand-names? (str/includes? (or expand "") "names")
+                                                            :expand-catalogue-data? true
+                                                            :archived archived
+                                                            :limit limit
+                                                            :offset offset})))))))
