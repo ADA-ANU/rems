@@ -46,7 +46,8 @@
                      {resource :- s/Str nil}]
       :return [BlacklistEntryWithDetails]
       (ok (blacklist/get-blacklist {:userid (user-mappings/find-userid user)
-                                    :resource/ext-id resource})))
+                                    :resource/ext-id resource
+                                    :requester (getx-user-id)})))
 
     (GET "/users" []
       :summary "Existing REMS users available for adding to the blocklist"

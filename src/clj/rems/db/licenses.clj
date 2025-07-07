@@ -37,19 +37,24 @@
 
 (defn get-license
   "Get a single license by id"
-  [id]
-  (when-let [license (db/get-license {:id id})]
+  ([id]
+   (when-let [license (db/get-license {:id id})]
     (->> license
          (format-license)
          (localize-license (get-license-localizations)))))
+  ([id userid]
+   (when-let [license (db/get-license {:id id :userid userid})]
+    (->> license
+         (format-license)
+         (localize-license (get-license-localizations))))))
 
 (defn get-all-licenses
   "Get all licenses.
 
    filters is a map of key-value pairs that must be present in the licenses"
   [filters]
-  (->> (db/get-all-licenses)
-       (db/apply-filters filters)
+  (->> (db/get-all-licenses (select-keys filters [:userid]))
+       (db/apply-filters (dissoc filters :userid))
        (format-licenses)
        (localize-licenses)))
 

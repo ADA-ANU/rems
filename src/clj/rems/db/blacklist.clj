@@ -55,7 +55,7 @@
                                :eventdata (-> event check-foreign-keys event->json)}))
 
 (defn get-events [params]
-  (mapv event-from-db (db/get-blacklist-events (select-keys params [:userid :resource/ext-id]))))
+  (mapv event-from-db (db/get-blacklist-events (select-keys params [:userid :resource/ext-id :requester]))))
 
 (defn- events->blacklist [events]
   ;; TODO: move computation to db for performance
