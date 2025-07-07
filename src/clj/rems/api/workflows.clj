@@ -6,6 +6,7 @@
             [rems.application.events :as events]
             [rems.common.roles :refer [+admin-read-roles+ +admin-write-roles+]]
             [rems.schema-base :as schema-base]
+            [rems.util :refer [getx-user-id]]
             [ring.util.http-response :refer :all]
             [schema.core :as s]))
 
@@ -44,7 +45,8 @@
                      {archived :- (describe s/Bool "whether to include archived workflows") false}]
       :return [schema/Workflow]
       (ok (workflow/get-workflows (merge (when-not disabled {:enabled true})
-                                         (when-not archived {:archived false})))))
+                                         (when-not archived {:archived false})
+                                         {:userid (getx-user-id)}))))
 
     (POST "/create" []
       :summary "Create workflow"
@@ -85,6 +87,6 @@
       :roles +admin-read-roles+
       :path-params [workflow-id :- (describe s/Int "workflow-id")]
       :return schema/Workflow
-      (if-some [wf (workflow/get-workflow workflow-id)]
+      (if-some [wf (workflow/get-workflow workflow-id (getx-user-id))]
         (ok wf)
         (not-found-json-response)))))

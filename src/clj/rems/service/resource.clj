@@ -16,9 +16,13 @@
          (duo/join-duo-codes [:resource/duo :duo/codes])
          (transform [:licenses ALL] organizations/join-organization))))
 
-(defn get-resource [id]
-  (when-let [resource (resource/get-resource id)]
-    (join-dependencies resource)))
+(defn get-resource
+  ([id]
+   (when-let [resource (resource/get-resource id)]
+     (join-dependencies resource)))
+  ([id userid]
+   (when-let [resource (resource/get-resource id userid)]
+     (join-dependencies resource))))
 
 (defn get-resources [filters]
   (->> (resource/get-resources filters)
