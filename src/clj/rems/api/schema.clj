@@ -133,7 +133,7 @@
 ;;; template for a form field, before answering
 (s/defschema FieldTemplate
   {:field/id schema-base/FieldId
-   :field/type (s/enum :attachment :date :description :email :header :ip-address :label :multiselect :option :phone-number :text :texta :table)
+   :field/type (s/enum :attachment :country :date :description :email :header :ip-address :label :multiselect :option :phone-number :text :texta :table)
    :field/title schema-base/LocalizedString
    (s/optional-key :field/placeholder) schema-base/LocalizedString
    :field/optional s/Bool

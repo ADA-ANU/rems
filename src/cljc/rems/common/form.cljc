@@ -89,7 +89,7 @@
   (not (contains? #{:label :header} (:field/type field))))
 
 (defn supports-placeholder? [field]
-  (contains? #{:text :texta :description :phone-number :ip-address} (:field/type field)))
+  (contains? #{:country :text :texta :description :phone-number :ip-address} (:field/type field)))
 
 (defn supports-max-length? [field]
   (contains? #{:description :text :texta} (:field/type field)))
@@ -207,7 +207,7 @@
               (str/blank? (:organization/id organization)))
       {:organization :t.form.validation/required})))
 
-(def field-types #{:attachment :date :description :email :header :ip-address :label :multiselect :phone-number :option :text :texta :table})
+(def field-types #{:attachment :country :date :description :email :header :ip-address :label :multiselect :phone-number :option :text :texta :table})
 
 (defn- validate-field-type [m]
   (let [type (keyword (get m :field/type))]
