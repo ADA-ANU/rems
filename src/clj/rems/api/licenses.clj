@@ -47,11 +47,12 @@
       :summary "Get licenses"
       :roles +admin-read-roles+
       :query-params [{disabled :- (describe s/Bool "whether to include disabled licenses") false}
-                     {archived :- (describe s/Bool "whether to include archived licenses") false}]
+                     {archived :- (describe s/Bool "whether to include archived licenses") false}
+                     {return   :- (describe schema/AssetReturn "return associated or own resources") "associated"}]
       :return schema/Licenses
       (ok (licenses/get-all-licenses (merge (when-not disabled {:enabled true})
                                             (when-not archived {:archived false})
-                                            {:userid (getx-user-id)}))))
+                                            {(keyword return) (getx-user-id)}))))
 
     (GET "/:license-id" []
       :summary "Get license"

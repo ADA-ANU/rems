@@ -53,8 +53,8 @@
 
    filters is a map of key-value pairs that must be present in the licenses"
   [filters]
-  (->> (db/get-all-licenses (select-keys filters [:userid]))
-       (db/apply-filters (dissoc filters :userid))
+  (->> (db/get-all-licenses (assoc (select-keys filters [:own :associated]) :own-or-associated (or (:own filters) (:associated filters))))
+       (db/apply-filters (dissoc filters :own :associated))
        (format-licenses)
        (localize-licenses)))
 
