@@ -310,3 +310,6 @@
 
 (s/defschema CatalogueItemFound
   {:success s/Bool})
+
+(s/defschema AssetReturn
+  (s/enum "associated" "own"))
