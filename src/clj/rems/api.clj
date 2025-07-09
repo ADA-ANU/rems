@@ -197,7 +197,8 @@
                :spec "/swagger.json"
                :data {:info {:version "1.0.0"
                              :title "REMS API"
-                             :description "REMS API Services"}}}}
+                             :description "REMS API Services"}
+                      :basePath	"/rems"}}}
 
     (context "/api" []
       ;; :middleware [slow-middleware]
