@@ -1,6 +1,7 @@
 (ns rems.db.licenses
   "querying localized licenses"
   (:require [medley.core :refer [distinct-by]]
+            [rems.context :as context]
             [rems.db.core :as db]))
 
 (defn- format-license [license]
@@ -53,7 +54,7 @@
 
    filters is a map of key-value pairs that must be present in the licenses"
   [filters]
-  (->> (db/get-all-licenses (assoc (select-keys filters [:own :associated]) :own-or-associated (or (contains? filters :own) (contains? filters :associated))))
+  (->> (db/get-all-licenses (select-keys filters [:own :associated]))
        (db/apply-filters (dissoc filters :own :associated))
        (format-licenses)
        (localize-licenses)))

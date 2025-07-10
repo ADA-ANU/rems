@@ -5,6 +5,7 @@
             [rems.service.licenses :as licenses]
             [rems.api.util :refer [not-found-json-response]] ; required for route :roles
             [rems.common.roles :refer [+admin-read-roles+ +admin-write-roles+]]
+            [rems.context :as context]
             [rems.schema-base :as schema-base]
             [rems.util :refer [getx-user-id]]
             [ring.middleware.multipart-params :as multipart]
@@ -48,11 +49,16 @@
       :roles +admin-read-roles+
       :query-params [{disabled :- (describe s/Bool "whether to include disabled licenses") false}
                      {archived :- (describe s/Bool "whether to include archived licenses") false}
-                     {return   :- (describe schema/AssetReturn "return associated or own resources") "associated"}]
+                     {proprietorship :- (describe schema/ProprietorshipOptions "return associated or owned licenses, if an owner and param is not provided it will return all licenses but defaults to 'associated' if not an owner role") nil}]
       :return schema/Licenses
-      (ok (licenses/get-all-licenses (merge (when-not disabled {:enabled true})
-                                            (when-not archived {:archived false})
-                                            {(keyword return) (getx-user-id)}))))
+      (let [owner? (contains? context/*roles* :owner)
+            proprietorship-keyword (cond
+                               (and (nil? proprietorship) owner?) nil
+                               (nil? proprietorship) :associated
+                               :else (keyword proprietorship))]
+        (ok (licenses/get-all-licenses (merge (when-not disabled {:enabled true})
+                                              (when-not archived {:archived false})
+                                              (when proprietorship-keyword {proprietorship-keyword (getx-user-id)}))))))
 
     (GET "/:license-id" []
       :summary "Get license"

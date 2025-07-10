@@ -698,6 +698,17 @@ SELECT lic.id, lic.type, lic.enabled, lic.archived, lic.organization
 FROM license lic
 WHERE 
   1=1
+/*~ (when (:own params) */
+  AND lic.organization IN (
+    SELECT
+      DISTINCT org.id
+    FROM
+      organization org,
+      LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+    WHERE
+      owners->>'userid' = :own
+  )
+/*~ ) ~*/
 /*~ (when (:associated params) */
   AND (
       lic.organization IN (
@@ -725,7 +736,7 @@ WHERE
       SELECT license.id
       FROM license
       INNER JOIN resource_licenses rl ON license.id = rl.licid
-      INNER JOIN resource res ON rl.resid = res.id -- Join resource_licenses with resource
+      INNER JOIN resource res ON rl.resid = res.id
       INNER JOIN catalogue_item item ON res.id = item.resid
       INNER JOIN workflow w ON item.wfid = w.id
       CROSS JOIN LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
@@ -734,17 +745,6 @@ WHERE
         AND w.archived = false
         AND handlers::text = :associated
     )
-  )
-/*~ ) ~*/
-/*~ (when (:own params) */
-  AND lic.organization IN (
-    SELECT
-      DISTINCT org.id
-    FROM
-      organization org,
-      LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
-    WHERE
-      owners->>'userid' = :own
   )
 /*~ ) ~*/
 ;
