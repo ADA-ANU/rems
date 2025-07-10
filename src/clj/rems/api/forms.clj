@@ -41,7 +41,7 @@
       :roles +admin-read-roles+
       :query-params [{disabled :- (describe s/Bool "whether to include disabled forms") false}
                      {archived :- (describe s/Bool "whether to include archived forms") false}
-                     {proprietorship :- (describe schema/ProprietorshipOptions "return associated or owned licenses, if an owner and param is not provided it will return all licenses but defaults to 'associated' if not an owner role") nil}]
+                     {proprietorship :- (describe schema/ProprietorshipOptions "return associated or owned forms, if an owner and param is not provided it will return all forms but defaults to 'associated' if not an owner role") nil}]
       :return [schema/FormTemplateOverview]
       (let [proprietorship-keyword (determine-proprietorship-choice proprietorship)]
         (ok (get-form-templates (merge (when-not disabled {:enabled true})

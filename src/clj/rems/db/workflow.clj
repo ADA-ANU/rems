@@ -45,9 +45,9 @@
      (enrich-and-format-workflow wf))))
 
 (defn get-workflows [filters]
-  (->> (db/get-workflows (select-keys filters [:userid]))
+  (->> (db/get-workflows (select-keys filters [:own :associated]))
        (map enrich-and-format-workflow)
-       (db/apply-filters (dissoc filters :userid))))
+       (db/apply-filters (dissoc filters :own :associated))))
 
 (defn get-all-workflow-roles [userid]
   (when (some #(contains? (set (map :userid (get-in % [:workflow :handlers]))) userid)
