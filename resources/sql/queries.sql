@@ -647,7 +647,8 @@ WHERE
   AND ci.id = :catid
 /*~ ) ~*/
 /*~ (when (:userid params) */
-  AND wf.organization IN (
+  AND (
+    wf.organization IN (
     SELECT
       DISTINCT org.id
     FROM
@@ -655,20 +656,19 @@ WHERE
       LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
     WHERE
       owners->>'userid' = :userid
+    )
 
-    UNION ALL
-
-    SELECT
-      DISTINCT org.id
-    FROM
-      workflow w,
-      organization org,
-      LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
-    WHERE
-      handlers::text = :userid
-      AND w.organization = org.id
-      AND w.enabled = true
-      AND w.archived = false
+    OR wf.id in (
+      SELECT
+        DISTINCT w.id
+      FROM
+        workflow w,
+        LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      WHERE
+        handlers::text = :userid
+        AND w.enabled = true
+        AND w.archived = false
+    )
   )
 /*~ ) ~*/
 ;
@@ -677,10 +677,11 @@ WHERE
 SELECT
   wf.id, wf.organization, wf.title,
   wf.workflowBody::TEXT as workflow, wf.enabled, wf.archived
-FROM workflow wf
+FROM 
+  workflow wf
 WHERE 
   1=1
-/*~ (when (:userid params) */
+/*~ (when (:own params) */
   AND wf.organization IN (
     SELECT
       DISTINCT org.id
@@ -688,21 +689,32 @@ WHERE
       organization org,
       LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
     WHERE
-      owners->>'userid' = :userid
-
-    UNION ALL
-
+      owners->>'userid' = :own
+  )
+/*~ ) ~*/
+/*~ (when (:associated params) */
+  AND (
+    wf.organization IN (
     SELECT
       DISTINCT org.id
     FROM
-      workflow w,
       organization org,
-      LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
     WHERE
-      handlers::text = :userid
-      AND w.organization = org.id
-      AND w.enabled = true
-      AND w.archived = false
+      owners->>'userid' = :associated
+    )
+
+    OR wf.id in (
+      SELECT
+        DISTINCT w.id
+      FROM
+        workflow w,
+        LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      WHERE
+        handlers::text = :associated
+        AND w.enabled = true
+        AND w.archived = false
+    )
   )
 /*~ ) ~*/;
 

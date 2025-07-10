@@ -2,7 +2,7 @@
   (:require [compojure.api.sweet :refer :all]
             [rems.api.schema :as schema]
             [rems.service.workflow :as workflow]
-            [rems.api.util :refer [not-found-json-response]] ; required for route :roles
+            [rems.api.util :refer [determine-proprietorship-choice not-found-json-response]] ; required for route :roles
             [rems.application.events :as events]
             [rems.common.roles :refer [+admin-read-roles+ +admin-write-roles+]]
             [rems.schema-base :as schema-base]
@@ -42,11 +42,13 @@
       :summary "Get workflows"
       :roles +admin-read-roles+
       :query-params [{disabled :- (describe s/Bool "whether to include disabled workflows") false}
-                     {archived :- (describe s/Bool "whether to include archived workflows") false}]
+                     {archived :- (describe s/Bool "whether to include archived workflows") false}
+                     {proprietorship :- (describe schema/ProprietorshipOptions "return associated or owned workflow, if an owner and param is not provided it will return all workflow but defaults to 'associated' if not an owner role") nil}]
       :return [schema/Workflow]
-      (ok (workflow/get-workflows (merge (when-not disabled {:enabled true})
-                                         (when-not archived {:archived false})
-                                         {:userid (getx-user-id)}))))
+      (let [proprietorship-keyword (determine-proprietorship-choice proprietorship)]
+        (ok (workflow/get-workflows (merge (when-not disabled {:enabled true})
+                                           (when-not archived {:archived false})
+                                           (when proprietorship-keyword {proprietorship-keyword (getx-user-id)}))))))
 
     (POST "/create" []
       :summary "Create workflow"
