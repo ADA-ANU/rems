@@ -311,5 +311,5 @@
 (s/defschema CatalogueItemFound
   {:success s/Bool})
 
-(s/defschema AssetReturn
+(s/defschema ProprietorshipOptions
   (s/enum "associated" "own"))
