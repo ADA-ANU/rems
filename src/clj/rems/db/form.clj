@@ -51,9 +51,9 @@
   (assoc template :form/errors (common-form/validate-form-template template (:languages env))))
 
 (defn get-form-templates [filters]
-  (->> (db/get-form-templates (select-keys filters [:userid]))
+  (->> (db/get-form-templates (select-keys filters [:own :associated]))
        (map parse-db-row)
-       (db/apply-filters (dissoc filters :userid))
+       (db/apply-filters (dissoc filters :own :associated))
        (map add-validation-errors)))
 
 (defn get-form-template

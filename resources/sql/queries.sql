@@ -266,7 +266,7 @@ SELECT
 FROM form_template
 WHERE 
   1=1
-/*~ (when (:userid params) */
+/*~ (when (:own params) */
   AND organization IN (
     SELECT
       DISTINCT org.id
@@ -274,23 +274,47 @@ WHERE
       organization org,
       LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
     WHERE
-      owners->>'userid' = :userid
-
-    UNION ALL
-
-    SELECT
-      DISTINCT org.id
-    FROM
-      workflow w,
-      organization org,
-      LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
-    WHERE
-      handlers::text = :userid
-      AND w.organization = org.id
-      AND w.enabled = true
-      AND w.archived = false
+      owners->>'userid' = :own
   )
-/*~ ) ~*/;
+/*~ ) ~*/
+/*~ (when (:associated params) */
+  AND (
+    organization IN (
+      SELECT
+        DISTINCT org.id
+      FROM
+        organization org,
+        LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+      WHERE
+        owners->>'userid' = :associated
+    )
+    OR id IN (
+      SELECT
+        DISTINCT ((jsonb_array_elements(w.workflowbody->'forms'))->'form/id')::int As forms
+      FROM
+        workflow w,
+        LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      WHERE
+        w.enabled = true
+        AND w.archived = false
+        AND handlers::text = :associated
+
+      UNION
+
+      SELECT 
+        DISTINCT lic.id
+      FROM license as lic
+      INNER JOIN catalogue_item item ON lic.id = item.resid
+      INNER JOIN workflow w ON item.wfid = w.id
+      CROSS JOIN LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      WHERE
+        w.enabled = true
+        AND w.archived = false
+        AND handlers::text = :associated
+    )
+  )
+/*~ ) ~*/
+;
 
 -- :name get-form-template :? :1
 SELECT
@@ -304,28 +328,40 @@ FROM form_template
 WHERE 
   id = :id
 /*~ (when (:userid params) */
-  AND organization IN (
-    SELECT
-      DISTINCT org.id
-    FROM
-      organization org,
-      LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
-    WHERE
-      owners->>'userid' = :userid
+  AND (
+    organization IN (
+      SELECT
+        DISTINCT org.id
+      FROM
+        organization org,
+        LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+      WHERE
+        owners->>'userid' = :userid
+    )
+    OR id IN (
+      SELECT
+        DISTINCT ((jsonb_array_elements(w.workflowbody->'forms'))->'form/id')::int As forms
+      FROM
+        workflow w,
+        LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      WHERE
+        w.enabled = true
+        AND w.archived = false
+        AND handlers::text = :userid
 
-    UNION ALL
+      UNION
 
-    SELECT
-      DISTINCT org.id
-    FROM
-      workflow w,
-      organization org,
-      LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
-    WHERE
-      handlers::text = :userid
-      AND w.organization = org.id
-      AND w.enabled = true
-      AND w.archived = false
+      SELECT 
+        DISTINCT lic.id
+      FROM license as lic
+      INNER JOIN catalogue_item item ON lic.id = item.resid
+      INNER JOIN workflow w ON item.wfid = w.id
+      CROSS JOIN LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      WHERE
+        w.enabled = true
+        AND w.archived = false
+        AND handlers::text = :userid
+    )
   )
 /*~ ) ~*/
 ;
@@ -722,7 +758,7 @@ WHERE
     )
     OR lic.id IN (
       SELECT                 
-        DISTINCT (jsonb_array_elements(w.workflowbody->'licenses'))::int As forms
+        DISTINCT (jsonb_array_elements(w.workflowbody->'licenses'))::int As licenses
       FROM
         workflow w,
         LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
@@ -767,7 +803,7 @@ WHERE
     )
     OR lic.id IN (
       SELECT                 
-        DISTINCT (jsonb_array_elements(w.workflowbody->'licenses'))::int As forms
+        DISTINCT (jsonb_array_elements(w.workflowbody->'licenses'))::int As licenses
       FROM
         workflow w,
         LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers

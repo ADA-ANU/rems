@@ -3,9 +3,8 @@
             [rems.api.schema :as schema]
             [rems.service.attachment :as attachment]
             [rems.service.licenses :as licenses]
-            [rems.api.util :refer [not-found-json-response]] ; required for route :roles
+            [rems.api.util :refer [determine-proprietorship-choice not-found-json-response]] ; required for route :roles
             [rems.common.roles :refer [+admin-read-roles+ +admin-write-roles+]]
-            [rems.context :as context]
             [rems.schema-base :as schema-base]
             [rems.util :refer [getx-user-id]]
             [ring.middleware.multipart-params :as multipart]
@@ -51,11 +50,7 @@
                      {archived :- (describe s/Bool "whether to include archived licenses") false}
                      {proprietorship :- (describe schema/ProprietorshipOptions "return associated or owned licenses, if an owner and param is not provided it will return all licenses but defaults to 'associated' if not an owner role") nil}]
       :return schema/Licenses
-      (let [owner? (contains? context/*roles* :owner)
-            proprietorship-keyword (cond
-                               (and (nil? proprietorship) owner?) nil
-                               (nil? proprietorship) :associated
-                               :else (keyword proprietorship))]
+      (let [proprietorship-keyword (determine-proprietorship-choice proprietorship)]
         (ok (licenses/get-all-licenses (merge (when-not disabled {:enabled true})
                                               (when-not archived {:archived false})
                                               (when proprietorship-keyword {proprietorship-keyword (getx-user-id)}))))))
