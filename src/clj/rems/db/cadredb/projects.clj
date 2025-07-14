@@ -110,6 +110,7 @@
        (mapv parse-project)
        (mapv #(update % :project/owners (partial mapv (comp users/get-user :userid))))
        (mapv #(update % :project/collaborators (partial mapv (comp users/get-user :userid))))
+       (mapv parse-project-invitation)
        (mapv coerce-project-application)))
 
 (defn getx-project-by-id [id]
