@@ -3,7 +3,10 @@
             [rems.common.util :as util]))
 
 (defn accepted-licenses? [application userid]
-  (let [application-licenses (map :license/id (:application/licenses application))
+  (let [application-licenses (->> application
+                                  :application/licenses
+                                  (filter #(and (:license/enabled %) (false? (:license/archived %))))
+                                  (map :license/id))
         user-accepted-licenses (get (:application/accepted-licenses application) userid)]
     (cond (empty? application-licenses) true
           (empty? user-accepted-licenses) false
