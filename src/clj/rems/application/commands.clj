@@ -491,7 +491,7 @@
                                     :application/deciders (:deciders cmd)})))
 
 (defn- actor-is-not-decider-error [application cmd]
-  (when-not (contains? (get application :rems.application.model/latest-decision-request-by-user)
+  (when-not (contains? (get application :rems.application.cadre.model/latest-decision-request-by-user)
                        (:actor cmd))
     {:errors [{:type :forbidden}]}))
 
@@ -500,7 +500,7 @@
   (or (actor-is-not-decider-error application cmd)
       (when-not (contains? #{:approved :rejected} (:decision cmd))
         {:errors [{:type :invalid-decision :decision (:decision cmd)}]})
-      (let [last-request-for-actor (get-in application [:rems.application.model/latest-decision-request-by-user (:actor cmd)])]
+      (let [last-request-for-actor (get-in application [:rems.application.cadre.model/latest-decision-request-by-user (:actor cmd)])]
         (add-comment-and-attachments cmd application injections
                                      {:event/type :application.event/decided
                                       :application/request-id last-request-for-actor
@@ -516,14 +516,14 @@
                                     :application/reviewers (:reviewers cmd)})))
 
 (defn- actor-is-not-reviewer-error [application cmd]
-  (when-not (contains? (get application :rems.application.model/latest-review-request-by-user)
+  (when-not (contains? (get application :rems.application.cadre.model/latest-review-request-by-user)
                        (:actor cmd))
     {:errors [{:type :forbidden}]}))
 
 (defmethod command-handler :application.command/review
   [cmd application injections]
   (or (actor-is-not-reviewer-error application cmd)
-      (let [last-request-for-actor (get-in application [:rems.application.model/latest-review-request-by-user (:actor cmd)])]
+      (let [last-request-for-actor (get-in application [:rems.application.cadre.model/latest-review-request-by-user (:actor cmd)])]
         (add-comment-and-attachments cmd application injections
                                      {:event/type :application.event/reviewed
                                       ;; Currently we want to tie all comments to the latest request.
