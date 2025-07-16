@@ -2,7 +2,7 @@
   (:require [compojure.api.sweet :refer :all]
             [rems.api.schema :as schema]
             [rems.service.resource :as resource]
-            [rems.api.util :refer [not-found-json-response]] ; required for route :roles
+            [rems.api.util :refer [determine-proprietorship-choice not-found-json-response]] ; required for route :roles
             [rems.common.roles :refer [+admin-read-roles+ +admin-write-roles+]]
             [rems.ext.duo :as duo]
             [rems.ext.mondo :as mondo]
@@ -44,12 +44,14 @@
       :roles +admin-read-roles+
       :query-params [{disabled :- (describe s/Bool "whether to include disabled resources") false}
                      {archived :- (describe s/Bool "whether to include archived resources") false}
-                     {resid :- (describe s/Str "optionally filter by resid (external resource identifier)") nil}]
+                     {resid :- (describe s/Str "optionally filter by resid (external resource identifier)") nil}
+                     {proprietorship :- (describe schema/ProprietorshipOptions "return associated or owned forms, if an owner and param is not provided it will return all forms but defaults to 'associated' if not an owner role") nil}]
       :return Resources
-      (ok (resource/get-resources (merge (when-not disabled {:enabled true})
-                                         (when-not archived {:archived false})
-                                         (when resid {:resid resid})
-                                         {:userid (getx-user-id)}))))
+      (let [proprietorship-keyword (determine-proprietorship-choice proprietorship)]
+        (ok (resource/get-resources (merge (when-not disabled {:enabled true})
+                                           (when-not archived {:archived false})
+                                           (when resid {:resid resid})
+                                           (when proprietorship-keyword {proprietorship-keyword (getx-user-id)}))))))
 
     (GET "/duo-codes" []
       :summary "Get DUO codes"

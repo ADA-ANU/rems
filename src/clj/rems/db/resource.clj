@@ -42,8 +42,8 @@
          coerce-ResourceDb))))
 
 (defn get-resources [filters]
-  (->> (db/get-resources (select-keys filters [:resid :userid]))
-       (db/apply-filters (dissoc filters :resid :userid)) ; other filters
+  (->> (db/get-resources (select-keys filters [:resid :own :associated]))
+       (db/apply-filters (dissoc filters :resid :own :associated)) ; other filters
        (map format-resource)
        (map coerce-ResourceDb)))
 
