@@ -62,3 +62,11 @@
       (and (nil? proprietorship) owner?) nil
       (nil? proprietorship) :associated
       :else (keyword proprietorship))))
+
+(defn add-userid-when-not-owner
+  "If the user is an owner, we don't need to pass their userid to filter the result
+  as owners can see all assets"
+  [args]
+  (if (has-roles? :owner)
+    args
+    (conj args (get-user-id))))

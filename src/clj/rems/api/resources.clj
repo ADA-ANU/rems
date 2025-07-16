@@ -2,7 +2,7 @@
   (:require [compojure.api.sweet :refer :all]
             [rems.api.schema :as schema]
             [rems.service.resource :as resource]
-            [rems.api.util :refer [determine-proprietorship-choice not-found-json-response]] ; required for route :roles
+            [rems.api.util :refer [add-userid-when-not-owner determine-proprietorship-choice not-found-json-response]] ; required for route :roles
             [rems.common.roles :refer [+admin-read-roles+ +admin-write-roles+]]
             [rems.ext.duo :as duo]
             [rems.ext.mondo :as mondo]
@@ -77,9 +77,11 @@
       :roles +admin-read-roles+
       :path-params [resource-id :- (describe s/Int "resource id")]
       :return Resource
-      (if-let [resource (resource/get-resource resource-id (getx-user-id))]
-        (ok resource)
-        (not-found-json-response)))
+      (let [args (add-userid-when-not-owner [resource-id])
+            resource (apply resource/get-resource args)]
+        (if  
+          (ok resource)
+          (not-found-json-response))))
 
     (POST "/create" []
       :summary "Create resource"

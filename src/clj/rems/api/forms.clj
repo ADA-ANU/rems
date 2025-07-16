@@ -2,7 +2,7 @@
   (:require [compojure.api.sweet :refer :all]
             [rems.service.form :as form]
             [rems.api.schema :as schema]
-            [rems.api.util :refer [determine-proprietorship-choice not-found-json-response]] ; required for route :roles
+            [rems.api.util :refer [add-userid-when-not-owner determine-proprietorship-choice not-found-json-response]] ; required for route :roles
             [rems.common.roles :refer [+admin-read-roles+ +admin-write-roles+]]
             [ring.swagger.json-schema :as rjs]
             [rems.schema-base :as schema-base]
@@ -60,7 +60,8 @@
       :roles +admin-read-roles+
       :path-params [form-id :- (describe s/Int "form-id")]
       :return schema/FormTemplate
-      (let [form (form/get-form-template form-id (getx-user-id))]
+      (let [args (add-userid-when-not-owner [form-id])
+            form (apply form/get-form-template args)]
         (if form
           (ok form)
           (not-found-json-response))))

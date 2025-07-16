@@ -55,28 +55,27 @@ WHERE 1=1
   AND ci.enabled = :enabled
 /*~ ) ~*/
 /*~ (when (:userid params) */
-  AND ci.organization IN (
-    SELECT
-      DISTINCT org.id
-    FROM
-      organization org,
-      LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
-    WHERE
-      owners->>'userid' = :userid
-
-    UNION ALL
-
-    SELECT
-      DISTINCT org.id
-    FROM
-      workflow w,
-      organization org,
-      LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
-    WHERE
-      handlers::text = :userid
-      AND w.organization = org.id
-      AND w.enabled = true
-      AND w.archived = false
+  AND (
+    ci.organization IN (
+      SELECT
+        DISTINCT org.id
+      FROM
+        organization org,
+        LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+      WHERE
+        owners->>'userid' = :userid
+    )
+    OR ci.id IN (
+      SELECT 
+        DISTINCT item.id
+      FROM catalogue_item item
+      INNER JOIN workflow w ON item.wfid = w.id
+      CROSS JOIN LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      WHERE
+        w.enabled = true
+        AND w.archived = false
+        AND handlers::text = :userid
+    )
   )
 /*~ ) ~*/
   ORDER BY ci.id

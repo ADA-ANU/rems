@@ -3,7 +3,7 @@
             [rems.api.schema :as schema]
             [rems.service.attachment :as attachment]
             [rems.service.licenses :as licenses]
-            [rems.api.util :refer [determine-proprietorship-choice not-found-json-response]] ; required for route :roles
+            [rems.api.util :refer [add-userid-when-not-owner determine-proprietorship-choice not-found-json-response]] ; required for route :roles
             [rems.common.roles :refer [+admin-read-roles+ +admin-write-roles+]]
             [rems.schema-base :as schema-base]
             [rems.util :refer [getx-user-id]]
@@ -60,9 +60,11 @@
       :roles +admin-read-roles+
       :path-params [license-id :- (describe s/Int "license id")]
       :return schema/License
-      (if-let [license (licenses/get-license license-id (getx-user-id))]
-        (ok license)
-        (not-found-json-response)))
+      (let [args (add-userid-when-not-owner [license-id])
+            license (apply licenses/get-license args)]
+        (if license
+          (ok license)
+          (not-found-json-response))))
 
     (POST "/create" []
       :summary "Create license"
