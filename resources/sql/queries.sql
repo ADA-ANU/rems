@@ -302,9 +302,8 @@ WHERE
       UNION
 
       SELECT 
-        DISTINCT lic.id
-      FROM license as lic
-      INNER JOIN catalogue_item item ON lic.id = item.resid
+        DISTINCT item.formid
+      FROM catalogue_item item
       INNER JOIN workflow w ON item.wfid = w.id
       CROSS JOIN LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
       WHERE
@@ -352,9 +351,8 @@ WHERE
       UNION
 
       SELECT 
-        DISTINCT lic.id
-      FROM license as lic
-      INNER JOIN catalogue_item item ON lic.id = item.resid
+        DISTINCT item.formid
+      FROM catalogue_item item
       INNER JOIN workflow w ON item.wfid = w.id
       CROSS JOIN LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
       WHERE
