@@ -1055,20 +1055,17 @@ WHERE 1=1
           LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
         WHERE
           owners->>'userid' = :requester
-
-        UNION ALL
-
-        SELECT
-          DISTINCT org.id
-        FROM
-          workflow w,
-          organization org,
-          LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      )
+      OR res.id IN (
+        SELECT 
+          DISTINCT item.resid
+        FROM catalogue_item item
+        INNER JOIN workflow w ON item.wfid = w.id
+        CROSS JOIN LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
         WHERE
-          handlers::text = :requester
-          AND w.organization = org.id
-          AND w.enabled = true
+          w.enabled = true
           AND w.archived = false
+          AND handlers::text = :requester
       )
   )
 /*~ ) ~*/

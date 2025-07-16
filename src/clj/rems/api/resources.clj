@@ -79,7 +79,7 @@
       :return Resource
       (let [args (add-userid-when-not-owner [resource-id])
             resource (apply resource/get-resource args)]
-        (if  
+        (if resource
           (ok resource)
           (not-found-json-response))))
 
