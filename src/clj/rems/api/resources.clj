@@ -2,11 +2,12 @@
   (:require [compojure.api.sweet :refer :all]
             [rems.api.schema :as schema]
             [rems.service.resource :as resource]
-            [rems.api.util :refer [not-found-json-response]] ; required for route :roles
+            [rems.api.util :refer [add-userid-when-not-owner determine-proprietorship-choice not-found-json-response]] ; required for route :roles
             [rems.common.roles :refer [+admin-read-roles+ +admin-write-roles+]]
             [rems.ext.duo :as duo]
             [rems.ext.mondo :as mondo]
             [rems.schema-base :as schema-base]
+            [rems.util :refer [getx-user-id]]
             [ring.util.http-response :refer :all]
             [schema.core :as s]))
 
@@ -43,11 +44,14 @@
       :roles +admin-read-roles+
       :query-params [{disabled :- (describe s/Bool "whether to include disabled resources") false}
                      {archived :- (describe s/Bool "whether to include archived resources") false}
-                     {resid :- (describe s/Str "optionally filter by resid (external resource identifier)") nil}]
+                     {resid :- (describe s/Str "optionally filter by resid (external resource identifier)") nil}
+                     {proprietorship :- (describe schema/ProprietorshipOptions "return associated or owned forms, if an owner and param is not provided it will return all forms but defaults to 'associated' if not an owner role") nil}]
       :return Resources
-      (ok (resource/get-resources (merge (when-not disabled {:enabled true})
-                                         (when-not archived {:archived false})
-                                         (when resid {:resid resid})))))
+      (let [proprietorship-keyword (determine-proprietorship-choice proprietorship)]
+        (ok (resource/get-resources (merge (when-not disabled {:enabled true})
+                                           (when-not archived {:archived false})
+                                           (when resid {:resid resid})
+                                           (when proprietorship-keyword {proprietorship-keyword (getx-user-id)}))))))
 
     (GET "/duo-codes" []
       :summary "Get DUO codes"
@@ -73,9 +77,11 @@
       :roles +admin-read-roles+
       :path-params [resource-id :- (describe s/Int "resource id")]
       :return Resource
-      (if-let [resource (resource/get-resource resource-id)]
-        (ok resource)
-        (not-found-json-response)))
+      (let [args (add-userid-when-not-owner [resource-id])
+            resource (apply resource/get-resource args)]
+        (if resource
+          (ok resource)
+          (not-found-json-response))))
 
     (POST "/create" []
       :summary "Create resource"

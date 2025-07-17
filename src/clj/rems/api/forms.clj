@@ -2,7 +2,7 @@
   (:require [compojure.api.sweet :refer :all]
             [rems.service.form :as form]
             [rems.api.schema :as schema]
-            [rems.api.util :refer [not-found-json-response]] ; required for route :roles
+            [rems.api.util :refer [add-userid-when-not-owner determine-proprietorship-choice not-found-json-response]] ; required for route :roles
             [rems.common.roles :refer [+admin-read-roles+ +admin-write-roles+]]
             [ring.swagger.json-schema :as rjs]
             [rems.schema-base :as schema-base]
@@ -40,10 +40,13 @@
       :summary "Get forms"
       :roles +admin-read-roles+
       :query-params [{disabled :- (describe s/Bool "whether to include disabled forms") false}
-                     {archived :- (describe s/Bool "whether to include archived forms") false}]
+                     {archived :- (describe s/Bool "whether to include archived forms") false}
+                     {proprietorship :- (describe schema/ProprietorshipOptions "return associated or owned forms, if an owner and param is not provided it will return all forms but defaults to 'associated' if not an owner role") nil}]
       :return [schema/FormTemplateOverview]
-      (ok (get-form-templates (merge (when-not disabled {:enabled true})
-                                     (when-not archived {:archived false})))))
+      (let [proprietorship-keyword (determine-proprietorship-choice proprietorship)]
+        (ok (get-form-templates (merge (when-not disabled {:enabled true})
+                                       (when-not archived {:archived false})
+                                       (when proprietorship-keyword {proprietorship-keyword (getx-user-id)}))))))
 
     (POST "/create" []
       :summary "Create form"
@@ -57,7 +60,8 @@
       :roles +admin-read-roles+
       :path-params [form-id :- (describe s/Int "form-id")]
       :return schema/FormTemplate
-      (let [form (form/get-form-template form-id)]
+      (let [args (add-userid-when-not-owner [form-id])
+            form (apply form/get-form-template args)]
         (if form
           (ok form)
           (not-found-json-response))))

@@ -3,7 +3,7 @@
             [rems.api.schema :as schema]
             [rems.service.attachment :as attachment]
             [rems.service.licenses :as licenses]
-            [rems.api.util :refer [not-found-json-response]] ; required for route :roles
+            [rems.api.util :refer [add-userid-when-not-owner determine-proprietorship-choice not-found-json-response]] ; required for route :roles
             [rems.common.roles :refer [+admin-read-roles+ +admin-write-roles+]]
             [rems.schema-base :as schema-base]
             [rems.util :refer [getx-user-id]]
@@ -47,19 +47,24 @@
       :summary "Get licenses"
       :roles +admin-read-roles+
       :query-params [{disabled :- (describe s/Bool "whether to include disabled licenses") false}
-                     {archived :- (describe s/Bool "whether to include archived licenses") false}]
+                     {archived :- (describe s/Bool "whether to include archived licenses") false}
+                     {proprietorship :- (describe schema/ProprietorshipOptions "return associated or owned licenses, if an owner and param is not provided it will return all licenses but defaults to 'associated' if not an owner role") nil}]
       :return schema/Licenses
-      (ok (licenses/get-all-licenses (merge (when-not disabled {:enabled true})
-                                            (when-not archived {:archived false})))))
+      (let [proprietorship-keyword (determine-proprietorship-choice proprietorship)]
+        (ok (licenses/get-all-licenses (merge (when-not disabled {:enabled true})
+                                              (when-not archived {:archived false})
+                                              (when proprietorship-keyword {proprietorship-keyword (getx-user-id)}))))))
 
     (GET "/:license-id" []
       :summary "Get license"
       :roles +admin-read-roles+
       :path-params [license-id :- (describe s/Int "license id")]
       :return schema/License
-      (if-let [license (licenses/get-license license-id)]
-        (ok license)
-        (not-found-json-response)))
+      (let [args (add-userid-when-not-owner [license-id])
+            license (apply licenses/get-license args)]
+        (if license
+          (ok license)
+          (not-found-json-response))))
 
     (POST "/create" []
       :summary "Create license"

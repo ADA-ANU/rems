@@ -1,0 +1,13 @@
+FROM clojure:temurin-17-lein-alpine
+
+RUN apk add --no-cache bash
+
+RUN mkdir /rems
+
+WORKDIR /rems
+
+COPY . /rems
+
+RUN lein deps
+
+CMD ["lein", "run"]

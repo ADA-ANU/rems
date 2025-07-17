@@ -4,6 +4,7 @@
             [ring.util.http-response :as http-response]
             [rems.auth.util :refer [throw-unauthorized throw-forbidden]]
             [rems.common.roles :refer [has-roles?]]
+            [rems.context :as context]
             [rems.json :as json]
             [rems.util :refer [errorf get-user-id]]))
 
@@ -49,3 +50,23 @@
   (let [body (json/generate-string {:error (or message "unprocessable entity")})]
     (-> (http-response/unprocessable-entity body)
         (http-response/content-type "application/json"))))
+
+(defn determine-proprietorship-choice
+  "Determines 'proprietorship' value for queries.
+   - If 'proprietorship' is nil and the user is an owner, it returns nil (meaning 'all').
+   - If 'proprietorship' is nil and the user is NOT an owner, it defaults to :associated.
+   - Otherwise, it converts the provided 'proprietorship' value to a keyword (:associated or :own)."
+  [proprietorship]
+  (let [owner? (contains? context/*roles* :owner)]
+    (cond
+      (and (nil? proprietorship) owner?) nil
+      (nil? proprietorship) :associated
+      :else (keyword proprietorship))))
+
+(defn add-userid-when-not-owner
+  "If the user is an owner, we don't need to pass their userid to filter the result
+  as owners can see all assets"
+  [args]
+  (if (has-roles? :owner)
+    args
+    (conj args (get-user-id))))

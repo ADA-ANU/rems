@@ -51,15 +51,20 @@
   (assoc template :form/errors (common-form/validate-form-template template (:languages env))))
 
 (defn get-form-templates [filters]
-  (->> (db/get-form-templates)
+  (->> (db/get-form-templates (select-keys filters [:own :associated]))
        (map parse-db-row)
-       (db/apply-filters filters)
+       (db/apply-filters (dissoc filters :own :associated))
        (map add-validation-errors)))
 
-(defn get-form-template [id]
-  (let [row (db/get-form-template {:id id})]
-    (when row
-      (add-validation-errors (parse-db-row row)))))
+(defn get-form-template
+  ([id]
+   (let [row (db/get-form-template {:id id})]
+     (when row
+       (add-validation-errors (parse-db-row row)))))
+  ([id userid]
+   (let [row (db/get-form-template {:id id :userid userid})]
+     (when row
+       (add-validation-errors (parse-db-row row))))))
 
 (defn- validate-given-ids
   "Check that `:field/id` values are distinct, not empty (or not given)."
