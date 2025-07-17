@@ -71,6 +71,7 @@
    :expirer #{:application.command/delete
               :application.command/send-expiration-notifications}
    ;; member before accepting an invitation
+   :handler #{:application.command/accept-invitation}
    :everyone-else #{:application.command/accept-invitation}})
 
 (def ^:private submitted-permissions
