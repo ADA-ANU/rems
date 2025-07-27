@@ -65,7 +65,8 @@
                                                           (when (some? enabled) {:enabled enabled})
                                                           (when (some? orgid) {:orgid orgid})
                                                           (when (some? tagid) {:tagid tagid})
-                                                          (when (some? id) {:id id})))))
+                                                          (when (some? id) {:id id})
+                                                          {:userid (getx-user-id)}))))
 
     (GET "/tag" []
       :summary "Get canned response tags"
@@ -78,7 +79,8 @@
       (ok (cannedresponses/get-cannedresponse-tags (merge     (when (some? appid) {:appid appid})
                                                               (when (some? enabled) {:enabled enabled})
                                                               (when (some? orgid) {:orgid orgid})
-                                                              (when (some? id) {:id id})))))
+                                                              (when (some? id) {:id id})
+                                                              {:userid (getx-user-id)}))))
 
 
     (GET "/get-by-appid" []

@@ -36,14 +36,18 @@
       (update-in [:workflow :licenses] #(mapv (fn [id] {:license/id id}) %))
       (update-in [:workflow :handlers] #(mapv users/get-user %))))
 
-(defn get-workflow [id]
-  (when-let [wf (db/get-workflow {:wfid id})]
-    (enrich-and-format-workflow wf)))
+(defn get-workflow
+  ([id]
+   (when-let [wf (db/get-workflow {:wfid id})]
+     (enrich-and-format-workflow wf)))
+  ([id userid]
+   (when-let [wf (db/get-workflow {:wfid id :userid userid})]
+     (enrich-and-format-workflow wf))))
 
 (defn get-workflows [filters]
-  (->> (db/get-workflows)
+  (->> (db/get-workflows (select-keys filters [:own :associated]))
        (map enrich-and-format-workflow)
-       (db/apply-filters filters)))
+       (db/apply-filters (dissoc filters :own :associated))))
 
 (defn get-all-workflow-roles [userid]
   (when (some #(contains? (set (map :userid (get-in % [:workflow :handlers]))) userid)

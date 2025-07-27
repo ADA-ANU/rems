@@ -29,15 +29,21 @@
         (dissoc :resourcedata)
         (merge resourcedata))))
 
-(defn get-resource [id]
-  (when-let [resource (db/get-resource {:id id})]
-    (-> resource
-        format-resource
-        coerce-ResourceDb)))
+(defn get-resource
+  ([id]
+   (when-let [resource (db/get-resource {:id id})]
+     (-> resource
+         format-resource
+         coerce-ResourceDb)))
+  ([id userid]
+   (when-let [resource (db/get-resource {:id id :userid userid})]
+     (-> resource
+         format-resource
+         coerce-ResourceDb))))
 
 (defn get-resources [filters]
-  (->> (db/get-resources (select-keys filters [:resid]))
-       (db/apply-filters (dissoc filters :resid)) ; other filters
+  (->> (db/get-resources (select-keys filters [:resid :own :associated]))
+       (db/apply-filters (dissoc filters :resid :own :associated)) ; other filters
        (map format-resource)
        (map coerce-ResourceDb)))
 

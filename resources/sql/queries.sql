@@ -54,6 +54,30 @@ WHERE 1=1
 /*~ (when-not (nil? (:enabled params)) */
   AND ci.enabled = :enabled
 /*~ ) ~*/
+/*~ (when (:userid params) */
+  AND (
+    ci.organization IN (
+      SELECT
+        DISTINCT org.id
+      FROM
+        organization org,
+        LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+      WHERE
+        owners->>'userid' = :userid
+    )
+    OR ci.id IN (
+      SELECT 
+        DISTINCT item.id
+      FROM catalogue_item item
+      INNER JOIN workflow w ON item.wfid = w.id
+      CROSS JOIN LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      WHERE
+        w.enabled = true
+        AND w.archived = false
+        AND handlers::text = :userid
+    )
+  )
+/*~ ) ~*/
   ORDER BY ci.id
 /*~ (when (:limit params) */
   LIMIT :limit
@@ -113,7 +137,43 @@ SELECT
   archived,
   resourcedata::TEXT
 FROM resource
-WHERE 1=1
+WHERE 
+  1=1
+/*~ (when (:own params) */
+  AND organization IN (
+    SELECT
+      DISTINCT org.id
+    FROM
+      organization org,
+      LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+    WHERE
+      owners->>'userid' = :own
+  )
+/*~ ) ~*/
+/*~ (when (:associated params) */
+  AND (
+    organization IN (
+      SELECT
+        DISTINCT org.id
+      FROM
+        organization org,
+        LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+      WHERE
+        owners->>'userid' = :associated
+    )
+    OR id IN (
+      SELECT 
+        DISTINCT item.resid
+      FROM catalogue_item item
+      INNER JOIN workflow w ON item.wfid = w.id
+      CROSS JOIN LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      WHERE
+        w.enabled = true
+        AND w.archived = false
+        AND handlers::text = :associated
+    )
+  )
+/*~ ) ~*/
 /*~ (when (:resid params) */
   AND resid = :resid
 /*~ ) ~*/
@@ -134,6 +194,30 @@ WHERE 1=1
 /*~ ) ~*/
 /*~ (when (:resid params) */
   AND resid = :resid
+/*~ ) ~*/
+/*~ (when (:userid params) */
+  AND (
+    organization IN (
+      SELECT
+        DISTINCT org.id
+      FROM
+        organization org,
+        LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+      WHERE
+        owners->>'userid' = :userid
+    )
+    OR id IN (
+      SELECT 
+        DISTINCT item.resid
+      FROM catalogue_item item
+      INNER JOIN workflow w ON item.wfid = w.id
+      CROSS JOIN LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      WHERE
+        w.enabled = true
+        AND w.archived = false
+        AND handlers::text = :userid
+    )
+  )
 /*~ ) ~*/
 ;
 
@@ -187,7 +271,57 @@ SELECT
   fields::TEXT,
   enabled,
   archived
-FROM form_template;
+FROM form_template
+WHERE 
+  1=1
+/*~ (when (:own params) */
+  AND organization IN (
+    SELECT
+      DISTINCT org.id
+    FROM
+      organization org,
+      LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+    WHERE
+      owners->>'userid' = :own
+  )
+/*~ ) ~*/
+/*~ (when (:associated params) */
+  AND (
+    organization IN (
+      SELECT
+        DISTINCT org.id
+      FROM
+        organization org,
+        LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+      WHERE
+        owners->>'userid' = :associated
+    )
+    OR id IN (
+      SELECT
+        DISTINCT ((jsonb_array_elements(w.workflowbody->'forms'))->'form/id')::int As forms
+      FROM
+        workflow w,
+        LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      WHERE
+        w.enabled = true
+        AND w.archived = false
+        AND handlers::text = :associated
+
+      UNION
+
+      SELECT 
+        DISTINCT item.formid
+      FROM catalogue_item item
+      INNER JOIN workflow w ON item.wfid = w.id
+      CROSS JOIN LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      WHERE
+        w.enabled = true
+        AND w.archived = false
+        AND handlers::text = :associated
+    )
+  )
+/*~ ) ~*/
+;
 
 -- :name get-form-template :? :1
 SELECT
@@ -198,7 +332,45 @@ SELECT
   enabled,
   archived
 FROM form_template
-WHERE id = :id;
+WHERE 
+  id = :id
+/*~ (when (:userid params) */
+  AND (
+    organization IN (
+      SELECT
+        DISTINCT org.id
+      FROM
+        organization org,
+        LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+      WHERE
+        owners->>'userid' = :userid
+    )
+    OR id IN (
+      SELECT
+        DISTINCT ((jsonb_array_elements(w.workflowbody->'forms'))->'form/id')::int As forms
+      FROM
+        workflow w,
+        LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      WHERE
+        w.enabled = true
+        AND w.archived = false
+        AND handlers::text = :userid
+
+      UNION
+
+      SELECT 
+        DISTINCT item.formid
+      FROM catalogue_item item
+      INNER JOIN workflow w ON item.wfid = w.id
+      CROSS JOIN LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      WHERE
+        w.enabled = true
+        AND w.archived = false
+        AND handlers::text = :userid
+    )
+  )
+/*~ ) ~*/
+;
 
 -- :name save-form-template! :insert
 INSERT INTO form_template
@@ -472,12 +644,38 @@ FROM workflow wf
 /*~ (when (:catid params) */
 JOIN catalogue_item ci ON (wf.id = ci.wfid)
 /*~ ) ~*/
-WHERE 1=1
+WHERE 
+  1=1
 /*~ (when (:wfid params) */
-AND wf.id = :wfid
+  AND wf.id = :wfid
 /*~ ) ~*/
 /*~ (when (:catid params) */
-AND ci.id = :catid
+  AND ci.id = :catid
+/*~ ) ~*/
+/*~ (when (:userid params) */
+  AND (
+    wf.organization IN (
+    SELECT
+      DISTINCT org.id
+    FROM
+      organization org,
+      LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+    WHERE
+      owners->>'userid' = :userid
+    )
+
+    OR wf.id in (
+      SELECT
+        DISTINCT w.id
+      FROM
+        workflow w,
+        LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      WHERE
+        handlers::text = :userid
+        AND w.enabled = true
+        AND w.archived = false
+    )
+  )
 /*~ ) ~*/
 ;
 
@@ -485,7 +683,46 @@ AND ci.id = :catid
 SELECT
   wf.id, wf.organization, wf.title,
   wf.workflowBody::TEXT as workflow, wf.enabled, wf.archived
-FROM workflow wf;
+FROM 
+  workflow wf
+WHERE 
+  1=1
+/*~ (when (:own params) */
+  AND wf.organization IN (
+    SELECT
+      DISTINCT org.id
+    FROM
+      organization org,
+      LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+    WHERE
+      owners->>'userid' = :own
+  )
+/*~ ) ~*/
+/*~ (when (:associated params) */
+  AND (
+    wf.organization IN (
+    SELECT
+      DISTINCT org.id
+    FROM
+      organization org,
+      LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+    WHERE
+      owners->>'userid' = :associated
+    )
+
+    OR wf.id in (
+      SELECT
+        DISTINCT w.id
+      FROM
+        workflow w,
+        LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      WHERE
+        handlers::text = :associated
+        AND w.enabled = true
+        AND w.archived = false
+    )
+  )
+/*~ ) ~*/;
 
 -- :name get-licenses :? :*
 -- :doc
@@ -512,12 +749,104 @@ WHERE rl.resid = :id;
 
 -- :name get-all-licenses :? :*
 SELECT lic.id, lic.type, lic.enabled, lic.archived, lic.organization
-FROM license lic;
+FROM license lic
+WHERE 
+  1=1
+/*~ (when (:own params) */
+  AND lic.organization IN (
+    SELECT
+      DISTINCT org.id
+    FROM
+      organization org,
+      LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+    WHERE
+      owners->>'userid' = :own
+  )
+/*~ ) ~*/
+/*~ (when (:associated params) */
+  AND (
+      lic.organization IN (
+      SELECT
+        DISTINCT org.id
+      FROM
+        organization org,
+        LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+      WHERE
+        owners->>'userid' = :associated
+    )
+    OR lic.id IN (
+      SELECT                 
+        DISTINCT (jsonb_array_elements(w.workflowbody->'licenses'))::int As licenses
+      FROM
+        workflow w,
+        LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      WHERE
+        w.enabled = true
+        AND w.archived = false
+        AND handlers::text = :associated
+
+      UNION ALL
+
+      SELECT license.id
+      FROM license
+      INNER JOIN resource_licenses rl ON license.id = rl.licid
+      INNER JOIN resource res ON rl.resid = res.id
+      INNER JOIN catalogue_item item ON res.id = item.resid
+      INNER JOIN workflow w ON item.wfid = w.id
+      CROSS JOIN LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      WHERE
+        w.enabled = true
+        AND w.archived = false
+        AND handlers::text = :associated
+    )
+  )
+/*~ ) ~*/
+;
 
 -- :name get-license :? :1
 SELECT lic.id, lic.type, lic.enabled, lic.archived, lic.organization
 FROM license lic
-WHERE lic.id = :id;
+WHERE 
+  lic.id = :id
+/*~ (when (:userid params) */
+  AND (
+    lic.organization IN (
+      SELECT
+        DISTINCT org.id
+      FROM
+        organization org,
+        LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+      WHERE
+        owners->>'userid' = :userid
+    )
+    OR lic.id IN (
+      SELECT                 
+        DISTINCT (jsonb_array_elements(w.workflowbody->'licenses'))::int As licenses
+      FROM
+        workflow w,
+        LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      WHERE
+        handlers::text = :userid
+        AND w.enabled = true
+        AND w.archived = false
+
+      UNION ALL
+
+      SELECT lic.id
+      FROM license lic
+      INNER JOIN resource_licenses rl ON lic.id = rl.licid
+      INNER JOIN resource res ON rl.resid = res.id
+      INNER JOIN catalogue_item item ON res.id = item.resid
+      INNER JOIN workflow w ON item.wfid = w.id
+      CROSS JOIN LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+      WHERE
+        handlers::text = :userid
+        AND w.enabled = true
+        AND w.archived = false
+    )
+  )
+/*~ ) ~*/
+;
 
 -- :name get-license-localizations :? :*
 SELECT licid, langcode, title, textcontent, attachmentid
@@ -712,11 +1041,38 @@ WHERE 1=1
 /*~ (when (:resource/ext-id params) */
   AND eventdata->>'resource/ext-id' = :resource/ext-id
 /*~ ) ~*/
+/*~ (when (:requester params) */
+  AND eventdata->>'resource/ext-id' IN (
+    SELECT
+      res.resid
+    FROM resource res
+    WHERE 
+      res.organization IN (
+        SELECT
+          DISTINCT org.id
+        FROM
+          organization org,
+          LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+        WHERE
+          owners->>'userid' = :requester
+      )
+      OR res.id IN (
+        SELECT 
+          DISTINCT item.resid
+        FROM catalogue_item item
+        INNER JOIN workflow w ON item.wfid = w.id
+        CROSS JOIN LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+        WHERE
+          w.enabled = true
+          AND w.archived = false
+          AND handlers::text = :requester
+      )
+  )
+/*~ ) ~*/
 /*~ (when (:userid params) */
   AND eventdata->>'userid' = :userid
 /*~ ) ~*/
-ORDER BY id ASC
-;
+ORDER BY id ASC;
 
 -- :name put-to-outbox! :insert
 INSERT INTO outbox (outboxData)
@@ -868,6 +1224,31 @@ WHERE 1 = 1
 /*~ (when-not (nil? (:enabled params)) */
   AND r.enabled = :enabled
 /*~ ) ~*/
+/*~ (when (:userid params) */
+  AND r.orgId IN (
+    SELECT
+      DISTINCT org.id
+    FROM
+      organization org,
+      LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+    WHERE
+      owners->>'userid' = :userid
+
+    UNION ALL
+
+    SELECT
+      DISTINCT org.id
+    FROM
+      workflow w,
+      organization org,
+      LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+    WHERE
+      handlers::text = :userid
+      AND w.organization = org.id
+      AND w.enabled = true
+      AND w.archived = false
+  )
+/*~ ) ~*/
 ORDER BY r.id ASC;
 
 -- :name get-canned-response-tags :? :*
@@ -890,6 +1271,31 @@ WHERE 1 = 1
 /*~ ) ~*/
 /*~ (when-not (nil? (:enabled params)) */
   AND r.enabled = :enabled
+/*~ ) ~*/
+/*~ (when (:userid params) */
+  AND r.orgId IN (
+    SELECT
+      DISTINCT org.id
+    FROM
+      organization org,
+      LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+    WHERE
+      owners->>'userid' = :userid
+
+    UNION ALL
+
+    SELECT
+      DISTINCT org.id
+    FROM
+      workflow w,
+      organization org,
+      LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+    WHERE
+      handlers::text = :userid
+      AND w.organization = org.id
+      AND w.enabled = true
+      AND w.archived = false
+  )
 /*~ ) ~*/
 ORDER BY r.id ASC;
 
