@@ -1359,12 +1359,13 @@ WHERE id = :id
 RETURNING id;
 
 -- :name get-my-application-invitations :? :*
-SELECT a.id, a.eventdata::TEXT, a2.eventdata->>'event/time' as joined, a3.eventdata->>'event/time' as removed, a4.eventdata->>'event/time' as uninvited
+SELECT a.id, a.eventdata::TEXT, a2.eventdata->>'event/time' as joined, a3.eventdata->>'event/time' as removed, a4.eventdata->>'event/time' as uninvited, a5.eventdata->>'event/time' as declined
 FROM application_event as a
 JOIN users as u ON (a.eventdata->'application/member'->>'email' ILIKE u.userattrs->>'email')
 LEFT JOIN application_event as a2 ON (a2.eventdata->>'event/type' LIKE 'application.event/member-joined' AND a2.appid = a.appid AND a2.eventdata->>'event/actor' LIKE u.userid and a2.id > a.id)
 LEFT JOIN application_event as a3 ON (a3.eventdata->>'event/type' LIKE 'application.event/member-removed' AND a3.appid = a.appid AND a3.eventdata->'application/member'->>'userid' LIKE u.userid and a3.id > a.id)
 LEFT JOIN application_event as a4 ON (a4.eventdata->>'event/type' LIKE 'application.event/member-uninvited' AND a4.appid = a.appid AND a4.eventdata->'application/member'->>'email' ILIKE u.userattrs->>'email' and a4.id > a.id)
+LEFT JOIN application_event as a5 ON (a5.eventdata->>'event/type' LIKE 'application.event/decline-invitation' AND a5.appid = a.appid AND a5.eventdata->'application/member'->>'email' ILIKE u.userattrs->>'email' and a5.id > a.id)
 WHERE u.userid = :userid
 AND a.eventdata->>'event/type' LIKE 'application.event/member-invited'
 ORDER BY a.id ASC;

@@ -1,13 +1,14 @@
 (ns rems.application.commands
   (:require [clojure.test :refer [deftest is testing]]
             [clojure.set]
+            [clojure.tools.logging :as log]
             [medley.core :refer [assoc-some distinct-by find-first update-existing]]
             [rems.common.application-util :as application-util]
             [rems.common.form :as form]
             [rems.form-validation :as form-validation]
             [rems.permissions :as permissions]
             [rems.schema-base :as schema-base]
-            [rems.util :refer [assert-ex getx getx-in try-catch-ex]]
+            [rems.util :refer [assert-ex getx getx-in getx-user-email try-catch-ex]]
             [schema-refined.core :as r]
             [schema.core :as s]
             [clj-time.core :as time])
@@ -62,6 +63,9 @@
 (s/defschema DecideCommand
   (assoc CommandWithComment
          :decision (s/enum :approved :rejected)))
+(s/defschema DeclineInvitationCommand
+  (assoc CommandBase
+         :token s/Str))
 (s/defschema InviteReviewerCommand
   (assoc CommandWithComment
          :reviewer {:name s/Str
@@ -133,6 +137,7 @@
    :application.command/copy-as-new CopyAsNewCommand
    :application.command/create CreateCommand
    :application.command/decide DecideCommand
+   :application.command/decline-invitation DeclineInvitationCommand
    :application.command/delete DeleteCommand
    :application.command/invite-decider InviteDeciderCommand
    :application.command/invite-member InviteMemberCommand
@@ -284,6 +289,10 @@
 (defn already-member-error [application userid]
   (when (member? userid application)
     {:errors [{:type :t.actions.errors/already-member :userid userid :application-id (:application/id application)}]}))
+
+(defn- not-your-token-error [invitation]
+  (when-not (.equalsIgnoreCase (getx-user-email) (get-in invitation [:application/member :email]))
+    {:errors [{:type :t.actions.errors/not-your-token }]}))
 
 (defn- ok-with-data [data events]
   (assoc data :events events))
@@ -592,6 +601,7 @@
     (cond
       (:application/member invitation)
       (or (already-member-error application (:actor cmd))
+          (not-your-token-error invitation)
           (ok-with-data {:application-id (:application-id cmd)}
                         [{:event/type :application.event/member-joined
                           :application/id (:application-id cmd)
@@ -611,6 +621,21 @@
                       :invitation/token (:token cmd)
                       :application/request-id (UUID/randomUUID)}])
 
+      :else
+      {:errors [{:type :t.actions.errors/invalid-token :token token}]})))
+
+(defmethod command-handler :application.command/decline-invitation
+  [cmd application injections]
+  (let [token (:token cmd)
+        invitation (get-in application [:application/invitation-tokens token])]
+    (cond 
+      (:application/member invitation)
+      (or (not-your-token-error invitation)
+          (ok-with-data {}
+                        [{:event/type :application.event/decline-invitation
+                          :application/id (:application-id cmd)
+                          :application/member (:application/member invitation)}]))
+      
       :else
       {:errors [{:type :t.actions.errors/invalid-token :token token}]})))
 

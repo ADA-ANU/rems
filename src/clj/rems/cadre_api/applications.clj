@@ -63,7 +63,8 @@
    :event/actor schema-base/UserWithAttributes
    (s/optional-key :joined) DateTime
    (s/optional-key :removed) DateTime
-   (s/optional-key :uninvited) DateTime})
+   (s/optional-key :uninvited) DateTime
+   (s/optional-key :declined) DateTime})
 
 (s/defschema Invitations
   [Invitation])
@@ -111,6 +112,7 @@
       (cond-> (:joined result) (assoc :joined (:joined result)))
       (cond-> (:removed result) (assoc :removed (:removed result)))
       (cond-> (:uninvited result) (assoc :uninvited (:uninvited result)))
+      (cond-> (:declined result) (assoc :declined (:declined result)))
       (update-existing :event/actor users/get-user)
       coerce-Invitation))
 
@@ -297,6 +299,7 @@
       (ok (validate-application request)))
 
     (command-endpoint :application.command/accept-invitation commands/AcceptInvitationCommand)
+    (command-endpoint :application.command/decline-invitation commands/DeclineInvitationCommand)
     (command-endpoint :application.command/accept-licenses commands/AcceptLicensesCommand)
     (command-endpoint :application.command/add-licenses commands/AddLicensesCommand)
     (command-endpoint :application.command/add-member commands/AddMemberCommand)

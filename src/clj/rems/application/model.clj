@@ -86,6 +86,16 @@
       (assoc-in [:application/invitation-tokens (:invitation/token event)]
                 (select-keys event [:event/actor :application/member]))))
 
+(defmethod application-base-view :application.event/decline-invitation
+  [application event]
+  (-> application
+      (update :application/invitation-tokens (fn [invitations]
+                                               (->> invitations
+                                                    (remove (fn [[_token invitation]]
+                                                              (= (:application/member invitation)
+                                                                 (:application/member event))))
+                                                    (into {}))))))
+
 (defmethod application-base-view :application.event/member-uninvited
   [application event]
   (-> application
@@ -296,6 +306,7 @@
     {:permission :application.command/copy-as-new}
     {:permission :application.command/create}
     {:permission :application.command/decide}
+    {:permission :application.command/decline-invitation}
     {:permission :application.command/delete}
     {:permission :application.command/invite-decider}
     {:permission :application.command/invite-member}
@@ -329,6 +340,7 @@
     {:permission :application.command/close}
     {:permission :application.command/copy-as-new}
     {:permission :application.command/create}
+    {:permission :application.command/decline-invitation}
     {:permission :application.command/delete}
     {:permission :application.command/invite-member}
     {:permission :application.command/invite-reviewer}

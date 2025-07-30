@@ -58,6 +58,8 @@
 (def ^:private handler-returned-commands
   (disj handler-all-commands
         :application.command/return
+        :application.command/accept-invitation
+        :application.command/decline-invitation
         :application.command/approve
         :application.command/reject
         :application.command/request-decision))
@@ -71,8 +73,10 @@
    :expirer #{:application.command/delete
               :application.command/send-expiration-notifications}
    ;; member before accepting an invitation
-   :handler #{:application.command/accept-invitation}
-   :everyone-else #{:application.command/accept-invitation}})
+   :handler #{:application.command/accept-invitation
+              :application.command/decline-invitation}
+   :everyone-else #{:application.command/accept-invitation
+                    :application.command/decline-invitation}})
 
 (def ^:private submitted-permissions
   {:applicant non-submittable-application-commands
@@ -101,7 +105,9 @@
    :decider #{:see-everything
               :application.command/redact-attachments
               :application.command/remark
-              :application.command/decide}})
+              :application.command/decide}
+   :everyone-else #{:application.command/accept-invitation
+                    :application.command/decline-invitation}})
 
 (def ^:private approved-permissions
   {:applicant non-submittable-application-commands
