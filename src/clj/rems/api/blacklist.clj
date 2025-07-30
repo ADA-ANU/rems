@@ -51,7 +51,7 @@
 
     (GET "/users" []
       :summary "Existing REMS users available for adding to the blocklist"
-      :roles  #{:owner :handler}
+      :roles  #{:owner :organization-owner :handler}
       :return [schema-base/UserWithAttributes]
       (ok (users/get-users)))
 
@@ -59,7 +59,7 @@
 
     (POST "/add" []
       :summary "Add a blocklist entry"
-      :roles #{:owner :handler}
+      :roles #{:owner :organization-owner :handler}
       :body [command BlacklistCommand]
       :return schema/SuccessResponse
       (let [userid (user-mappings/find-userid (getx-in command [:blacklist/user :userid]))
@@ -76,7 +76,7 @@
 
     (POST "/remove" []
       :summary "Remove a blocklist entry"
-      :roles #{:owner :handler}
+      :roles #{:owner :organization-owner :handler}
       :body [command BlacklistCommand]
       :return schema/SuccessResponse
       (let [userid (user-mappings/find-userid (getx-in command [:blacklist/user :userid]))
