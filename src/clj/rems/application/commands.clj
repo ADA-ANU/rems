@@ -1,7 +1,6 @@
 (ns rems.application.commands
   (:require [clojure.test :refer [deftest is testing]]
             [clojure.set]
-            [clojure.tools.logging :as log]
             [medley.core :refer [assoc-some distinct-by find-first update-existing]]
             [rems.common.application-util :as application-util]
             [rems.common.form :as form]

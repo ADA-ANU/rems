@@ -19,6 +19,13 @@
   [application _event]
   application)
 
+(def ^:private invitation-commands
+  #{:application.command/accept-invitation
+    :application.command/decline-invitation})
+
+(defn add-invitation-permissions [permissions]
+  (into permissions (seq invitation-commands)))
+
 (def ^:private submittable-application-commands
   #{:application.command/save-draft
     :application.command/submit
@@ -58,8 +65,6 @@
 (def ^:private handler-returned-commands
   (disj handler-all-commands
         :application.command/return
-        :application.command/accept-invitation
-        :application.command/decline-invitation
         :application.command/approve
         :application.command/reject
         :application.command/request-decision))
@@ -69,14 +74,16 @@
                     :application.command/delete)
    :member #{:application.command/accept-licenses
              :application.command/copy-as-new}
-   :reporter #{:see-everything}
+   :reporter (add-invitation-permissions #{:see-everything})
    :expirer #{:application.command/delete
               :application.command/send-expiration-notifications}
    ;; member before accepting an invitation
-   :handler #{:application.command/accept-invitation
-              :application.command/decline-invitation}
-   :everyone-else #{:application.command/accept-invitation
-                    :application.command/decline-invitation}})
+   :handler invitation-commands
+   :reviewer invitation-commands
+   :past-reviewer invitation-commands
+   :decider invitation-commands
+   :past-decider invitation-commands
+   :everyone-else invitation-commands})
 
 (def ^:private submitted-permissions
   {:applicant non-submittable-application-commands
@@ -96,18 +103,21 @@
               :application.command/reject}
    :past-decider #{:see-everything
                    :application.command/redact-attachments
-                   :application.command/remark}})
+                   :application.command/remark}
+   :everyone-else #{:application.command/decline-invitation}})
 
 (def ^:private returned-permissions
   {:applicant (conj submittable-application-commands
                     :application.command/close)
-   :handler (conj handler-returned-commands :see-everything)
-   :decider #{:see-everything
-              :application.command/redact-attachments
-              :application.command/remark
-              :application.command/decide}
-   :everyone-else #{:application.command/accept-invitation
-                    :application.command/decline-invitation}})
+   :handler (add-invitation-permissions (conj handler-returned-commands :see-everything))
+   :decider (add-invitation-permissions #{:see-everything
+                                          :application.command/redact-attachments
+                                          :application.command/remark
+                                          :application.command/decide})
+   :reviewer invitation-commands
+   :past-reviewer invitation-commands
+   :past-decider invitation-commands
+   :everyone-else invitation-commands})
 
 (def ^:private approved-permissions
   {:applicant non-submittable-application-commands
@@ -120,23 +130,35 @@
               :application.command/invite-member
               :application.command/uninvite-member
               :application.command/close
-              :application.command/revoke}
+              :application.command/revoke
+              :application.command/decline-invitation}
    :decider #{:see-everything
               :application.command/redact-attachments
               :application.command/remark
-              :application.command/decide}})
+              :application.command/decide
+              :application.command/decline-invitation}
+   :reviewer #{:application.command/decline-invitation}
+   :past-reviewer #{:application.command/decline-invitation}
+   :past-decider #{:application.command/decline-invitation}
+   :everyone-else #{:application.command/decline-invitation}})
 
 (def ^:private closed-permissions
   {:applicant #{:application.command/copy-as-new}
-   :member #{:application.command/copy-as-new}
+   :member #{:application.command/copy-as-new
+             :application.command/decline-invitation}
    :handler #{:see-everything
               :application.command/redact-attachments
-              :application.command/remark}
-   :reviewer #{:see-everything}
-   :past-reviewer #{:see-everything}
-   :decider #{:see-everything}
-   :past-decider #{:see-everything}
-   :everyone-else #{}})
+              :application.command/remark
+              :application.command/decline-invitation}
+   :reviewer #{:see-everything
+               :application.command/decline-invitation}
+   :past-reviewer #{:see-everything
+                    :application.command/decline-invitation}
+   :decider #{:see-everything
+              :application.command/decline-invitation}
+   :past-decider #{:see-everything
+                   :application.command/decline-invitation}
+   :everyone-else #{:application.command/decline-invitation}})
 
 (defmethod application-permissions-view :application.event/created
   [application event]
