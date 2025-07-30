@@ -67,6 +67,11 @@
          :event/type (s/enum :application.event/decision-requested)
          :application/request-id s/Uuid
          :application/deciders [schema-base/UserId]))
+(s/defschema DeclineInvitationEvent
+  (assoc schema-base/EventBase
+         :event/type (s/enum :application.event/decline-invitation)
+         :application/member {:name s/Str
+                              :email s/Str}))
 (s/defschema DeletedEvent
   (assoc schema-base/EventBase
          :event/type (s/enum :application.event/deleted)))
@@ -189,6 +194,7 @@
    :application.event/decider-invited DeciderInvitedEvent
    :application.event/decider-joined DeciderJoinedEvent
    :application.event/decision-requested DecisionRequestedEvent
+   :application.event/decline-invitation DeclineInvitationEvent
    :application.event/deleted DeletedEvent
    :application.event/draft-saved DraftSavedEvent
    :application.event/external-id-assigned ExternalIdAssignedEvent
