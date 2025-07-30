@@ -292,7 +292,7 @@
 
 (defn- not-your-token-error [invitation]
   (when-not (.equalsIgnoreCase (getx-user-email) (get-in invitation [:application/member :email]))
-    {:errors [{:type :t.actions.errors/not-your-token }]}))
+    {:errors [{:type :t.actions.errors/not-your-token}]}))
 
 (defn- ok-with-data [data events]
   (assoc data :events events))
@@ -628,14 +628,14 @@
   [cmd application injections]
   (let [token (:token cmd)
         invitation (get-in application [:application/invitation-tokens token])]
-    (cond 
+    (cond
       (:application/member invitation)
       (or (not-your-token-error invitation)
           (ok-with-data {}
                         [{:event/type :application.event/decline-invitation
                           :application/id (:application-id cmd)
                           :application/member (:application/member invitation)}]))
-      
+
       :else
       {:errors [{:type :t.actions.errors/invalid-token :token token}]})))
 
