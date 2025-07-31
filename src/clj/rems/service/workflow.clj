@@ -1,7 +1,7 @@
 (ns rems.service.workflow
   (:require [rems.service.dependencies :as dependencies]
             [rems.service.util :as util]
-            [rems.db.applications :as applications]
+            [rems.db.cadredb.applications :as applications]
             [rems.db.core :as db]
             [rems.db.form :as form]
             [rems.db.licenses :as licenses]

@@ -2,7 +2,7 @@
   (:require [medley.core :refer [assoc-some]]
             [rems.service.dependencies :as dependencies]
             [rems.service.util :as util]
-            [rems.db.applications :as applications]
+            [rems.db.cadredb.applications :as applications]
             [rems.db.core :as db]
             [rems.db.catalogue :as catalogue]
             [rems.db.category :as category]

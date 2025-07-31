@@ -5,7 +5,7 @@
             [rems.service.command :as command]
             [rems.application.expirer-bot :as expirer-bot]
             [rems.config :refer [env]]
-            [rems.db.applications :as applications]
+            [rems.db.cadredb.applications :as applications]
             [rems.db.users :as users]
             [rems.scheduler :as scheduler]))
 

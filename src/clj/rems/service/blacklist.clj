@@ -1,6 +1,6 @@
 (ns rems.service.blacklist
   (:require [clj-time.core :as time]
-            [rems.db.applications :as applications]
+            [rems.db.cadredb.applications :as applications]
             [rems.db.blacklist :as blacklist]
             [rems.db.users :as users]))
 

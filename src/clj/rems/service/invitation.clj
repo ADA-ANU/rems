@@ -1,7 +1,7 @@
 (ns rems.service.invitation
   (:require [rems.service.util :as util]
             [rems.service.cadre.util]
-            [rems.db.applications :as applications]
+            [rems.db.cadredb.applications :as applications]
             [rems.db.invitation :as invitation]
             [rems.db.users :as users]
             [rems.db.workflow :as workflow]
