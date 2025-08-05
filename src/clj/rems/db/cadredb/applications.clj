@@ -12,6 +12,7 @@
             [rems.application.cadre.model :as model]
             [rems.auth.util :refer [throw-forbidden]]
             [rems.common.util :refer [conj-set keep-keys]]
+            [rems.util :refer [getx-user-id]]
             [rems.config :refer [env]]
             [rems.db.attachments :as attachments]
             [rems.db.blacklist :as blacklist]
@@ -256,10 +257,21 @@
       ::enriched-apps
       (vals)))
 
-(defn get-all-applications [user-id]
-  (-> (refresh-all-applications-cache!)
-      (get-in [::apps-by-user user-id])
-      (->> (map ->ApplicationOverview))))
+(defn get-all-applications 
+  ([]
+    (-> (refresh-all-applications-cache!)
+        ::enriched-apps
+        (vals)
+        ;; (->> #(map (model/apply-user-permissions % (getx-user-id))))
+        ;; (->> (map ->ApplicationOverview))
+        (->> (map (fn [app]
+                (-> app
+                    model/apply-org-owner-permissions
+                    ->ApplicationOverview))))))
+  ([user-id]
+    (-> (refresh-all-applications-cache!)
+        (get-in [::apps-by-user user-id])
+        (->> (map ->ApplicationOverview)))))
 
 (defn- get-all-applications-full [user-id] ;; full i.e. not overview
   (-> (refresh-all-applications-cache!)

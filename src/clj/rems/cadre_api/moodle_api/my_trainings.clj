@@ -37,7 +37,7 @@
       :summary "Get the CADRE Moodle course completion status of a specific user for a specific course."
       :query-params [{course-id :- (describe s/Str "Input the CADRE Moodle App courseID for which the course completion status needs to be checked.") nil}
                      {user-id :- (describe s/Str "The user id.") nil}]
-      :roles #{:owner :handler}
+      :roles #{:owner :organization-owner :reporter :handler}
       :return s/Any
       (ok (moodle/get-moodle-course-completed course-id (moodle/get-moodle-user user-id))))
 

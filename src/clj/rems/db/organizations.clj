@@ -91,3 +91,10 @@
   (when (some #(contains? (set (map :userid (:organization/owners %))) userid)
               (get-organizations-raw))
     #{:organization-owner}))
+
+(defn user-affiliated-organisations [userid]
+  (->> (get-organizations-raw)
+       (filter (fn [org]
+                  (some #(= (:userid %) userid) (:organization/owners org))))
+       (map :organization/id)
+       (set)))

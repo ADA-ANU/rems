@@ -1,19 +1,33 @@
 (ns rems.service.cadre.todos
   (:require [clojure.set :as set]
             [clojure.test :refer [deftest is]]
+            [clojure.tools.logging :as log]
             [rems.application.commands :as commands]
+            [rems.context :as context]
+            [rems.db.users :as users]
+            [rems.db.organizations :as organizations]
             [rems.db.cadredb.applications :as applications]))
 
 (def ^:private todo-roles
   #{:handler :reviewer :decider :past-reviewer :past-decider})
 
-(defn- potential-todo? [application]
-  (and (some todo-roles (:application/roles application))
-       (not= :application.state/draft (:application/state application))))
+;; User has todo-roles or is an organization-owner and the application contains a resource that they own
+(defn- potential-todo? [affiliated-organisations application]
+  (let [application-resources (:application/resources application)]
+    (and (or (some todo-roles (:application/roles application))
+             (and (contains? context/*roles* :organization-owner)
+                  (boolean 
+                    (some (fn [resource]
+                            (let [org-id (get-in resource [:resource/organization :en])]
+                              (and org-id (contains? affiliated-organisations org-id))))
+                      application-resources))))
+         (not= :application.state/draft (:application/state application)))))
 
 (defn- get-potential-todos [user-id]
-  (->> (applications/get-all-applications user-id)
-       (filter potential-todo?)))
+  (let [affiliated-organisations (organizations/user-affiliated-organisations user-id)
+        applications (applications/get-all-applications)]
+    (->> applications
+         (filter (partial potential-todo? affiliated-organisations)))))
 
 (def ^:private todo-commands
   #{:application.command/approve
@@ -72,5 +86,4 @@
        (filter todo?)))
 
 (defn get-handled-todos [user-id]
-  (->> (get-potential-todos user-id)
-       (remove todo?)))
+  (->> (get-potential-todos user-id)))

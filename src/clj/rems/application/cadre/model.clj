@@ -916,3 +916,12 @@
           (assoc :application/permissions permissions)
           (assoc :application/roles roles)
           (permissions/cleanup)))))
+
+(defn apply-org-owner-permissions [application]
+  (-> (hide-sensitive-information application)
+      (hide-non-public-information)
+      (hide-attachments)
+      (mask-redacted-attachments)
+      (assoc :application/permissions #{})
+      (assoc :application/roles #{})
+      (permissions/cleanup)))
