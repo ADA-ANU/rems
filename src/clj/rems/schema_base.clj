@@ -33,7 +33,7 @@
               :example "en"}))
 
 (s/defschema LocalizedString
-  (rjs/field {Language s/Str}
+  (rjs/field {Language NonEmptyString}
              {:example {:fi "text in Finnish"
                         :en "text in English"}
               :description "Text values keyed by languages"}))
@@ -75,8 +75,8 @@
 
 (s/defschema OrganizationOverview
   (merge OrganizationId
-         {:organization/short-name NonEmptyString
-          :organization/name NonEmptyString}))
+         {:organization/short-name LocalizedString
+          :organization/name LocalizedString}))
 
 (s/defschema OrganizationFull
   (merge OrganizationOverview
