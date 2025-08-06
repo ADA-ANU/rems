@@ -4,8 +4,15 @@
   Be careful when adding things here: we don't want to couple the API
   schema too tightly to internal schemas!"
   (:require [ring.swagger.json-schema :as rjs]
-            [schema.core :as s])
+            [schema.core :as s]
+            [clojure.string :as str])
   (:import (org.joda.time DateTime)))
+
+(def NonEmptyString
+  (s/pred (fn [s]
+            (and (string? s)
+                 (not (str/blank? s))))
+          'NonEmptyString))
 
 ;; can't use defschema for this alias since s/Str is just String, which doesn't have metadata
 (def UserId s/Str)
@@ -18,7 +25,7 @@
 
 (def EventId s/Int) ; used both optionally and as required
 
-(s/defschema OrganizationId {:organization/id s/Str})
+(s/defschema OrganizationId {:organization/id NonEmptyString})
 
 (s/defschema Language
   (rjs/field s/Keyword
@@ -68,8 +75,8 @@
 
 (s/defschema OrganizationOverview
   (merge OrganizationId
-         {:organization/short-name LocalizedString
-          :organization/name LocalizedString}))
+         {:organization/short-name NonEmptyString
+          :organization/name NonEmptyString}))
 
 (s/defschema OrganizationFull
   (merge OrganizationOverview
