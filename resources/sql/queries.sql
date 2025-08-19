@@ -1464,9 +1464,17 @@ AND endt IS NULL
 AND revokedby IS NULL;
 
 -- :name get-projects-count-for-userprofile :? :1
-SELECT COUNT(*) AS projects_count 
-FROM projects 
-WHERE created_by = :userid;
+SELECT
+  COUNT(*)
+FROM
+  projects proj,
+  jsonb_array_elements(proj.projectattrs->'project/owners') AS owners
+LEFT JOIN
+  jsonb_array_elements(proj.projectattrs->'project/collaborators') AS collaborators
+ON
+  true
+WHERE
+  owners->>'userid' = :userid OR collaborators->>'userid' = :userid OR proj.projectattrs->'collaborators' = '[]';
 
 -- :name get-projects :*
 SELECT project_id as id, projectattrs::text as data FROM projects;
