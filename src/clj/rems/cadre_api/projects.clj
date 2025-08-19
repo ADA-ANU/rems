@@ -1,5 +1,9 @@
 (ns rems.cadre-api.projects
-  (:require [compojure.api.sweet :refer :all]
+  (:require [clojure.data.csv :as csv]
+            [clojure.java.io :as io]
+            [cheshire.core :as json]
+            [clojure.tools.logging :as log]
+            [compojure.api.sweet :refer :all]
             [rems.api.schema :as schema]
             [rems.api.util :refer [not-found-json-response]] ; required for route :roles
             [rems.schema-base :as schema-base]
@@ -76,6 +80,28 @@
       :body [command CreateProjectCommand]
       :return CreateProjectResponse
       (ok (projects/add-project! (getx-user-id) command)))
+
+    (POST "/parse-applicant-csv" []
+      :summary "Parse an uploaded CSV to determine users and emails"
+      :roles #{:logged-in}
+      :multipart-params [file :- schema/FileUpload]
+      :return s/Any
+      (ok (with-open [reader (io/reader (:tempfile file))]
+        (let [[header & rows] (csv/read-csv reader)
+              header-map (->> header
+                              (map-indexed (fn [idx itm] [(.toLowerCase itm) idx]))
+                              (into {}))
+              name-idx (get header-map "name")
+              email-idx (get header-map "email")]
+        (do
+          (log/warn header-map)
+          (when (and name-idx email-idx)
+            (->> rows
+                (map (fn [row]
+                        {:name (nth row name-idx)
+                        :email (nth row email-idx)}))
+                (json/generate-string))))
+        {:error "fail"}))))
 
     (POST "/link-application" []
       :summary "Link a project to an application (DSA/DSR)"
