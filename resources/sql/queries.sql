@@ -1465,7 +1465,7 @@ AND revokedby IS NULL;
 
 -- :name get-projects-count-for-userprofile :? :1
 SELECT
-  COUNT(*)
+  COUNT(DISTINCT proj.project_id) as projects_count
 FROM
   projects proj,
   jsonb_array_elements(proj.projectattrs->'project/owners') AS owners
@@ -1474,7 +1474,7 @@ LEFT JOIN
 ON
   true
 WHERE
-  owners->>'userid' = :userid OR collaborators->>'userid' = :userid OR proj.projectattrs->'collaborators' = '[]';
+  owners->>'userid' = :userid OR collaborators->>'userid' = :userid OR collaborators = '[]';
 
 -- :name get-projects :*
 SELECT project_id as id, projectattrs::text as data FROM projects;
