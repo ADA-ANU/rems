@@ -14,6 +14,7 @@
             [rems.json :as json]
             [rems.scheduler :as scheduler]
             [rems.service.ega :as ega]
+            [rems.service.resource :as resource]
             [medley.core :refer [find-first]]
             [rems.service.comanage :as comanage]))
 
@@ -32,7 +33,10 @@
     :comanage
     (when config
       (try (doseq [entitlement entitlements] ; technically these could be grouped per user & api-key
-             (comanage/entitlement-push action entitlement config))
+             (log/infof "Resource: %s from Organisation: %s" (:resid entitlement) (:organization/id (:organization (first (resource/get-resources {:resid (:resid entitlement)})))))
+             (if (= "ADA" (:organization/id (:organization (first (resource/get-resources {:resid (:resid entitlement)})))))
+               (comanage/entitlement-push action entitlement config)
+               (log/infof "Not pushing entitlement as not owned by ADA")))
            (catch Exception e
              (log/error "POST failed" e)
              (or (ex-data e)
