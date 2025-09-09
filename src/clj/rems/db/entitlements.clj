@@ -14,7 +14,7 @@
             [rems.json :as json]
             [rems.scheduler :as scheduler]
             [rems.service.ega :as ega]
-            [rems.service.resource :as resource]
+            [rems.db.resource :as resource]
             [medley.core :refer [find-first]]
             [rems.service.comanage :as comanage]))
 
