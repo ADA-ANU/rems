@@ -33,8 +33,9 @@
     :comanage
     (when config
       (try (doseq [entitlement entitlements] ; technically these could be grouped per user & api-key
-             (log/infof "Resource: %s from Organisation: %s" (:resourceid entitlement) (:organization (resource/get-resource {:id (:resourceid entitlement)})))
-             (if (= "ADA" (:organization (resource/get-resource {:id (:resourceid entitlement)})))
+             (log/infof "Resource: %s" (:resourceid entitlement))
+             (log/infof "Resource: %s from Organisation: %s" (:resourceid entitlement) (:organization (resource/get-resource (:resourceid entitlement))))
+             (if (= "ADA" (:organization (resource/get-resource (:resourceid entitlement))))
                (comanage/entitlement-push action entitlement config)
                (log/infof "Not pushing entitlement as not owned by ADA")))
            (catch Exception e
