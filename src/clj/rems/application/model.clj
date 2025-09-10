@@ -64,6 +64,12 @@
       (assoc-some-in [:application/duo :duo/codes] (when (:enable-duo rems.config/env)
                                                      (:application/duo-codes event)))))
 
+(defmethod application-base-view :application.event/form-updated
+  [application event]
+  (-> application
+      (assoc :application/modified (:event/time event))
+      (assoc ::submitted-answers (:application/field-values event))))
+
 (defmethod application-base-view :application.event/licenses-accepted
   [application event]
   (-> application
@@ -308,6 +314,7 @@
     {:permission :application.command/decide}
     {:permission :application.command/decline-invitation}
     {:permission :application.command/delete}
+    {:permission :application.command/handler-update-form}
     {:permission :application.command/invite-decider}
     {:permission :application.command/invite-member}
     {:permission :application.command/invite-reviewer}
@@ -342,6 +349,7 @@
     {:permission :application.command/create}
     {:permission :application.command/decline-invitation}
     {:permission :application.command/delete}
+    {:permission :application.command/handler-update-form}
     {:permission :application.command/invite-member}
     {:permission :application.command/invite-reviewer}
     {:permission :application.command/redact-attachments}

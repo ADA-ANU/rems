@@ -324,7 +324,10 @@
     (command-endpoint :application.command/return commands/ReturnCommand)
     (command-endpoint :application.command/review commands/ReviewCommand)
     (command-endpoint :application.command/revoke commands/RevokeCommand)
-    (command-endpoint :application.command/save-draft commands/SaveDraftCommand)
+    (command-endpoint :application.command/save-draft commands/SaveDraftCommand
+                      "Only used by applicants updating their request draft.")
+    (command-endpoint :application.command/handler-update-form commands/SaveDraftCommand
+                      "Only used by handlers who are updating an applicant's submitted request.")
     (command-endpoint :application.command/submit commands/SubmitCommand)
     (command-endpoint :application.command/uninvite-member commands/UninviteMemberCommand)
 

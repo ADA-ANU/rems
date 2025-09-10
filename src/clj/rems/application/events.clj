@@ -82,6 +82,12 @@
                                      :field schema-base/FieldId
                                      :value schema-base/FieldValue}]
          (s/optional-key :application/duo-codes) [schema-base/DuoCode]))
+(s/defschema UpdatedFormEvent
+  (assoc schema-base/EventBase
+         :event/type (s/enum :application.event/form-updated)
+         :application/field-values [{:form schema-base/FormId
+                                     :field schema-base/FieldId
+                                     :value schema-base/FieldValue}]))
 (s/defschema ExternalIdAssignedEvent
   (assoc schema-base/EventBase
          :event/type (s/enum :application.event/external-id-assigned)
@@ -199,6 +205,7 @@
    :application.event/draft-saved DraftSavedEvent
    :application.event/external-id-assigned ExternalIdAssignedEvent
    :application.event/expiration-notifications-sent ExpirationNotificationsSentEvent
+   :application.event/form-updated UpdatedFormEvent
    :application.event/licenses-accepted LicensesAcceptedEvent
    :application.event/licenses-added LicensesAddedEvent
    :application.event/member-added MemberAddedEvent

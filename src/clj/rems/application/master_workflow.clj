@@ -59,6 +59,7 @@
     :application.command/request-decision
     :application.command/return
     :application.command/approve
+    :application.command/handler-update-form
     :application.command/reject
     :application.command/close})
 
@@ -67,6 +68,7 @@
         :application.command/return
         :application.command/approve
         :application.command/reject
+        :application.command/handler-update-form
         :application.command/request-decision))
 
 (def ^:private created-permissions

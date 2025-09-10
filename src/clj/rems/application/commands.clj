@@ -138,6 +138,7 @@
    :application.command/decide DecideCommand
    :application.command/decline-invitation DeclineInvitationCommand
    :application.command/delete DeleteCommand
+   :application.command/handler-update-form SaveDraftCommand
    :application.command/invite-decider InviteDeciderCommand
    :application.command/invite-member InviteMemberCommand
    :application.command/invite-reviewer InviteReviewerCommand
@@ -387,6 +388,21 @@
                  :workflow/id workflow-id
                  :workflow/type workflow-type}})))
 
+(defn- update-application-form [cmd application _injections event-type]
+  (let [answers (:field-values cmd)
+        forms (for [form (:application/forms application)]
+                (-> form
+                    (form/enrich-form-answers answers nil)
+                    (form/enrich-form-field-visible)))
+        visible-values (for [form forms
+                             field (:form/fields form)
+                             :when (:field/visible field)]
+                         {:form (:form/id form) :field (:field/id field) :value (:field/value field)})]
+    (ok-with-data (form-validation-warnings forms)
+                  (list (-> {:event/type event-type
+                             :application/field-values visible-values}
+                            (assoc-some :application/duo-codes (:duo-codes cmd)))))))
+
 (defmethod command-handler :application.command/create
   [cmd application injections]
   ;; XXX: handle-command will execute this method even when the permission for it is missing,
@@ -410,19 +426,11 @@
 
 (defmethod command-handler :application.command/save-draft
   [cmd application _injections]
-  (let [answers (:field-values cmd)
-        forms (for [form (:application/forms application)]
-                (-> form
-                    (form/enrich-form-answers answers nil)
-                    (form/enrich-form-field-visible)))
-        visible-values (for [form forms
-                             field (:form/fields form)
-                             :when (:field/visible field)]
-                         {:form (:form/id form) :field (:field/id field) :value (:field/value field)})]
-    (ok-with-data (form-validation-warnings forms)
-                  (list (-> {:event/type :application.event/draft-saved
-                             :application/field-values visible-values}
-                            (assoc-some :application/duo-codes (:duo-codes cmd)))))))
+  (update-application-form cmd application _injections :application.event/draft-saved))
+
+(defmethod command-handler :application.command/handler-update-form
+  [cmd application _injections]
+  (update-application-form cmd application _injections :application.event/form-updated))
 
 (defmethod command-handler :application.command/accept-licenses
   [cmd _application _injections]
