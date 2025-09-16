@@ -58,8 +58,9 @@
       :query-params [{resource :- (describe s/Str "resource id") ""}]
       :responses {200 {:schema schema/CatalogueItemFound}
                   404 {:schema s/Any :description "Not found"}}
-      (if-let [resources (catalogue/get-localized-catalogue-items {:resource-like (str "%" resource "%")
+      (let [resources (catalogue/get-localized-catalogue-items {:resource-like (str "%" resource "%")
                                                                    :enabled true})]
-        (ok {:success true
-             :results (count resources)})
-        (not-found-json-response)))))
+        (if (not (empty? resources))
+          (ok {:success true
+               :results (count resources)})
+          (not-found-json-response))))))
