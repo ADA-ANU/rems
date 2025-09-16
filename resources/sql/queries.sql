@@ -39,6 +39,9 @@ WHERE 1=1
 /*~ (when (:resource params) */
   AND res.resid = :resource
 /*~ ) ~*/
+/*~ (when (:resource-like params) */
+  AND res.resid LIKE :resource-like
+/*~ ) ~*/
 /*~ (when (:resource-id params) */
   AND ci.resid = :resource-id
 /*~ ) ~*/
