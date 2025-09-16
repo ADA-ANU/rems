@@ -59,7 +59,7 @@
       :responses {200 {:schema schema/CatalogueItemFound}
                   404 {:schema s/Any :description "Not found"}}
       (let [resources (catalogue/get-localized-catalogue-items {:resource-like (str "%" resource "%")
-                                                                   :enabled true})]
+                                                                :enabled true})]
         (if (not (empty? resources))
           (ok {:success true
                :results (count resources)})
