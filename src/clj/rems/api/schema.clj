@@ -309,7 +309,8 @@
   schema-base/CategoryId)
 
 (s/defschema CatalogueItemFound
-  {:success s/Bool})
+  {:success s/Bool
+   :results s/Int})
 
 (s/defschema ProprietorshipOptions
   (s/enum "associated" "own"))

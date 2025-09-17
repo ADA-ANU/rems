@@ -6,6 +6,7 @@
 -- - Get catalogue items
 -- - :ids vector of item ids
 -- - :resource resource external id to fetch items for
+-- - :resource-like match resource external id by pattern for fetch items 
 -- - :resource-id resource internal id to fetch items for
 -- - :workflow workflow id to fetch items for
 -- - :form form id to fetch items for
@@ -38,6 +39,9 @@ WHERE 1=1
 /*~ ) ~*/
 /*~ (when (:resource params) */
   AND res.resid = :resource
+/*~ ) ~*/
+/*~ (when (:resource-like params) */
+  AND res.resid LIKE :resource-like
 /*~ ) ~*/
 /*~ (when (:resource-id params) */
   AND ci.resid = :resource-id
