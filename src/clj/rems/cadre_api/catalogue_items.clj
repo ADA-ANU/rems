@@ -25,7 +25,8 @@
                      {expired :- (describe s/Bool "whether to include expired items") false}
                      {limit :- (describe s/Int "the number of records to return (optional)") nil}
                      {offset :- (describe s/Int "starts on record OFFSET+1 (optional)") nil}
-                     {associated :- (describe s/Bool "return only associated catalogue items") false}]
+                     {associated :- (describe s/Bool "return only associated catalogue items") false}
+                     {requested :- (describe s/Bool "whether to include items with pre-existing requests (optional)") true}]
       :return GetCatalogueItemsResponse
       (ok (db/apply-filters
            (merge (when-not expired {:expired false})
@@ -37,4 +38,5 @@
                                                             :expand-catalogue-data? true
                                                             :archived archived
                                                             :limit limit
-                                                            :offset offset})))))))
+                                                            :offset offset
+                                                            :requested requested})))))))

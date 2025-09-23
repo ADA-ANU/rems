@@ -7,7 +7,8 @@
             [rems.db.catalogue :as catalogue]
             [rems.db.category :as category]
             [rems.db.organizations :as organizations]
-            [rems.common.util :refer [build-dags]]))
+            [rems.common.util :refer [build-dags]]
+            [rems.util :refer [get-user-id]]))
 
 ;; TODO this bypasses the db layer
 ;; TODO move catalogue item localizations into the catalogueitemdata
@@ -38,8 +39,14 @@
       true (update :categories category/enrich-categories))))
 
 (defn get-localized-catalogue-items [& [query-params]]
-  (->> (catalogue/get-localized-catalogue-items (or query-params {}))
-       (mapv #(join-dependencies % query-params))))
+  (let [existing-requests (if (or (nil? (:requested query-params)) (:requested query-params)) nil (applications/get-my-applications (get-user-id)))
+        catalogue-items (->> (catalogue/get-localized-catalogue-items (or query-params {}))
+                             (mapv #(join-dependencies % query-params)))]
+    (if (nil? existing-requests)
+      catalogue-items
+      (filter (fn [catalogue-item]
+                (not (some #(applications/duplicate-application? [(:id catalogue-item)] %) existing-requests)))
+              catalogue-items))))
 
 (defn get-localized-catalogue-item [id]
   (-> (catalogue/get-localized-catalogue-item id)
