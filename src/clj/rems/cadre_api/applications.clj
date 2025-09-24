@@ -302,10 +302,16 @@
       :summary "Modify which resources are requested by the application request."
       :body [request commands/ChangeResourcesCommand]
       :return s/Any
-      ;; Filter this application to allow extending the request to include more resources in addition to the current resource(s)
-      (let [existing-applications (filter (fn [application]
-                                            (not (= (:application-id request) (:application/id application))))
-                                          (applications/get-my-applications (getx-user-id)))]
+      ;; Remove this application to allow including more resources in addition to the current resource(s)
+      (let [existing-applications (loop [remaining (applications/get-my-applications (getx-user-id))
+                                         result []]
+                                    (if (empty? remaining)
+                                      result
+                                      (let [application (first remaining)]
+                                        (if (= (:application-id request) (:application/id application))
+                                          (concat result (rest remaining)) ;; exit after removing current application
+                                          (recur (rest remaining)
+                                                 (conj result application))))))]
         (if (some (partial applications/duplicate-application? (:catalogue-item-ids request)) existing-applications)
           (ok {:success false
                :errors [{:type :must-not-be-duplicate}]})
