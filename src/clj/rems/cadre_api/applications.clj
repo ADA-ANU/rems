@@ -298,6 +298,19 @@
       :return schema/SuccessResponse
       (ok (validate-application request)))
 
+    (POST "/change-resources" []
+      :summary "Modify which resources are requested by the application request."
+      :body [request commands/ChangeResourcesCommand]
+      :return s/Any
+      ;; Filter this application to allow extending the request to include more resources in addition to the current resource(s)
+      (let [existing-applications (filter (fn [application]
+                                            (not (= (:application-id request) (:application/id application))))
+                                          (applications/get-my-applications (getx-user-id)))]
+        (if (some (partial applications/duplicate-application? (:catalogue-item-ids request)) existing-applications)
+          (ok {:success false
+               :errors [{:type :must-not-be-duplicate}]})
+          (ok (api-command :application.command/change-resources request)))))
+
     (command-endpoint :application.command/accept-invitation commands/AcceptInvitationCommand)
     (command-endpoint :application.command/decline-invitation commands/DeclineInvitationCommand)
     (command-endpoint :application.command/accept-licenses commands/AcceptLicensesCommand)
@@ -305,7 +318,6 @@
     (command-endpoint :application.command/add-member commands/AddMemberCommand)
     (command-endpoint :application.command/approve commands/ApproveCommand)
     (command-endpoint :application.command/assign-external-id commands/AssignExternalIdCommand)
-    (command-endpoint :application.command/change-resources commands/ChangeResourcesCommand)
     (command-endpoint :application.command/close commands/CloseCommand)
     (command-endpoint :application.command/decide commands/DecideCommand)
     (command-endpoint :application.command/delete commands/DeleteCommand
