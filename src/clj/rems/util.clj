@@ -116,3 +116,16 @@
   [dir]
   (.mkdirs dir)
   (delete-directory-contents-recursively dir))
+
+(defn remove-first-match
+  "When an element from the collection meets the condition of the filter function, remove the element and return the rest of the collection"
+  [filter-func collection]
+  (loop [remaining collection
+         result []]
+    (if (empty? remaining)
+      result
+      (let [item (first remaining)]
+        (if (filter-func item)
+          (concat result (rest remaining))
+          (recur (rest remaining)
+                 (conj result item)))))))

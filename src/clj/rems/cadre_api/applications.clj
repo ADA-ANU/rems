@@ -24,7 +24,7 @@
             [rems.schema-base :as schema-base]
             [rems.schema-base-cadre :as schema-base-cadre]
             [rems.text :refer [with-language]]
-            [rems.util :refer [getx-user-id]]
+            [rems.util :refer [getx-user-id remove-first-match]]
             [schema.coerce :as coerce]
             [rems.json :as json]
             [ring.util.http-response :refer :all]
@@ -303,15 +303,9 @@
       :body [request commands/ChangeResourcesCommand]
       :return s/Any
       ;; Remove this application to allow including more resources in addition to the current resource(s)
-      (let [existing-applications (loop [remaining (applications/get-my-applications (getx-user-id))
-                                         result []]
-                                    (if (empty? remaining)
-                                      result
-                                      (let [application (first remaining)]
-                                        (if (= (:application-id request) (:application/id application))
-                                          (concat result (rest remaining)) ;; exit after removing current application
-                                          (recur (rest remaining)
-                                                 (conj result application))))))]
+      (let [applications (applications/get-my-applications (getx-user-id))
+            existing-applications (remove-first-match #(= (:application-id request) (:application/id %))
+                                                      applications)]
         (if (some (partial applications/duplicate-application? (:catalogue-item-ids request)) existing-applications)
           (ok {:success false
                :errors [{:type :must-not-be-duplicate}]})
