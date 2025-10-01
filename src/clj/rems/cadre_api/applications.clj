@@ -24,7 +24,7 @@
             [rems.schema-base :as schema-base]
             [rems.schema-base-cadre :as schema-base-cadre]
             [rems.text :refer [with-language]]
-            [rems.util :refer [getx-user-id]]
+            [rems.util :refer [getx-user-id remove-first-match]]
             [schema.coerce :as coerce]
             [rems.json :as json]
             [ring.util.http-response :refer :all]
@@ -298,6 +298,19 @@
       :return schema/SuccessResponse
       (ok (validate-application request)))
 
+    (POST "/change-resources" []
+      :summary "Modify which resources are requested by the application request."
+      :body [request commands/ChangeResourcesCommand]
+      :return s/Any
+      ;; Remove this application to allow including more resources in addition to the current resource(s)
+      (let [applications (applications/get-my-applications (getx-user-id))
+            existing-applications (remove-first-match #(= (:application-id request) (:application/id %))
+                                                      applications)]
+        (if (some (partial applications/duplicate-application? (:catalogue-item-ids request)) existing-applications)
+          (ok {:success false
+               :errors [{:type :must-not-be-duplicate}]})
+          (ok (api-command :application.command/change-resources request)))))
+
     (command-endpoint :application.command/accept-invitation commands/AcceptInvitationCommand)
     (command-endpoint :application.command/decline-invitation commands/DeclineInvitationCommand)
     (command-endpoint :application.command/accept-licenses commands/AcceptLicensesCommand)
@@ -305,7 +318,6 @@
     (command-endpoint :application.command/add-member commands/AddMemberCommand)
     (command-endpoint :application.command/approve commands/ApproveCommand)
     (command-endpoint :application.command/assign-external-id commands/AssignExternalIdCommand)
-    (command-endpoint :application.command/change-resources commands/ChangeResourcesCommand)
     (command-endpoint :application.command/close commands/CloseCommand)
     (command-endpoint :application.command/decide commands/DecideCommand)
     (command-endpoint :application.command/delete commands/DeleteCommand
