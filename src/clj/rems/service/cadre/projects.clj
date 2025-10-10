@@ -91,9 +91,9 @@
       (do
         (doseq [invite invites]
           (invitation/create-invitation!
-            (assoc invite
-                   :userid user-id
-                   :project-id id)))
+           (assoc invite
+                  :userid user-id
+                  :project-id id)))
         (doseq [application applications]
           (link-project! {:application/id (:id application) :project/id id}))
         {:success true

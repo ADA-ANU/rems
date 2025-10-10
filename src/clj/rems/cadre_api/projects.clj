@@ -9,7 +9,7 @@
             [ring.util.http-response :refer :all]
             [schema.core :as s]))
 
-(s/defschema ProjectInvitationCommand 
+(s/defschema ProjectInvitationCommand
   (-> schema-base/CreateInvitationCommand
       (dissoc (s/optional-key :workflow-id)
               (s/optional-key :project-id))))
