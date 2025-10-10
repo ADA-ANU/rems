@@ -9,12 +9,21 @@
             [ring.util.http-response :refer :all]
             [schema.core :as s]))
 
+(s/defschema ProjectInvitationCommand 
+  (-> schema-base/CreateInvitationCommand
+      (dissoc (s/optional-key :workflow-id)
+              (s/optional-key :project-id))))
+
 (s/defschema CreateProjectCommand
   (-> schema-base-cadre/ProjectFull
-      (dissoc :project/id
-              :project/last-modified)
+      (dissoc (s/optional-key :project/id)
+              (s/optional-key :project/last-modified)
+              (s/optional-key :archived)
+              (s/optional-key :enabled))
       (assoc (s/optional-key :project/owners) [schema-base/User]
-             (s/optional-key :project/collaborators) [schema-base/User])))
+             (s/optional-key :project/collaborators) [schema-base/User]
+             (s/optional-key :project/invitations) [ProjectInvitationCommand]
+             (s/optional-key :project/applications) [schema-base/ApplicationIds])))
 
 (s/defschema CreateProjectResponse
   {:success s/Bool

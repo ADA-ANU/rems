@@ -9,13 +9,6 @@
             [schema.core :as s])
   (:import [org.joda.time DateTime]))
 
-(s/defschema CreateInvitationCommand
-  {:name s/Str
-   :email s/Str
-   (s/optional-key :workflow-id) s/Int
-   (s/optional-key :project-id) s/Int
-   (s/optional-key :role) (describe s/Str "Will add as collaborator by default. Set to 'owner' if you wish to invite as owner")})
-
 (s/defschema CreateInvitationResponse
   {:success s/Bool
    (s/optional-key :invitation/id) s/Int
@@ -52,7 +45,7 @@
     (POST "/create" []
       :summary "Create an invitation. The invitation will be sent asynchronously to the recipient."
       :roles #{:logged-in}
-      :body [command CreateInvitationCommand]
+      :body [command schema-base/CreateInvitationCommand]
       :return CreateInvitationResponse
       (ok (invitation/create-invitation! (assoc command :userid (getx-user-id)))))
 

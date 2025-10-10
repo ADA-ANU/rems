@@ -12,14 +12,11 @@
   (:import rems.DataException)
   (:import (org.joda.time DateTime)))
 
-(s/defschema ApplicationIds
-  {:id s/Int});
-
 (s/defschema ProjectRaw
   (merge schema-base-cadre/ProjectOverview
          {(s/optional-key :project/owners) [schema-base/User]
           (s/optional-key :project/collaborators) [schema-base/User]
-          (s/optional-key :project/applications) [ApplicationIds]
+          (s/optional-key :project/applications) [schema-base/ApplicationIds]
           (s/optional-key :project/end-date) DateTime
           (s/optional-key :project/start-date) DateTime
           (s/optional-key :project/RAiD) s/Str

@@ -5,7 +5,7 @@
             [rems.service.cadre.util]
             [rems.service.invitation :as invitation]
             [rems.auth.util]
-            [rems.db.applications :as applications]
+            [rems.db.cadredb.applications :as applications]
             [rems.db.core :as db]
             [rems.db.cadredb.projects :as projects]
             [rems.db.roles :as roles]
@@ -83,12 +83,24 @@
        (find-first (comp #{(:project/id proj)} :project/id))))
 
 (defn add-project! [userid proj]
-  (if-let [id (projects/add-project! userid proj)]
-    {:success true
-     :project/id id}
-    {:success false
-     :errors [{:type :t.actions.errors/duplicate-id
-               :project/id (:project/id proj)}]}))
+  (let [user-id (getx-user-id)
+        invites (get proj :project/invitations)
+        applications (get proj :project/applications)
+        proj-data (dissoc proj :project/invitations :project/applications)]
+    (if-let [id (projects/add-project! userid proj-data)]
+      (do
+        (doseq [invite invites]
+          (invitation/create-invitation!
+            (assoc invite
+                   :userid user-id
+                   :project-id id)))
+        (doseq [application applications]
+          (link-project! {:application/id (:id application) :project/id id}))
+        {:success true
+         :project/id id})
+      {:success false
+       :errors [{:type :t.actions.errors/duplicate-id
+                 :project/id (:project/id proj)}]})))
 
 (defn edit-project! [cmd]
   (let [id (:project/id cmd)]
@@ -99,9 +111,11 @@
      :project/id id}))
 
 (defn link-project! [cmd]
-  (let [id (:project/id cmd)]
+  (let [proj-id (:project/id cmd)
+        app-id (:application/id cmd)]
+    (applications/get-application-for-user (getx-user-id) app-id) ;; throws forbidden, application membership
     (rems.service.cadre.util/check-project-membership! cmd)
-    (if-let [apid (projects/link-project! (:application/id cmd) id)]
+    (if-let [apid (projects/link-project! app-id proj-id)]
       {:success true
        :project-application/id apid}
       {:success false})))
