@@ -65,6 +65,16 @@
       collaborator
       (contains? collaborator-ids collaborator))))
 
+(defn link-project! [cmd]
+  (let [proj-id (:project/id cmd)
+        app-id (:application/id cmd)]
+    (applications/get-application-for-user (getx-user-id) app-id) ;; throws forbidden, application membership
+    (rems.service.cadre.util/check-project-membership! cmd)
+    (if-let [apid (projects/link-project! app-id proj-id)]
+      {:success true
+       :project-application/id apid}
+      {:success false})))
+
 (defn- project-filters [userid owner collaborator projects]
   (->> projects
        (apply-user-permissions userid)
@@ -110,15 +120,7 @@
     {:success true
      :project/id id}))
 
-(defn link-project! [cmd]
-  (let [proj-id (:project/id cmd)
-        app-id (:application/id cmd)]
-    (applications/get-application-for-user (getx-user-id) app-id) ;; throws forbidden, application membership
-    (rems.service.cadre.util/check-project-membership! cmd)
-    (if-let [apid (projects/link-project! app-id proj-id)]
-      {:success true
-       :project-application/id apid}
-      {:success false})))
+
 
 (defn set-project-enabled! [{:keys [enabled] :as cmd}]
   (let [id (:project/id cmd)]
