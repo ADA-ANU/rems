@@ -13,10 +13,9 @@
             [rems.util :refer [getx-user-id]]))
 
 (defn- apply-user-permissions [userid projects]
-  (let [user-roles (set/union (roles/get-roles userid)
-                              (applications/get-all-application-roles userid))
-        can-see-all? (some? (some #{:owner :handler :reporter} user-roles))]
-    (filter #(or (nil? userid) can-see-all? (rems.service.cadre.util/may-view-projects? userid %)) projects)))
+  (filter (fn [project]
+            (rems.service.cadre.util/may-view-projects? userid project))
+          projects))
 
 (defn- remove-user-from-role! [id project userid role-key]
   (let [user-ids (set (map :userid (role-key project)))
@@ -97,7 +96,7 @@
         invites (get proj :project/invitations)
         applications (get proj :project/applications)
         proj-data (-> proj (dissoc :project/invitations :project/applications)
-                           (assoc :project/owners [{:userid userid}]))]
+                      (assoc :project/owners [{:userid userid}]))]
     (if-let [id (projects/add-project! userid proj-data)]
       (do
         (doseq [invite invites]
