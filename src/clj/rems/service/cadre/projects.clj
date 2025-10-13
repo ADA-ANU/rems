@@ -96,7 +96,8 @@
   (let [user-id (getx-user-id)
         invites (get proj :project/invitations)
         applications (get proj :project/applications)
-        proj-data (dissoc proj :project/invitations :project/applications)]
+        proj-data (-> proj (dissoc :project/invitations :project/applications)
+                           (assoc :project/owners [{:userid userid}]))]
     (if-let [id (projects/add-project! userid proj-data)]
       (do
         (doseq [invite invites]

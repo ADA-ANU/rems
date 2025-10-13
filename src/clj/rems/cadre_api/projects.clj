@@ -16,13 +16,13 @@
 
 (s/defschema CreateProjectCommand
   (-> schema-base-cadre/ProjectFull
-      (dissoc (s/optional-key :project/id)
+      (dissoc (s/optional-key :archived)
+              (s/optional-key :enabled)
+              (s/optional-key :project/collaborators)
+              (s/optional-key :project/id)
               (s/optional-key :project/last-modified)
-              (s/optional-key :archived)
-              (s/optional-key :enabled))
-      (assoc (s/optional-key :project/owners) [schema-base/User]
-             (s/optional-key :project/collaborators) [schema-base/User]
-             (s/optional-key :project/invitations) [ProjectInvitationCommand]
+              (s/optional-key :project/owners))
+      (assoc (s/optional-key :project/invitations) [ProjectInvitationCommand]
              (s/optional-key :project/applications) [schema-base/ApplicationIds])))
 
 (s/defschema CreateProjectResponse
