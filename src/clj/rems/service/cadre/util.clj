@@ -44,6 +44,12 @@
                                 (:project/id project)))
     (throw-forbidden (str "no access to project " (pr-str (:project/id project))))))
 
+(defn check-allowed-this-project! [full-project]
+  (assert (:project/id full-project) {:error "invalid project"
+                                 :project full-project})
+  (when-not (may-edit-project? full-project)
+    (throw-forbidden (str "no access to project " (pr-str (:project/id full-project))))))
+
 (deftest test-may-edit-project?
   (let [proj-empty {:project/id ""}
         proj-nobody {:project/id "project with no owners" :project/owners []}

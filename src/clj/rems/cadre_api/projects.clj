@@ -30,7 +30,22 @@
    (s/optional-key :project/id) s/Int
    (s/optional-key :errors) [s/Any]})
 
-(s/defschema EditProjectCommand CreateProjectCommand)
+(s/defschema EditProjectCommand 
+  (-> schema-base-cadre/ProjectFull
+      (dissoc (s/optional-key :archived)
+              (s/optional-key :enabled)
+              (s/optional-key :project/applications)
+              (s/optional-key :project/collaborators)
+              (s/optional-key :project/invitations)
+              (s/optional-key :project/id)
+              (s/optional-key :project/last-modified)
+              (s/optional-key :project/owners))
+      (assoc :project/id schema-base-cadre/ProjectId
+             (s/optional-key :project/new-applications) [schema-base/ApplicationIds]
+             (s/optional-key :project/new-invitations) [ProjectInvitationCommand]
+             (s/optional-key :project/revoke-invitations) [ProjectInvitationCommand]
+             (s/optional-key :project/elevate-to-owner) [schema-base/User]
+             (s/optional-key :project/demote-to-collaborator) [schema-base/User])))
 
 (s/defschema EditProjectResponse
   {:success s/Bool

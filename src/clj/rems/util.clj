@@ -129,3 +129,9 @@
           (concat result (rest remaining))
           (recur (rest remaining)
                  (conj result item)))))))
+
+(defn get-value-as-lower-case
+  "Extracts a value from a map using a keyword, then returns its lower-cased version."
+  [k inv]
+  (when-let [val (get inv k)]
+    (.toLowerCase (str val))))
