@@ -1,5 +1,6 @@
 (ns rems.cadre-api.projects
   (:require [compojure.api.sweet :refer :all]
+            [clojure.tools.logging :as log]
             [rems.api.schema :as schema]
             [rems.api.util :refer [not-found-json-response]] ; required for route :roles
             [rems.schema-base :as schema-base]
@@ -13,6 +14,9 @@
   (-> schema-base/CreateInvitationCommand
       (dissoc (s/optional-key :workflow-id)
               (s/optional-key :project-id))))
+
+(s/defschema ProjectInvitationRevoke
+  {:invitation/id s/Int})
 
 (s/defschema CreateProjectCommand
   (-> schema-base-cadre/ProjectFull
@@ -30,26 +34,29 @@
    (s/optional-key :project/id) s/Int
    (s/optional-key :errors) [s/Any]})
 
-(s/defschema EditProjectCommand 
+(s/defschema EditProjectMetadata
   (-> schema-base-cadre/ProjectFull
-      (dissoc (s/optional-key :archived)
-              (s/optional-key :enabled)
+      (dissoc :project/name
               (s/optional-key :project/applications)
               (s/optional-key :project/collaborators)
-              (s/optional-key :project/invitations)
               (s/optional-key :project/id)
+              (s/optional-key :project/invitations)
               (s/optional-key :project/last-modified)
               (s/optional-key :project/owners))
-      (assoc :project/id schema-base-cadre/ProjectId
-             (s/optional-key :project/new-applications) [schema-base/ApplicationIds]
-             (s/optional-key :project/new-invitations) [ProjectInvitationCommand]
-             (s/optional-key :project/revoke-invitations) [ProjectInvitationCommand]
-             (s/optional-key :project/elevate-to-owner) [schema-base/User]
-             (s/optional-key :project/demote-to-collaborator) [schema-base/User])))
+      (assoc (s/optional-key :project/name) schema-base/LocalizedString)))
+
+(s/defschema EditProjectCommand
+  {:project/id schema-base-cadre/ProjectId
+   (s/optional-key :project/updated-data) EditProjectMetadata
+   (s/optional-key :project/new-applications) [schema-base/ApplicationIds]
+   (s/optional-key :project/new-invitations) [ProjectInvitationCommand]
+   (s/optional-key :project/revoke-invitations) [ProjectInvitationRevoke]
+   (s/optional-key :project/elevate-to-owner) [schema-base/User]
+   (s/optional-key :project/demote-to-collaborator) [schema-base/User]})
 
 (s/defschema EditProjectResponse
   {:success s/Bool
-   :project/id s/Int
+   (s/optional-key :project/id) s/Int
    (s/optional-key :errors) [s/Any]})
 
 (s/defschema LinkProjectResponse
@@ -114,7 +121,16 @@
       :roles #{:owner :project-owner}
       :body [command EditProjectCommand]
       :return EditProjectResponse
-      (ok (projects/edit-project! command)))
+      (let [optional-keys [:project/updated-data :project/new-applications :project/new-invitations
+                           :project/revoke-invitations :project/elevate-to-owner :project/demote-to-collaborator]
+            optional-values (map command optional-keys)]
+        (if (every? #(or (nil? %)
+                         (and (map? %) (empty? %))
+                         (and (sequential? %) (empty? %)))
+                    optional-values)
+          (ok {:success false
+               :errors [{:type :t.actions.errors/provided-empty-payload}]})
+          (ok (projects/edit-project! command)))))
 
     (PUT "/archived" []
       :summary "Archive or unarchive the project"
@@ -148,6 +164,6 @@
       :roles #{:logged-in}
       :path-params [project-id :- (describe s/Int "project id")]
       :return schema-base-cadre/ProjectFull
-      (if-let [org (projects/get-project (getx-user-id) {:project/id project-id})]
-        (ok org)
+      (if-let [project (projects/get-project (getx-user-id) {:project/id project-id})]
+        (ok project)
         (not-found-json-response)))))

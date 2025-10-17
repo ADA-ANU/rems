@@ -105,7 +105,7 @@
   (if-let [invitation (first (invitation/get-invitations {:token token}))]
     (if-let [invite-email (get invitation :invitation/email)]
       (if (.equalsIgnoreCase invite-email useremail)
-        (if (and (nil? (get invitation :invitation/declined)) (nil? (get invitation :invitation/revoked)) (nil? (get invitation :invitation/accepted)))
+        (if (and (nil? (get invitation :invitation/declined)) (nil? (get invitation :invitation/revoked)) (nil? (get invitation :invitation/left)) (nil? (get invitation :invitation/accepted)))
           (if-let [project-id (get-in invitation [:invitation/project :project/id])]
             (let [project (projects/get-project-by-id-raw project-id)
                   id (:id invitation)]
@@ -124,9 +124,10 @@
     {:success false
      :errors [{:key :t.decline-invitation.errors/invalid-token :token token}]}))
 
+;; todo - unlink the project to any applications that the revoked user was the main applicant for.
 (defn revoke-invitation! [{:keys [userid id]}]
   (if-let [invitation (first (invitation/get-invitations {:ids [id]}))]
-    (if (and (nil? (get invitation :invitation/declined)) (nil? (get invitation :invitation/revoked)))
+    (if (and (nil? (get invitation :invitation/declined)) (nil? (get invitation :invitation/revoked)) (nil? (get invitation :invitation/left)))
       (if-let [project-id (get-in invitation [:invitation/project :project/id])]
         (let [project (projects/get-project-by-id-raw project-id)]
           (do
@@ -168,7 +169,7 @@
               {:success true
                :invitation/workflow {:workflow/id (:id workflow)}})))
         (if-let [project-id (get-in invitation [:invitation/project :project/id])]
-          (if (and (nil? (get invitation :invitation/declined)) (nil? (get invitation :invitation/revoked)) (nil? (get invitation :invitation/accepted)))
+          (if (and (nil? (get invitation :invitation/declined)) (nil? (get invitation :invitation/revoked)) (nil? (get invitation :invitation/left)) (nil? (get invitation :invitation/accepted)))
             (let [cmd (projects/get-project-by-id-raw project-id)]
               (do
                 (invitation/accept-invitation! userid token)

@@ -46,7 +46,7 @@
 
 (defn check-allowed-this-project! [full-project]
   (assert (:project/id full-project) {:error "invalid project"
-                                 :project full-project})
+                                      :project full-project})
   (when-not (may-edit-project? full-project)
     (throw-forbidden (str "no access to project " (pr-str (:project/id full-project))))))
 
