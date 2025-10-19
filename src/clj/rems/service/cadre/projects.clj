@@ -94,8 +94,8 @@
         users-to-filter (set (map :userid filter-sequence))
         filtered-users (if (not-empty users-to-filter)
                          (filter (fn [user]
-                            (contains? users-to-filter (:userid user)))
-                          user-sequence)
+                                   (not (contains? users-to-filter (:userid user))))
+                                 user-sequence)
                          user-sequence)
         final-user-sequence (concat filtered-users concat-sequence)]
     (update-project-data project {sequence-keyword final-user-sequence})))
@@ -136,9 +136,9 @@
 (defn revoke-invitations! [invites-pending-removal user-id]
   (doseq [invite invites-pending-removal]
     (invitation/revoke-invitation!
-      (assoc invite
-             :userid user-id
-             :id (:invitation/id invite)))))
+     (assoc invite
+            :userid user-id
+            :id (:invitation/id invite)))))
 
 (defn link-project! [cmd]
   (let [proj-id (:project/id cmd)
@@ -208,9 +208,6 @@
                                                                            (update-project-data (get cmd :project/updated-data))
                                                                            (update-project-user-sequence :project/owners demote-owners elevate-collaborators)
                                                                            (update-project-user-sequence :project/collaborators elevate-collaborators demote-owners))))
-              ;; todo - elevate
-              ;; todo - demote
-              ;; ? todo - update with new keys
               {:success true
                :project/id proj-id})
             {:success false
@@ -221,14 +218,6 @@
          :errors [{:type :t.actions.errors/revoked-invitations-not-pending-for-project}]})
       {:success false
        :errors [{:type :t.actions.errors/duplicate-email-addresses}]})))
-    ;; (rems.service.cadre.util/check-allowed-project! cmd)
-    ;; ;; Check that the users who are being elevated & demoted are current members
-    ;; (projects/update-project! id (fn [project] (->> (dissoc cmd :project/id)
-    ;;                                                 (merge project))))
-    ;; {:success true
-    ;;  :project/id id}))
-
-
 
 (defn set-project-enabled! [{:keys [enabled] :as cmd}]
   (let [id (:project/id cmd)]
