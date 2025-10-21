@@ -202,6 +202,8 @@
         (if (allowed-to-change-role? demote-owners (get project :project/owners []) existing-invites)
           (if (allowed-to-change-role? elevate-collaborators (get project :project/collaborators []) existing-invites)
             (do
+              (doseq [application new-applications]
+                (link-project! {:application/id (:id application) :project/id proj-id}))
               (revoke-invitations! invites-pending-removal user-id)
               (create-invitations! new-invites proj-id user-id)
               (projects/update-project! proj-id (fn [original-project] (-> original-project
