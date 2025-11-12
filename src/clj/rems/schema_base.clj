@@ -155,3 +155,13 @@
    (s/optional-key :invitation/workflow) {:workflow/id s/Int}
    (s/optional-key :invitation/project) InvitationProject
    (s/optional-key :invitation/role) s/Str})
+
+(s/defschema CreateInvitationCommand
+  {:name s/Str
+   :email s/Str
+   (s/optional-key :workflow-id) s/Int
+   (s/optional-key :project-id) s/Int
+   (s/optional-key :role) s/Str})
+
+(s/defschema ApplicationIds
+  {:id s/Int})
