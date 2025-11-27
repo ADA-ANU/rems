@@ -577,12 +577,12 @@
 (defmethod command-handler :application.command/invite-member
   [cmd application {:keys [secure-token]}]
   ;; Extend this to include project information
-  
+
   ;; (count (get application :application/projects []))>0
   ;; (do
   ;;   (log/warn (count (get application :application/projects [])))))
     ;; {:errors [{:type :must-not-be-empty :key key}]}))
-  
+
   (ok {:event/type :application.event/member-invited
        :application/member (:member cmd)
        :invitation/token (secure-token)}))

@@ -167,8 +167,8 @@
       (if-let [project (projects/get-project (getx-user-id) {:project/id project-id})]
         (ok project)
         (not-found-json-response)))
-    
-    (POST "/parse-users" [] 
+
+    (POST "/parse-users" []
       :summary "Parse a csv of users into json for reference"
       :roles #{:logged-in}
       :multipart-params [file :- schema/FileUpload]

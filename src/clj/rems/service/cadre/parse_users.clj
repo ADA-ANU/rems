@@ -31,8 +31,7 @@
   (let [normalized (normalize-header header)]
     (or (= normalized [:first-name :last-name :email])
         (= normalized [:first-name :email])
-        (= normalized [:name :email]))
-    ))
+        (= normalized [:name :email]))))
 
 (defn parse-csv [input-stream]
   (with-open [reader (io/reader input-stream)]
