@@ -1,10 +1,10 @@
 (ns rems.cadre-api.projects
   (:require [compojure.api.sweet :refer :all]
-            [clojure.tools.logging :as log]
             [rems.api.schema :as schema]
             [rems.api.util :refer [not-found-json-response]] ; required for route :roles
             [rems.schema-base :as schema-base]
             [rems.schema-base-cadre :as schema-base-cadre]
+            [rems.service.cadre.parse-users :refer [upload-handler]]
             [rems.service.cadre.projects :as projects]
             [rems.util :refer [getx-user-id]]
             [ring.util.http-response :refer :all]
@@ -166,4 +166,11 @@
       :return schema-base-cadre/ProjectFull
       (if-let [project (projects/get-project (getx-user-id) {:project/id project-id})]
         (ok project)
-        (not-found-json-response)))))
+        (not-found-json-response)))
+    
+    (POST "/parse-users" [] 
+      :summary "Parse a csv of users into json for reference"
+      :roles #{:logged-in}
+      :multipart-params [file :- schema/FileUpload]
+      :return s/Any
+      (ok (upload-handler file)))))

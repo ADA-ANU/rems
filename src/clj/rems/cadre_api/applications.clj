@@ -303,7 +303,7 @@
       :body [request commands/ChangeResourcesCommand]
       :return s/Any
       ;; Remove this application to allow including more resources in addition to the current resource(s)
-      (let [applications (applications/get-my-applications (getx-user-id))
+      (let [applications (applications/get-my-applications (getx-user-id)) ;; TODO - this should actually refer to the main-applicant
             existing-applications (remove-first-match #(= (:application-id request) (:application/id %))
                                                       applications)]
         (if (some (partial applications/duplicate-application? (:catalogue-item-ids request)) existing-applications)
