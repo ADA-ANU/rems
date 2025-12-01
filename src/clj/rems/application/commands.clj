@@ -3,7 +3,6 @@
             [clojure.set]
             [medley.core :refer [assoc-some distinct-by find-first update-existing]]
             [rems.common.application-util :as application-util]
-            [clojure.tools.logging :as log]
             [rems.common.form :as form]
             [rems.form-validation :as form-validation]
             [rems.permissions :as permissions]
@@ -575,14 +574,7 @@
            :application/member (:member cmd)})))
 
 (defmethod command-handler :application.command/invite-member
-  [cmd application {:keys [secure-token]}]
-  ;; Extend this to include project information
-
-  ;; (count (get application :application/projects []))>0
-  ;; (do
-  ;;   (log/warn (count (get application :application/projects [])))))
-    ;; {:errors [{:type :must-not-be-empty :key key}]}))
-
+  [cmd _application {:keys [secure-token]}]
   (ok {:event/type :application.event/member-invited
        :application/member (:member cmd)
        :invitation/token (secure-token)}))
