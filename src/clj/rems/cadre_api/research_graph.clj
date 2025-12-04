@@ -40,4 +40,7 @@
           (not-found-json-response)
           (if (nil? (get user-details "orcid"))
             (not-found-json-response)
-            (ok (rg/orcid-details-from-research-graph (get user-details "orcid")))))))))
+            (let [research-graph-details (rg/orcid-details-from-research-graph (get user-details "orcid"))]
+              (if (nil? research-graph-details)
+                (not-found-json-response)
+                (ok (get user-details "orcid"))))))))))

@@ -15,4 +15,4 @@
         (json/parse-string (:body response))
         (throw (ex-info "Non-200 status code returned: " {:response response}))))
     (catch Exception e
-      (log/error "Error invoking Research Graph API - " (.getMessage e)))))
+      (log/error "Error invoking Research Graph API - " orcid "-" (.getMessage e)))))
