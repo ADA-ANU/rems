@@ -5,9 +5,10 @@
             [rems.api.util :refer [not-found-json-response]]
             [rems.config :refer [env]]
             [rems.service.cadre.util :as utils]
-            [rems.service.cadre.research-graph :as rg]
+            [rems.ext.research-graph :as rg]
             [rems.service.comanage :as comanage]
             [rems.util :refer [getx]]
+            [ring.util.http-response :refer :all]
             [schema.core :as s]))
 
 ;;Filter specified nodes, to fetch the details associated to the user
