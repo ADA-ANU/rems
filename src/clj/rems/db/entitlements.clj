@@ -43,10 +43,10 @@
                (if (some #{org-id} allowed-orgs)
                  (comanage/entitlement-push action entitlement config)
                  (log/infof "Not pushing entitlement as not owned by %s" allowed-orgs))))
-             (catch Exception e
-               (log/error "POST failed" e)
-               (or (ex-data e)
-                   {:status "exception"}))))
+           (catch Exception e
+             (log/error "POST failed" e)
+             (or (ex-data e)
+                 {:status "exception"}))))
 
     :ega
     (when config
