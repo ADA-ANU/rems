@@ -39,7 +39,7 @@
                               resource/get-resource
                               :organization
                               :organization/id)
-                   allowed-orgs (:allowedorgs config)]
+                   allowed-orgs (:allowedorgs env)]
                (if (some #{org-id} allowed-orgs)
                  (comanage/entitlement-push action entitlement config)
                  (log/infof "Not pushing entitlement as not owned by %s" allowed-orgs))))
