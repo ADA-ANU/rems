@@ -34,13 +34,19 @@
     (when config
       (try (doseq [entitlement entitlements] ; technically these could be grouped per user & api-key
              (log/infof "Resource: %s from Organisation: %s" (:resourceid entitlement) (:organization/id (:organization (resource/get-resource (:resourceid entitlement)))))
-             (if (= "ADA" (:organization/id (:organization (resource/get-resource (:resourceid entitlement)))))
-               (comanage/entitlement-push action entitlement config)
-               (log/infof "Not pushing entitlement as not owned by ADA")))
-           (catch Exception e
-             (log/error "POST failed" e)
-             (or (ex-data e)
-                 {:status "exception"}))))
+             (let [org-id (-> entitlement
+                              :resourceid
+                              resource/get-resource
+                              :organization
+                              :organization/id)
+                   allowed-orgs (:allowedorgs config)]
+               (if (some #{org-id} allowed-orgs)
+                 (comanage/entitlement-push action entitlement config)
+                 (log/infof "Not pushing entitlement as not owned by %s" allowed-orgs)))
+             (catch Exception e
+               (log/error "POST failed" e)
+               (or (ex-data e)
+                   {:status "exception"})))))
 
     :ega
     (when config
