@@ -91,6 +91,8 @@
    :reviewer #{:see-everything
                :application.command/redact-attachments
                :application.command/remark
+               :application.command/request-review
+               :application.command/request-decision
                :application.command/review}
    :past-reviewer #{:see-everything
                     :application.command/redact-attachments
