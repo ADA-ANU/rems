@@ -101,6 +101,8 @@
               :application.command/redact-attachments
               :application.command/remark
               :application.command/decide
+              :application.command/request-review
+              :application.command/request-decision
               :application.command/approve
               :application.command/reject}
    :past-decider #{:see-everything
