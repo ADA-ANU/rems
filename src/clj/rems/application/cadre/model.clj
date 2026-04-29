@@ -364,6 +364,8 @@
     {:permission :application.command/uninvite-member}
     {:role :decider :permission :application.command/approve}
     {:role :decider :permission :application.command/reject}
+    {:role :decider :permission :application.command/request-decision}
+    {:role :decider :permission :application.command/request-review}
     {:role :expirer :permission :application.command/delete}
     {:role :expirer :permission :application.command/send-expiration-notifications}]))
 
