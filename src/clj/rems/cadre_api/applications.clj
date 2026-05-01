@@ -235,7 +235,7 @@
 
     (GET "/reviewers" []
       :summary "Available reviewers"
-      :roles #{:handler}
+      :roles #{:handler :reviewer :decider}
       :return Reviewers
       (ok (users/get-reviewers)))
 
@@ -257,7 +257,7 @@
 
     (GET "/deciders" []
       :summary "Available deciders"
-      :roles #{:handler}
+      :roles #{:handler :reviewer :decider}
       :return Deciders
       (ok (users/get-deciders)))
 
