@@ -30,7 +30,7 @@
    (s/optional-key :attachments) [CommentAttachment]})
 
 (defn- comment-application? [application]
-  (some #{:applicant :member :handler :decider} (:application/roles application)))
+  (some #{:applicant :member :handler :decider :reviewer} (:application/roles application)))
 
 (defn get-the-applications [user-id]
   (->> (applications/get-all-applications user-id)
