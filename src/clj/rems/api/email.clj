@@ -13,12 +13,19 @@
       :roles #{:api-key}
       (email/generate-handler-reminder-emails!)
       (email/generate-reviewer-reminder-emails!)
+      (email/generate-comment-reminder-emails!)
       (ok "OK"))
 
     (POST "/send-handler-reminder" []
       :summary "Send reminders about open applications to all handlers."
       :roles #{:api-key}
       (email/generate-handler-reminder-emails!)
+      (ok "OK"))
+
+    (POST "/send-comment-reminder" []
+      :summary "Send reminders about unread comments to all users."
+      :roles #{:api-key}
+      (email/generate-comment-reminder-emails!)
       (ok "OK"))
 
     (POST "/send-reviewer-reminder" []

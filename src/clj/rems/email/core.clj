@@ -5,15 +5,17 @@
             [clojure.tools.logging :as log]
             [mount.core :as mount]
             [postal.core :as postal]
+            [rems.db.applications :as applications]
+            [rems.db.cadredb.comments :as comments]
+            [rems.db.core :as db]
+            [rems.db.outbox :as outbox]
+            [rems.db.users :as users]
+            [rems.db.user-settings :as user-settings]
             [rems.service.todos :as todos]
             [rems.service.workflow :as workflow]
             [rems.application.model]
             [rems.config :refer [env]]
-            [rems.db.applications :as applications]
             [rems.db.invitation :as invitation]
-            [rems.db.outbox :as outbox]
-            [rems.db.user-settings :as user-settings]
-            [rems.db.users :as users]
             [rems.db.cadredb.projects :as projects]
             [rems.email.template :as template]
             [rems.scheduler :as scheduler])
@@ -43,6 +45,21 @@
                               (template/handler-reminder-email lang handler apps))))
                      (remove nil?))]
     (enqueue-email! email)))
+
+(defn generate-comment-reminder-emails! []
+  (when-let [unread-comments (db/get-unread-addressed-comments {})]
+    (let [by-recipient (group-by :addressed_to unread-comments)]
+      (doseq [email (->> by-recipient
+                         (map (fn [[recipient-id comments]]
+                                (let [lang (:language (user-settings/get-user-settings recipient-id))
+                                      recipient (users/get-user recipient-id)
+                                      apps (->> comments
+                                                (map :appid)
+                                                distinct
+                                                (map applications/get-application))]
+                                  (template/comment-reminder-email lang recipient comments apps))))
+                         (remove nil?))]
+        (enqueue-email! email)))))
 
 (defn generate-reviewer-reminder-emails! []
   (doseq [email (->> (applications/get-users-with-role :reviewer)

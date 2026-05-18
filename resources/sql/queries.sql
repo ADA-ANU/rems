@@ -1204,6 +1204,12 @@ WHERE 1 = 1
 /*~ ) ~*/
 ORDER BY id ASC;
 
+-- :name get-unread-addressed-comments :? :*
+SELECT id, appId as appid, created_by, addressed_to, created_at, read_at, commenttext, commentattrs::TEXT
+FROM comments
+WHERE read_at IS NULL
+  AND addressed_to IS NOT NULL;
+
 -- :name get-canned-responses :? :*
 SELECT r.id, r.orgId as orgid, r.response, r.title, r.created_at, r.updated_at, r.enabled,
  (SELECT json_agg(x.tag)

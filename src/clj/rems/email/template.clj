@@ -364,6 +364,23 @@
                 (text :t.email/regards)
                 (text :t.email/footer))}))))
 
+(defn comment-reminder-email [lang recipient unread-comments apps]
+  (with-language lang
+    (fn []
+      (when (not (empty? unread-comments))
+        {:to-user (:userid recipient)
+         :subject (text :t.email.comment-reminder/subject)
+         :body (text-format :t.email.comment-reminder/message
+                            (application-util/get-member-name recipient)
+                            (->> apps
+                                 (map (fn [app]
+                                        (text-format :t.email.comment-reminder/application
+                                                     (format-application-for-email app)
+                                                     (application-util/get-applicant-name app))))
+                                 (str/join "\n"))
+                            (str (:public-url env) "actions"))
+         :comment-reminder-apps apps}))))
+
 (defn project-decline-email [lang invitation project]
   (with-language lang
     (fn []
