@@ -26,6 +26,28 @@
                                         :Id person-id}})
                             ts-and-cs)})
 
+(defn- entitlement->permanentgroupupdate
+  "Converts an entitlement to a CoManage group request.
+
+  `entitlement` – entitlement to convert"
+  [entitlement config groupsuffix]
+  {:RequestType "CoGroupMembers"
+   :Version "1.0"
+   :CoGroupMembers [{:Version "1.0"
+                     :CoGroupId (comanage/get-group-id (str (:resid entitlement) groupsuffix))
+                     :Person {:Type "CO"
+                              :Id (comanage/get-person-id (:userid entitlement))}
+                     :Member true
+                     :Owner false}]})
+
+(defn- entitlement->permanentgroup
+  "Determines if a permanent group exists and if so, assign to the CoManage group"
+  [entitlement config]
+  (try
+    (let [groupsuffix (getx env :comanage-permanent-group-suffix)]
+      (comanage/post-create-or-update-permissions (entitlement->permanentgroupupdate entitlement config groupsuffix)))
+    (catch Throwable t
+      (log/info "No comanage-permanent-group-suffix defined so not adding to a permanent group"))))
 
 (defn- entitlement->update
   "Converts an entitlement to a CoManage group request.
@@ -47,7 +69,8 @@
     (if (seq config)
       (let [response (case action
                        :add
-                       (comanage/post-create-or-update-permissions (entitlement->update entitlement config))
+                       (do (entitlement->permanentgroup entitlement config)
+                           (comanage/post-create-or-update-permissions (entitlement->update entitlement config)))
                        :remove
                        (comanage/delete-permissions (comanage/get-group-member-id (comanage/get-group-id (:resid entitlement)) (comanage/get-person-id (:userid entitlement)))))]
         response)
