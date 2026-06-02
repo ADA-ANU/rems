@@ -859,7 +859,11 @@
     (assoc :application/todo :waiting-for-your-review)
 
     (contains? (::latest-decision-request-by-user application) userid)
-    (assoc :application/todo :waiting-for-your-decision)))
+    (assoc :application/todo :waiting-for-your-decision)
+
+    (or (= (:application/state application) :application.state/approved)
+        (= (:application/state application) :application.state/closed))
+    (assoc :application/todo nil)))
 
 (defn- visible-attachment-ids [application]
   (->> application
