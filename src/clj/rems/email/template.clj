@@ -274,6 +274,12 @@
                  (text :t.email/footer))})))))
 
 ;; TODO member-joined?
+(defmethod event-to-emails :application.event/member-joined [event application]
+  (emails-to-recipients (application-util/applicant-and-members application)
+                        event application
+                        :t.email.member-joined/subject-to-applicant
+                        :t.email.member-joined/message-to-applicant))
+
 
 (defn handler-reminder-email [lang handler applications]
   (with-language lang
