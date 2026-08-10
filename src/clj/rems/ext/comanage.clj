@@ -115,7 +115,10 @@
       (if (= 200 (:status response))
         (let [parsed-json (:body response)
               groups (:CoGroups parsed-json)
-              resource-groups (filterv #(str/includes? (:Name %) resourceid) groups)
+              resource-groups (filterv #(str/includes?
+                                         (str/lower-case (:Name %))
+                                         (str/lower-case resourceid))
+                                       groups)
               first-resource-group (first resource-groups)
               id (:Id first-resource-group)]
           id)
