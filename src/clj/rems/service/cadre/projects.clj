@@ -156,7 +156,7 @@
     (applications/get-application-for-user (getx-user-id) app-id) ;; throws forbidden, application membership
     (check-project-membership! cmd)
     (projects/unlink-project! app-id proj-id)
-    (nil? (projects/get-project-application app-id proj-id)
+    (if (nil? (projects/get-project-application app-id proj-id))
           {:success true}
           {:success false})))
 
