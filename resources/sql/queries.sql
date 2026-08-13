@@ -1530,7 +1530,7 @@ RETURNING id;
 DELETE FROM project_application
 WHERE appid = :application;
 
--- :name unlink-project-from-application! :!
+-- :name unlink-project-from-application! :<!
 DELETE FROM project_application
 WHERE appid = :appid AND projectid = :projectid
 RETURNING id;
