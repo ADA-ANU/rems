@@ -1,0 +1,1 @@
+ALTER TABLE project_application DROP CONSTRAINT project_application_uniq;
