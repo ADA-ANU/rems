@@ -61,7 +61,7 @@
 
 (s/defschema LinkProjectResponse
   {:success s/Bool
-   :project-application/id s/Int
+   (s/optionalkey :project-application/id) s/Int
    (s/optional-key :errors) [s/Any]})
 
 (s/defschema LinkProjectCommand
