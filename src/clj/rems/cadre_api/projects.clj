@@ -115,6 +115,13 @@
       :return LinkProjectResponse
       (ok (projects/link-project! command)))
 
+    (POST "/unlink-application" []
+      :summary "Unlink a project from an application (DSA/DSR)"
+      :roles #{:owner :logged-in}
+      :body [command LinkProjectCommand]
+      :return LinkProjectResponse
+      (ok (projects/unlink-project! command)))
+
     (PUT "/edit" []
       :summary "Edit project. Project owners cannot change the owners."
       ;; explicit roles seem clearer here instead of +admin-write-roles+

@@ -150,6 +150,16 @@
        :project-application/id apid}
       {:success false})))
 
+(defn unlink-project! [cmd]
+  (let [proj-id (:project/id cmd)
+        app-id (:application/id cmd)]
+    (applications/get-application-for-user (getx-user-id) app-id) ;; throws forbidden, application membership
+    (check-project-membership! cmd)
+    (if-let [apid (projects/unlink-project! app-id proj-id)]
+      {:success true
+       :project-application/id apid}
+      {:success false})))
+
 (defn- project-filters [userid owner collaborator projects]
   (->> projects
        (apply-user-permissions userid)

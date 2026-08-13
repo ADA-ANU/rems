@@ -1522,11 +1522,18 @@ INSERT INTO project_application
 (appid, projectid)
 VALUES
 (:appid, :projectid)
+ON CONFLICT (appid, projectid)
+DO NOTHING
 RETURNING id;
 
 -- :name unlink-project-application! :!
 DELETE FROM project_application
 WHERE appid = :application;
+
+-- :name unlink-project-from-application! :!
+DELETE FROM project_application
+WHERE appid = :application AND projectid = :projectid
+RETURNING id;
 
 -- :name get-dashboard-dsrs-tabular-data :? :*
 SELECT t.eventdata ->> 'application/id' as reqid,

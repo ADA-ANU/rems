@@ -33,6 +33,10 @@
   (:id (db/link-project-application! {:appid appid
                                       :projectid projectid})))
 
+(defn unlink-project! [appid projectid]
+  (:id (db/unlink-project-from-application! {:appid appid
+                                             :projectid projectid})))
+
 (defn add-project! [userid proj]
   (validate-project proj)
   (:id (db/add-project! {:userid userid
