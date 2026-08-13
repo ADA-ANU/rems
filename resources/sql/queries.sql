@@ -1532,7 +1532,7 @@ WHERE appid = :application;
 
 -- :name unlink-project-from-application! :!
 DELETE FROM project_application
-WHERE appid = :application AND projectid = :projectid
+WHERE appid = :appid AND projectid = :projectid
 RETURNING id;
 
 -- :name get-dashboard-dsrs-tabular-data :? :*
