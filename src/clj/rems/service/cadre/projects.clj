@@ -157,8 +157,8 @@
     (check-project-membership! cmd)
     (projects/unlink-project! app-id proj-id)
     (if (nil? (projects/get-project-application app-id proj-id))
-          {:success true}
-          {:success false})))
+      {:success true}
+      {:success false})))
 
 (defn- project-filters [userid owner collaborator projects]
   (->> projects
