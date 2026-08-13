@@ -154,6 +154,8 @@
   (let [proj-id (:project/id cmd)
         app-id (:application/id cmd)]
     (applications/get-application-for-user (getx-user-id) app-id) ;; throws forbidden, application membership
+    (log/info "attemtping to unlink" app-id "from" proj-id)
+    (log/info (projects/unlink-project! app-id proj-id))
     (check-project-membership! cmd)
     (if-let [apid (projects/unlink-project! app-id proj-id)]
       {:success true
