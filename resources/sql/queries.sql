@@ -1530,10 +1530,14 @@ RETURNING id;
 DELETE FROM project_application
 WHERE appid = :application;
 
--- :name unlink-project-from-application! :<!
+-- :name unlink-project-from-application! :!
 DELETE FROM project_application
-WHERE appid = :appid AND projectid = :projectid
-RETURNING id;
+WHERE appid = :appid AND projectid = :projectid;
+
+-- :name get-project-application! :? :*
+SELECT id
+FROM project_application
+WHERE appid = :appid AND projectid = :projectid;
 
 -- :name get-dashboard-dsrs-tabular-data :? :*
 SELECT t.eventdata ->> 'application/id' as reqid,

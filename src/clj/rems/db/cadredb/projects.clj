@@ -33,6 +33,10 @@
   (:id (db/link-project-application! {:appid appid
                                       :projectid projectid})))
 
+(defn get-project-application [appid projectid]
+  (:id (db/get-project-application! {:appid appid
+                                     :projectid projectid})))
+
 (defn unlink-project! [appid projectid]
   (:id (db/unlink-project-from-application! {:appid appid
                                              :projectid projectid})))
