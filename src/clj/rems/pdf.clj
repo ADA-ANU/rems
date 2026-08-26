@@ -3,6 +3,7 @@
   (:require [clj-pdf.core :refer :all]
             [clj-time.core :as time]
             [clojure.string :as str]
+            [cuerdas.core :as strc]
             [rems.common.application-util :as application-util]
             [rems.common.form :as form]
             [rems.common.util :refer [build-index]]
@@ -205,7 +206,7 @@
              (when-some [comment (not-empty (:application/comment event))]
                (str "\n" (text-format :t.label/default
                                       (text :t.form/comment)
-                                      comment)))
+                                      (strc/strip-tags comment))))
              (when-some [attachments (seq (:event/attachments event))]
                (str "\n" (text-format :t.label/default
                                       (text :t.form/attachments)
