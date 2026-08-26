@@ -71,7 +71,7 @@
   (attachments/check-allowed-attachment (:filename file))
   (let [application (applications/get-application-for-user user-id application-id)]
     (when-not (some (set/union commands/commands-with-comments
-                               #{:application.command/save-draft})
+                               #{:application.command/accept-licenses})
                     (:application/permissions application))
       (throw-forbidden))
     (attachments/save-attachment! file user-id application-id)))
