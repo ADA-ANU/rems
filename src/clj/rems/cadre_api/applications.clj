@@ -72,7 +72,8 @@
 (s/defschema ApplicationOverviewCadre
   (assoc schema/ApplicationOverview
          :application/applicant schema-base-cadre/UserWithAttributesCadre
-         :application/projects [schema-base-cadre/ProjectApplication]))
+         :application/projects [schema-base-cadre/ProjectApplication]
+         (s/optional-key :application/reviewers) [schema-base-cadre/UserWithAttributesCadre]))
 
 (s/defschema ApplicationCadre
   (assoc schema/Application

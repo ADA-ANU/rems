@@ -638,6 +638,15 @@
 (defn- enrich-blacklist [application blacklisted?]
   (assoc application :application/blacklist (get-blacklist application blacklisted?)))
 
+(defn- enrich-reviewers [application get-user]
+  (->> (:application/events application)
+       (filter #(= :application.event/review-requested (:event/type %)))
+       (mapcat #(->> (:application/reviewers %) (map get-user)))
+       distinct
+       (sort-by :userid)
+       (vec)
+       (assoc application :application/reviewers)))
+
 (defn- enrich-user-attributes [application get-user]
   (letfn [(enrich-members [members]
             (->> members
@@ -723,6 +732,7 @@
       (enrich-workflow-licenses get-workflow)
       (update :application/licenses enrich-licenses get-license)
       (update :application/events (partial mapv #(enrich-event % get-user get-catalogue-item)))
+      (enrich-reviewers get-user)
       (assoc :application/applicant (get-user (get-in application [:application/applicant :userid])))
       (assoc :application/attachments (get-attachments-for-application (getx application :application/id)))
       (assoc :application/projects (get-projects (getx application :application/id)))
