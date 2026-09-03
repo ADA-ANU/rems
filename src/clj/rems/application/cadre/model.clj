@@ -641,9 +641,7 @@
 (defn- enrich-reviewers [application get-user]
   (->> (:application/events application)
        (filter #(= :application.event/review-requested (:event/type %)))
-       (mapcat #(->> (:application/reviewers %) (map get-user)))
-       distinct
-       (vec)
+       (mapv get-user (:application/reviewers %))
        (assoc application :application/reviewers)))
 
 (defn- enrich-user-attributes [application get-user]
