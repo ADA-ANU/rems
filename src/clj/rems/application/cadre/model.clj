@@ -741,8 +741,7 @@
 
 ;;;; Authorization
 
-(def ^:private sensitive-events #{:application.event/review-requested
-                                  :application.event/reviewed
+(def ^:private sensitive-events #{:application.event/reviewed
                                   :application.event/reviewer-invited
                                   :application.event/reviewer-joined
                                   :application.event/decided
@@ -797,8 +796,7 @@
       ;; deciders and reviewers occur only in events removed by
       ;; hide-sensitive-events, but keeping the code here for
       ;; completeness
-      (update-existing :application/deciders (partial mapv censor-user))
-      (update-existing :application/reviewers (partial mapv censor-user))))
+      (update-existing :application/deciders (partial mapv censor-user))))
 
 (defn- hide-extra-user-attributes [application]
   ;; To catch all the places that might have user attributes, grep this file for uses of the get-user injection.
