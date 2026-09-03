@@ -643,7 +643,6 @@
        (filter #(= :application.event/review-requested (:event/type %)))
        (mapcat #(->> (:application/reviewers %) (map get-user)))
        distinct
-       (sort-by :userid)
        (vec)
        (assoc application :application/reviewers)))
 
