@@ -43,7 +43,6 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-            - node_modules
           key: *cache-key
       # persist shadow-cljs build for browser tests etc
       # - persist_to_workspace:
