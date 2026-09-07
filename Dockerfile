@@ -1,6 +1,6 @@
 # For documentation see docs/installing-upgrading.md
 
-FROM --platform=linux/amd64 eclipse-temurin:17-jre-alpine
+FROM --platform=linux/amd64 eclipse-temurin:25-jre-alpine
 # FROM eclipse-temurin:17-jre-alpine
 
 RUN apk add --no-cache bash
