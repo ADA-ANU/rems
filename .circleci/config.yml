@@ -77,15 +77,6 @@ jobs:
           key: *cache-key
       - run: lein cljfmt check
 
-  classpath:
-    executor: clojure
-    resource_class: ada-anu/cicdmicrok8s
-    steps:
-      - checkout
-      - restore_cache:
-          key: *cache-key
-      - run: lein classpath
-
   integration-test:
     executor: db
     resource_class: ada-anu/cicdmicrok8s
@@ -185,10 +176,6 @@ workflows:
             tags:
               only: /.*/
       - cljfmt:
-          filters:
-            tags:
-              only: /.*/
-      - classpath:
           filters:
             tags:
               only: /.*/
