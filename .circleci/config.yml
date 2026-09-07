@@ -35,9 +35,9 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - &cache-key v5-dependencies-{{ checksum "project.clj" }}
+            - &cache-key v6-dependencies-{{ checksum "project.clj" }}
             # fallback to using the latest cache if no exact match is found
-            - v5-dependencies-
+            - v6-dependencies-
       # build shadow-cljs already so that all maven deps get cached
       - run: lein do deps
       - save_cache:
