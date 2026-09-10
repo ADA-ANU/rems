@@ -77,7 +77,8 @@
 
 (s/defschema ApplicationCadre
   (assoc schema/Application
-         :application/projects [schema-base-cadre/ProjectApplication]))
+         :application/projects [schema-base-cadre/ProjectApplication]
+         (s/optional-key :application/reviewers) [schema-base-cadre/UserWithAttributesCadre]))
 
 (s/defschema AcceptInvitationResult
   (assoc schema/SuccessResponse
