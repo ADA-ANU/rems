@@ -17,7 +17,7 @@
                  [com.rpl/specter "1.1.6"]
                  [com.taoensso/tempura "1.5.4"]
                  [compojure "1.7.2"]
-                 [conman "0.9.6"]
+                 ^{:antq/exclude ["0.8.5" "0.8.x" "0.9"]} [conman "0.8.4"]
                  [cprop "0.1.21"]
                  [funcool/cuerdas "2026.415"]
                  [garden "1.3.10"]
@@ -26,7 +26,7 @@
                  [javax.xml.bind/jaxb-api "2.4.0-b180830.0359"]
                  [lambdaisland/deep-diff "0.0-47"]
                  [luminus-jetty "0.2.3"]
-                 [luminus-migrations "0.7.5"]
+                 ^{:antq/exclude ["0.7.3" "0.7.x"]} [luminus-migrations "0.7.2"]
                  [luminus-nrepl "0.1.7"]
                  [luminus/ring-ttl-session "0.3.3"]
                  [macroz/hiccup-find "0.6.1"]
@@ -38,8 +38,8 @@
                  [metosin/ring-swagger-ui "5.32.11"]
                  [mount "0.1.24"]
                  [ns-tracker "1.0.0"]
-                 [org.apache.lucene/lucene-core "10.5.1"]
-                 [org.apache.lucene/lucene-queryparser "10.5.1"]
+                ^{:antq/exclude "10"} [org.apache.lucene/lucene-core "9.12.3"] ; Next major release 10.4.x available but multiple tests throw a java.lang.IllegalArgumentException: No matching method doc found taking 1 args for class org.apache.lucene.search.IndexSearcher
+                 ^{:antq/exclude "10"} [org.apache.lucene/lucene-queryparser "9.12.3"] ;... java.lang.IllegalArgumentException: No matching method doc ...
                  [org.clojure/clojure "1.12.6"]
                  [org.clojure/core.cache "1.2.263"]
                  [org.clojure/core.memoize "1.2.281"]
