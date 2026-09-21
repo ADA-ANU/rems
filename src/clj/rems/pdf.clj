@@ -92,7 +92,7 @@
          [:paragraph field-heading-style
           (text-format :t.label/parens title ext-id)]
          [:paragraph (text description)]
-         [:paragraph field-style (text "End date") ": " enddate]
+         [:paragraph field-style "End date: " (localize-time enddate)]
          (doall
           (for [collaborator collaborators]
             (render-user application collaborator (text :t.applicant-info/member))))))))))
