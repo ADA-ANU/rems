@@ -77,6 +77,27 @@
                                         (str/capitalize (:label value)))
                     (:value value))]))]]))
 
+(defn- render-projects [application]
+  (let [projects (getx application :application/projects)]
+    (list
+     [:heading heading-style (text :t.form/projects)]
+     (doall
+      (for [project projects
+            :let [title (localized (:project/name project))
+                  ext-id (:project/id project)
+                  description (:project/description project)
+                  enddate (:project/end-date project)
+                  collaborators (:project/collaborators project)]]
+        (list
+         [:paragraph field-heading-style
+          (text-format :t.label/parens title ext-id)]
+         [:paragraph (text description)]
+         [:paragraph field-style (text "End date") ": " enddate]
+         (doall
+          (for [collaborator collaborators]
+            (render-user application collaborator (text :t.applicant-info/member))))))))))
+
+
 (defn- render-resources [application]
   (let [resources (getx application :application/resources)]
     (list
@@ -218,6 +239,7 @@
   [{}
    (render-header application)
    (render-applicants application)
+   (render-projects application)
    (when (:show-resources-section env)
      (render-resources application))
    (render-duos application)

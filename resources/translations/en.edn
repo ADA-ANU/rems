@@ -499,6 +499,7 @@
          :please-wait "Please wait"
          :previous-applications "Applicant's previous applications"
          :previous-value "Previous"
+         :projects "Projects"
          :required ""
          :resources "Resources"
          :save "Save as draft"
