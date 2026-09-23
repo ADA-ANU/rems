@@ -1,6 +1,8 @@
 (ns rems.cadre-api.cannedresponses
   (:require [compojure.api.sweet :refer :all]
             [rems.db.cadredb.cannedresponses :as cannedresponses]
+            [rems.db.applications :as applications]
+            [rems.service.cadre.placeholders :as placeholders]
             [rems.api.util :refer [not-found-json-response]] ; required for route :roles
             [rems.common.roles :refer [+admin-read-roles+ +admin-write-roles+]]
             [rems.schema-base :as schema-base]
@@ -48,6 +50,25 @@
    (s/optional-key :errors) [s/Any]})
 
 
+(defn- build-placeholder-context [appid]
+  (merge
+   {:appid appid}
+   (when appid
+     {:application (applications/get-application appid)})))
+
+(defn- apply-placeholders-to-cannedresponses
+  [result appid]
+  (if-let [responses (:cannedresponses result)]
+    (let [context (build-placeholder-context appid)]
+      (-> result
+          (update :cannedresponses
+                  (fn [responses]
+                    (mapv #(placeholders/resolve-cannedresponse-placeholders
+                            (:response %) context)
+                          responses)))))
+    result))
+
+
 (def cannedresponses-api
   (context "/cannedresponses" []
     :tags ["cannedresponses"]
@@ -61,12 +82,14 @@
                      {id :- (describe s/Int "Limit to this canned response id") nil}
                      {enabled :- (describe s/Bool "Limit to canned responses enabled or disabled") nil}]
       :return CannedResponseDataResponse
-      (ok (cannedresponses/get-cannedresponses (merge     (when (some? appid) {:appid appid})
-                                                          (when (some? enabled) {:enabled enabled})
-                                                          (when (some? orgid) {:orgid orgid})
-                                                          (when (some? tagid) {:tagid tagid})
-                                                          (when (some? id) {:id id})
-                                                          {:userid (getx-user-id)}))))
+      (ok (-> (cannedresponses/get-cannedresponses (merge
+                                                    (when (some? appid) {:appid appid})
+                                                    (when (some? enabled) {:enabled enabled})
+                                                    (when (some? orgid) {:orgid orgid})
+                                                    (when (some? tagid) {:tagid tagid})
+                                                    (when (some? id) {:id id})
+                                                    {:userid (getx-user-id)}))
+              (apply-placeholders-to-cannedresponses appid))))
 
     (GET "/tag" []
       :summary "Get canned response tags"
@@ -88,7 +111,8 @@
       :roles #{:handler :reviewer :decider}
       :query-params [{appid :- (describe s/Int "Application id") false}]
       :return CannedResponseDataResponse
-      (ok (cannedresponses/get-app-cannedresponses appid (getx-user-id))))
+      (ok (-> (cannedresponses/get-app-cannedresponses appid (getx-user-id))
+              (apply-placeholders-to-cannedresponses appid))))
 
     (GET "/mapping" []
       :summary "Get cannedresponse mapping with tags"
