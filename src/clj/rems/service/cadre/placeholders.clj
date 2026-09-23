@@ -6,11 +6,16 @@
 
 (defmulti resolve-placeholder
   "Dispatch on the placeholder key to resolve its value.
-   Extend this multimethod to add support for new placeholders.
-   Each method receives the placeholder key and context map,
-   and returns the replacement string, or nil if no replacement should be made."
+    Extend this multimethod to add support for new placeholders.
+    Each method receives the placeholder key and context map,
+    and returns the replacement string, or nil if no replacement should be made."
   (fn [placeholder-key _context]
-    placeholder-key))
+    (if (string? placeholder-key)
+      (let [prefix "form.field."]
+        (if (str/starts-with? placeholder-key prefix)
+          ::form-field
+          placeholder-key))
+      placeholder-key)))
 
 (defn- apply-placeholder
   "Apply a single placeholder replacement to the text."
@@ -30,6 +35,18 @@
   (if (nil? text)
     text
     (reduce #(apply-placeholder %1 %2 context) text (re-seq placeholder-regex text))))
+
+(defmethod resolve-placeholder ::form-field
+  [key context]
+  (when-let [application (:application context)]
+    (when-let [forms (:application/forms application)]
+      (let [field-id (subs key 11)]
+        (loop [form forms]
+          (when form
+            (if-let [field (some #(when (= (:field/id %) field-id) %)
+                                 (:form/fields (first form)))]
+              (str (:field/value field))
+              (recur (next form)))))))))
 
 (defmethod resolve-placeholder "ticket.name.first"
   [_key context]
@@ -72,6 +89,7 @@
    Currently supported placeholders:
    - %{ticket.name.first} - First name of the applicant
    - %{ticket.number} - Application ID
+   - %{form.field.FIELD} - Value of a form field matching FIELD id
    The context must contain :application/applicant (for applicant name)
    and/or :appid (for ticket number)."
   [response context]
