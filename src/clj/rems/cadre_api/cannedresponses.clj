@@ -2,6 +2,7 @@
   (:require [compojure.api.sweet :refer :all]
             [rems.db.cadredb.cannedresponses :as cannedresponses]
             [rems.db.applications :as applications]
+            [rems.db.users :as users]
             [rems.service.cadre.placeholders :as placeholders]
             [rems.api.util :refer [not-found-json-response]] ; required for route :roles
             [rems.common.roles :refer [+admin-read-roles+ +admin-write-roles+]]
@@ -52,7 +53,8 @@
 
 (defn- build-placeholder-context [appid]
   (merge
-   {:appid appid}
+   {:user (users/get-user (getx-user-id))
+    :appid appid}
    (when appid
      {:application (applications/get-application appid)})))
 

@@ -38,6 +38,30 @@
       (when-let [name (:name applicant)]
         (first (str/split name #"\s+"))))))
 
+(defmethod resolve-placeholder "ticket.staff.name.first"
+  [_key context]
+  (when-let [user (:user context)]
+    (when-let [name (:name user)]
+      (first (str/split name #"\s+")))))
+
+(defmethod resolve-placeholder "ticket.staff.first"
+  [_key context]
+  (when-let [user (:user context)]
+    (when-let [name (:name user)]
+      (first (str/split name #"\s+")))))
+
+(defmethod resolve-placeholder "ticket.staff"
+  [_key context]
+  (when-let [user (:user context)]
+    (when-let [name (:name user)]
+      (str name))))
+
+(defmethod resolve-placeholder "ticket.staff.name"
+  [_key context]
+  (when-let [user (:user context)]
+    (when-let [name (:name user)]
+      (str name))))
+
 (defmethod resolve-placeholder "ticket.number"
   [_key context]
   (when-let [appid (:appid context)]
