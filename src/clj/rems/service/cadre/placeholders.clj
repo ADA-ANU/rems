@@ -48,6 +48,16 @@
               (str (:field/value field))
               (recur (next form)))))))))
 
+(defmethod resolve-placeholder "datasetname"
+  [_key context]
+  (when-let [application (:application context)]
+    (when-let [resources (:application/resources application)]
+      (loop [resource resources]
+        (when resource
+          (if-let [title (:catalog-item/title resource)]
+            (str (:en title))
+            (recur (next resource))))))))
+
 (defmethod resolve-placeholder "ticket.name.first"
   [_key context]
   (when-let [application (:application context)]
