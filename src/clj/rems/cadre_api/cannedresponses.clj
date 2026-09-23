@@ -63,8 +63,9 @@
       (-> result
           (update :cannedresponses
                   (fn [responses]
-                    (mapv #(placeholders/resolve-cannedresponse-placeholders
-                            (:response %) context)
+                    (mapv (fn [r]
+                            (into {} (update r :response
+                                             #(placeholders/resolve-cannedresponse-placeholders % context))))
                           responses)))))
     result))
 
