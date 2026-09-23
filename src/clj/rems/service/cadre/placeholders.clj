@@ -33,9 +33,10 @@
 
 (defmethod resolve-placeholder "ticket.name.first"
   [_key context]
-  (when-let [applicant (:application/applicant context)]
-    (when-let [name (:name applicant)]
-      (first (str/split name #"\s+")))))
+  (when-let [application (:application context)]
+    (when-let [applicant (:application/applicant application)]
+      (when-let [name (:name applicant)]
+        (first (str/split name #"\s+"))))))
 
 (defmethod resolve-placeholder "ticket.number"
   [_key context]
