@@ -20,11 +20,17 @@
 (defn- apply-placeholder
   "Apply a single placeholder replacement to the text."
   [text [_ placeholder-key] context]
-  (if-let [handler (get-method resolve-placeholder placeholder-key)]
-    (if-let [replacement (handler placeholder-key context)]
-      (str/replace text (str "%{" placeholder-key "}") replacement)
-      text)
-    text))
+  (let [dispatch-key (if (string? placeholder-key)
+                       (let [prefix "form.field."]
+                         (if (str/starts-with? placeholder-key prefix)
+                           ::form-field
+                           placeholder-key))
+                       placeholder-key)]
+    (if-let [handler (get-method resolve-placeholder dispatch-key)]
+      (if-let [replacement (handler placeholder-key context)]
+        (str/replace text (str "%{" placeholder-key "}") replacement)
+        text)
+      text)))
 
 (defn replace-placeholders
   "Replace all placeholders in the text using the provided context map.
@@ -52,11 +58,9 @@
   [_key context]
   (when-let [application (:application context)]
     (when-let [resources (:application/resources application)]
-      (loop [resource resources]
-        (when resource
-          (if-let [title (:catalog-item/title resource)]
-            (str (:en title))
-            (recur (next resource))))))))
+      (some #(when-let [title (:catalogue-item/title %)]
+               (str (:en title)))
+            resources))))
 
 (defmethod resolve-placeholder "ticket.name.first"
   [_key context]
