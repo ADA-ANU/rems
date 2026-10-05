@@ -5,7 +5,7 @@
             [clojure.tools.logging :as log]
             [mount.core :as mount]
             [postal.core :as postal]
-            [rems.db.applications :as applications]
+            [rems.db.cadredb.applications :as applications]
             [rems.db.cadredb.comments :as comments]
             [rems.db.core :as db]
             [rems.db.outbox :as outbox]
@@ -13,7 +13,7 @@
             [rems.db.user-settings :as user-settings]
             [rems.service.todos :as todos]
             [rems.service.workflow :as workflow]
-            [rems.application.model]
+            [rems.application.cadre.model]
             [rems.config :refer [env]]
             [rems.db.invitation :as invitation]
             [rems.db.cadredb.projects :as projects]
@@ -24,7 +24,7 @@
 
 (defn- event-to-emails [event]
   (when-let [app-id (:application/id event)]
-    (template/event-to-emails (rems.application.model/enrich-event event users/get-user (constantly nil))
+    (template/event-to-emails (rems.application.cadre.model/enrich-event event users/get-user (constantly nil))
                               (applications/get-application app-id))))
 
 (defn- enqueue-email! [email]
