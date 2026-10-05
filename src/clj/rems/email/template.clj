@@ -66,7 +66,7 @@
                                          (link-to-application (:application/id event)))
                body (if pdf-attachment-string
                       [{:type "text/plain" :content body-content}
-                       {:type :attachment :content pdf-attachment-string}]
+                       {:type :attachment :content pdf-attachment-string :content-type "application/pdf" :file-name (str (:application/id event) ".pdf")}]
                       [{:type "text/plain" :content body-content}])]
          :when (and body-text (not (str/blank? (text-no-fallback body-text))))]
      {:to-user (:userid recipient)
