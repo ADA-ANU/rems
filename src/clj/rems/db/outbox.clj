@@ -7,7 +7,42 @@
             [rems.util :refer [getx]]
             [schema.coerce :as coerce]
             [schema.core :as s])
-  (:import [org.joda.time Duration DateTime]))
+  (:import [org.joda.time Duration DateTime]
+           [java.util Base64]))
+
+;; Byte arrays cannot be serialized to JSON, so we encode/decode them through
+;; a special marker that survives the JSON round-trip.
+
+(def ^:private byte-marker "__bytes__")
+
+(defn- byte-array? [o]
+  (= "[B" (-> o class .getName)))
+
+(defn- encode-bytes [o]
+  (cond
+    (byte-array? o)
+    {byte-marker (-> o Base64/getEncoder (.encodeToString))}
+
+    (map? o)
+    (into {} (map (fn [[k v]] [k (encode-bytes v)]) o))
+
+    (sequential? o)
+    (mapv encode-bytes o)
+
+    :else o))
+
+(defn- decode-bytes [o]
+  (cond
+    (and (map? o) (= byte-marker (first (keys o))))
+    (-> (o byte-marker) Base64/getDecoder (.decode))
+
+    (map? o)
+    (into {} (map (fn [[k v]] [k (decode-bytes v)]) o))
+
+    (sequential? o)
+    (mapv decode-bytes o)
+
+    :else o))
 
 ;; TODO: the meaning of the fields should be documented
 (def OutboxData
@@ -37,7 +72,7 @@
                        :outbox/latest-attempt nil
                        :outbox/backoff initial-backoff)]
     (:id (db/put-to-outbox! {:outboxdata (json/generate-string
-                                          (validate-outbox-data amended))}))))
+                                          (validate-outbox-data (assoc amended :outbox/email (encode-bytes (:outbox/email amended)))))}))))
 
 (def ^:private coerce-outboxdata
   (coerce/coercer! OutboxData (fn [schema]
@@ -48,6 +83,7 @@
 (defn- fix-row-from-db [row]
   (-> (:outboxdata row)
       json/parse-string
+      (update :outbox/email decode-bytes)
       coerce-outboxdata
       (assoc :outbox/id (:id row))))
 
@@ -165,7 +201,7 @@
 (defn attempt-failed! [entry error]
   (let [entry (next-attempt entry (time/now) error)]
     (db/update-outbox! {:id (getx entry :outbox/id)
-                        :outboxdata (json/generate-string (dissoc entry :outbox/id))})
+                        :outboxdata (json/generate-string (encode-bytes (dissoc entry :outbox/id)))})
     entry))
 
 (defn attempt-succeeded! [id]
