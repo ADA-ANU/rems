@@ -1,6 +1,5 @@
 (ns rems.email.template
   (:require [clojure.string :as str]
-            [buddy.core.codecs.base64 :as b64]
             [rems.common.application-util :as application-util]
             [rems.application.cadre.model]
             [rems.config :refer [env]]
@@ -85,7 +84,7 @@
     (fn []
 
       (let [pdf-att (pdf-attachment application)
-            pdf-attachment-string (b64/encode-str (:data pdf-att))]
+            pdf-attachment-string (:data pdf-att)]
         (concat (emails-to-recipients (application-util/applicant-and-members application)
                                       event application
                                       :t.email.application-approved/subject-to-applicant
