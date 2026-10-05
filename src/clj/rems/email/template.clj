@@ -1,5 +1,6 @@
 (ns rems.email.template
   (:require [clojure.string :as str]
+            [buddy.core.codecs.base64 :as b64]
             [rems.common.application-util :as application-util]
             [rems.application.cadre.model]
             [rems.config :refer [env]]
@@ -54,121 +55,136 @@
 (defmethod event-to-emails :default [_event _application]
   [])
 
-(defn- emails-to-recipients [recipients event application subject-text body-text]
+(defn- emails-to-recipients [recipients event application subject-text body-text pdf-attachment-string]
   (vec
    (for [recipient recipients
-         :let [email (with-language (:language (user-settings/get-user-settings (:userid recipient)))
-                       (fn []
-                         (when (and body-text (not (str/blank? (text-no-fallback body-text))))
-                           {:to-user (:userid recipient)
-                            :subject (text-format subject-text
-                                                  (application-util/get-member-name recipient)
-                                                  (application-util/get-member-name (:event/actor-attributes event))
-                                                  (format-application-for-email application)
-                                                  (application-util/get-applicant-name application)
-                                                  (resources-for-email application)
-                                                  (link-to-application (:application/id event)))
-                            :body (str
-                                   (text-format body-text
-                                                (application-util/get-member-name recipient)
-                                                (application-util/get-member-name (:event/actor-attributes event))
-                                                (format-application-for-email application)
-                                                (application-util/get-applicant-name application)
-                                                (resources-for-email application)
-                                                (link-to-application (:application/id event)))
-                                   (text :t.email/regards)
-                                   (text :t.email/footer))})))]
-         :when email]
-     email)))
+         :let [body-content (text-format body-text
+                                         (application-util/get-member-name recipient)
+                                         (application-util/get-member-name (:event/actor-attributes event))
+                                         (format-application-for-email application)
+                                         (application-util/get-applicant-name application)
+                                         (resources-for-email application)
+                                         (link-to-application (:application/id event)))
+               body (if pdf-attachment-string
+                      [{:type "text/plain" :content body-content}
+                       {:type :attachment :content-type "application/pdf" :content pdf-attachment-string}]
+                      [{:type "text/plain" :content body-content}])]
+         :when (and body-text (not (str/blank? (text-no-fallback body-text))))]
+     {:to-user (:userid recipient)
+      :subject (text-format subject-text
+                            (application-util/get-member-name recipient)
+                            (application-util/get-member-name (:event/actor-attributes event))
+                            (format-application-for-email application)
+                            (application-util/get-applicant-name application)
+                            (resources-for-email application)
+                            (link-to-application (:application/id event)))
+      :body body})))
 
 (defmethod event-to-emails :application.event/approved [event application]
   (with-language (:default-language env)
     (fn []
-      (let [pdf-att (pdf-attachment application)]
-        (concat (map #(assoc % :attachments [pdf-att])
-                     (emails-to-recipients (application-util/applicant-and-members application)
-                                           event application
-                                           :t.email.application-approved/subject-to-applicant
-                                           :t.email.application-approved/message-to-applicant))
+
+      (let [pdf-att (pdf-attachment application)
+            pdf-attachment-string (b64/encode-str (:data pdf-att))]
+        (concat (emails-to-recipients (application-util/applicant-and-members application)
+                                      event application
+                                      :t.email.application-approved/subject-to-applicant
+                                      :t.email.application-approved/message-to-applicant
+                                      pdf-attachment-string)
                 (emails-to-recipients (other-handlers event application)
                                       event application
                                       :t.email.application-approved/subject-to-handler
-                                      :t.email.application-approved/message-to-handler))))))
+                                      :t.email.application-approved/message-to-handler
+                                      nil))))))
 
 (defmethod event-to-emails :application.event/rejected [event application]
   (concat (emails-to-recipients (application-util/applicant-and-members application)
                                 event application
                                 :t.email.application-rejected/subject-to-applicant
-                                :t.email.application-rejected/message-to-applicant)
+                                :t.email.application-rejected/message-to-applicant
+                                nil)
           (emails-to-recipients (other-handlers event application)
                                 event application
                                 :t.email.application-rejected/subject-to-handler
-                                :t.email.application-rejected/message-to-handler)))
+                                :t.email.application-rejected/message-to-handler
+                                nil)))
 
 (defmethod event-to-emails :application.event/revoked [event application]
   (concat (emails-to-recipients (application-util/applicant-and-members application)
                                 event application
                                 :t.email.application-revoked/subject-to-applicant
-                                :t.email.application-revoked/message-to-applicant)
+                                :t.email.application-revoked/message-to-applicant
+                                nil)
           (emails-to-recipients (other-handlers event application)
                                 event application
                                 :t.email.application-revoked/subject-to-handler
-                                :t.email.application-revoked/message-to-handler)))
+                                :t.email.application-revoked/message-to-handler
+                                nil)))
 
 (defmethod event-to-emails :application.event/closed [event application]
   (concat (emails-to-recipients (application-util/applicant-and-members application)
                                 event application
                                 :t.email.application-closed/subject-to-applicant
-                                :t.email.application-closed/message-to-applicant)
+                                :t.email.application-closed/message-to-applicant
+                                nil)
           (emails-to-recipients (other-handlers event application)
                                 event application
                                 :t.email.application-closed/subject-to-handler
-                                :t.email.application-closed/message-to-handler)))
+                                :t.email.application-closed/message-to-handler
+                                nil)))
 
 
 (defmethod event-to-emails :application.event/returned [event application]
   (concat (emails-to-recipients [(:application/applicant application)]
                                 event application
                                 :t.email.application-returned/subject-to-applicant
-                                :t.email.application-returned/message-to-applicant)
+                                :t.email.application-returned/message-to-applicant
+                                nil)
           (emails-to-recipients (other-handlers event application)
                                 event application
                                 :t.email.application-returned/subject-to-handler
-                                :t.email.application-returned/message-to-handler)))
+                                :t.email.application-returned/message-to-handler
+                                nil)))
 
 (defmethod event-to-emails :application.event/licenses-added [event application]
   (emails-to-recipients (application-util/applicant-and-members application)
                         event application
                         :t.email.application-licenses-added/subject
-                        :t.email.application-licenses-added/message))
+                        :t.email.application-licenses-added/message
+                        nil))
 
 (defmethod event-to-emails :application.event/submitted [event application]
   (concat (emails-to-recipients [(:application/applicant application)]
                                 event application
                                 :t.email.application-submitted/subject-to-applicant
-                                :t.email.application-submitted/message-to-applicant)
+                                :t.email.application-submitted/message-to-applicant
+                                nil)
           (if (= (:event/time event)
                  (:application/first-submitted application))
             (emails-to-recipients (handlers application)
                                   event application
                                   :t.email.application-submitted/subject-to-handler
-                                  :t.email.application-submitted/message-to-handler)
+                                  :t.email.application-submitted/message-to-handler
+                                  nil)
             (emails-to-recipients (handlers application)
                                   event application
                                   :t.email.application-resubmitted/subject-to-handler
-                                  :t.email.application-resubmitted/message-to-handler))))
+                                  :t.email.application-resubmitted/message-to-handler
+                                  nil))))
 
 (defmethod event-to-emails :application.event/review-requested [event application]
   (emails-to-recipients (:application/reviewers event)
                         event application
                         :t.email.review-requested/subject
-                        :t.email.review-requested/message))
+                        :t.email.review-requested/message
+                        nil))
 
 (defmethod event-to-emails :application.event/reviewed [event application]
   (emails-to-recipients (handlers application)
                         event application
                         :t.email.reviewed/subject
-                        :t.email.reviewed/message))
+                        :t.email.reviewed/message
+                        nil))
 
 (defmethod event-to-emails :application.event/remarked [event application]
   (emails-to-recipients (concat (handlers application)
@@ -177,26 +193,30 @@
                                   [(:application/applicant application)]))
                         event application
                         :t.email.remarked/subject
-                        :t.email.remarked/message))
+                        :t.email.remarked/message
+                        nil))
 
 (defmethod event-to-emails :application.event/decided [event application]
   (emails-to-recipients (handlers application)
                         event application
                         :t.email.decided/subject
-                        :t.email.decided/message))
+                        :t.email.decided/message
+                        nil))
 
 (defmethod event-to-emails :application.event/decision-requested [event application]
   (emails-to-recipients (:application/deciders event)
                         event application
                         :t.email.decision-requested/subject
-                        :t.email.decision-requested/message))
+                        :t.email.decision-requested/message
+                        nil))
 
 (defmethod event-to-emails :application.event/member-added [event application]
   ;; TODO email to applicant? email to handler?
   (emails-to-recipients [(:application/member event)]
                         event application
                         :t.email.member-added/subject
-                        :t.email.member-added/message))
+                        :t.email.member-added/message
+                        nil))
 
 (defmethod event-to-emails :application.event/member-invited [event application]
   (with-language (:default-language env)
@@ -256,11 +276,13 @@
   (concat (emails-to-recipients (application-util/applicant-and-members application)
                                 event application
                                 :t.email.applicant-changed/subject-to-member
-                                :t.email.applicant-changed/message-to-member)
+                                :t.email.applicant-changed/message-to-member
+                                nil)
           (emails-to-recipients (other-handlers event application)
                                 event application
                                 :t.email.applicant-changed/subject-to-handler
-                                :t.email.applicant-changed/message-to-handler)))
+                                :t.email.applicant-changed/message-to-handler
+                                nil)))
 
 (defmethod event-to-emails :application.event/expiration-notifications-sent [event application]
   (vec
@@ -289,7 +311,8 @@
   (emails-to-recipients (application-util/applicant-and-members application)
                         event application
                         :t.email.member-joined/subject-to-applicant
-                        :t.email.member-joined/message-to-applicant))
+                        :t.email.member-joined/message-to-applicant
+                        nil))
 
 
 (defn handler-reminder-email [lang handler applications]
