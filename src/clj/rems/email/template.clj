@@ -3,6 +3,7 @@
             [rems.common.application-util :as application-util]
             [rems.application.model]
             [rems.config :refer [env]]
+            [rems.pdf :as pdf]
             [rems.context :as context]
             [rems.db.user-settings :as user-settings]
             [rems.db.users :as users]
@@ -20,6 +21,11 @@
 
 (defn- invitation-link [token]
   (str (:cadre-url env) "accept-invitation?token=" token))
+
+(defn- pdf-attachment [application]
+  {:filename (str "application-" (:application/id application) ".pdf")
+   :data (pdf/application-to-pdf-bytes application)
+   :type "application/pdf"})
 
 (defn- format-application-for-email [application]
   (str
@@ -76,14 +82,16 @@
      email)))
 
 (defmethod event-to-emails :application.event/approved [event application]
-  (concat (emails-to-recipients (application-util/applicant-and-members application)
-                                event application
-                                :t.email.application-approved/subject-to-applicant
-                                :t.email.application-approved/message-to-applicant)
-          (emails-to-recipients (other-handlers event application)
-                                event application
-                                :t.email.application-approved/subject-to-handler
-                                :t.email.application-approved/message-to-handler)))
+  (let [pdf-att (pdf-attachment application)]
+    (concat (map #(assoc % :attachments [pdf-att])
+                 (emails-to-recipients (application-util/applicant-and-members application)
+                                       event application
+                                       :t.email.application-approved/subject-to-applicant
+                                       :t.email.application-approved/message-to-applicant))
+            (emails-to-recipients (other-handlers event application)
+                                  event application
+                                  :t.email.application-approved/subject-to-handler
+                                  :t.email.application-approved/message-to-handler))))
 
 (defmethod event-to-emails :application.event/rejected [event application]
   (concat (emails-to-recipients (application-util/applicant-and-members application)
@@ -114,6 +122,7 @@
                                 event application
                                 :t.email.application-closed/subject-to-handler
                                 :t.email.application-closed/message-to-handler)))
+
 
 (defmethod event-to-emails :application.event/returned [event application]
   (concat (emails-to-recipients [(:application/applicant application)]
