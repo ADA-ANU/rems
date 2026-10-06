@@ -21,7 +21,7 @@
 (defn- encode-bytes [o]
   (cond
     (byte-array? o)
-    {byte-marker (-> o Base64/getEncoder (.encodeToString))}
+    {byte-marker (.encodeToString (Base64/getEncoder) o)}
 
     (map? o)
     (into {} (map (fn [[k v]] [k (encode-bytes v)]) o))
@@ -34,7 +34,7 @@
 (defn- decode-bytes [o]
   (cond
     (and (map? o) (= byte-marker (first (keys o))))
-    (-> (o byte-marker) Base64/getDecoder (.decode))
+    (.decode (Base64/getDecoder) (o byte-marker))
 
     (map? o)
     (into {} (map (fn [[k v]] [k (decode-bytes v)]) o))
