@@ -1,18 +1,18 @@
-(defproject rems "2.32"
+(defproject rems "2.33"
   :description "Resource Entitlement Management System is a tool for managing access rights to resources, such as research datasets."
   :url "https://github.com/CSCfi/rems"
 
   :dependencies [[buddy/buddy-core "1.12.0-430"]
                  [buddy/buddy-auth "3.0.323"]
                  [buddy/buddy-sign "3.6.1-359"]
-                 [ch.qos.logback/logback-classic "1.6.3"]
+                 [ch.qos.logback/logback-classic "1.6.5"]
                  [clj-http "3.13.1"]
                  [cheshire "6.2.0" :exclusions [com.fasterxml.jackson.core/jackson-core]] ; clj-http uses cheshire's json parsing
-                 [clj-pdf "2.8.1"]
+                 [clj-pdf "2.8.2"]
                  [clj-time "0.15.2"]
                  [com.attendify/schema-refined "0.3.0-alpha5"]
                  [com.draines/postal "2.0.5"]
-                 [com.fasterxml.jackson.datatype/jackson-datatype-joda "2.22.2"]
+                 [com.fasterxml.jackson.datatype/jackson-datatype-joda "2.22.3"]
                  [com.stuartsierra/dependency "1.0.0"]
                  [com.rpl/specter "1.1.6"]
                  [com.taoensso/tempura "1.5.4"]
@@ -35,13 +35,14 @@
                  [metosin/compojure-api "2.0.0-alpha30" :exclusions [cheshire com.fasterxml.jackson.core/jackson-core]]
                  [metosin/jsonista "1.0.1"]
                  [metosin/ring-swagger "1.1.0"]
-                 [metosin/ring-swagger-ui "5.32.11"]
+                 [metosin/ring-swagger-ui "5.33.0"]
                  [mount "0.1.24"]
+                 [nano-id "1.1.0"]
                  [ns-tracker "1.0.0"]
                  ^{:antq/exclude "10"} [org.apache.lucene/lucene-core "9.12.3"] ; Next major release 10.4.x available but multiple tests throw a java.lang.IllegalArgumentException: No matching method doc found taking 1 args for class org.apache.lucene.search.IndexSearcher
                  ^{:antq/exclude "10"} [org.apache.lucene/lucene-queryparser "9.12.3"] ;... java.lang.IllegalArgumentException: No matching method doc ...
                  [org.clojure/clojure "1.12.6"]
-                 [org.clojure/core.cache "1.2.263"]
+                 [org.clojure/core.cache "1.2.999"]
                  [org.clojure/core.memoize "1.2.281"]
                  [org.clojure/data.csv "1.1.1"]
                  [org.clojure/data.xml "0.0.8"]
@@ -65,7 +66,27 @@
                  [ring/ring-devel "1.15.5"]
                  [ring/ring-servlet "1.15.5"]
                  [prismatic/schema "1.4.2"] ;; previsouly, plumatic/schema
-                 [metosin/schema-tools "0.14.0"]]
+                 [metosin/schema-tools "0.14.1"]]
+    :managed-dependencies [^{:required-by "clj-http"} [commons-codec "1.22.1"]
+                         ^{:required-by "clj-http"} [commons-io "2.22.0"]
+                         ^{:required-by "ring-swagger"} [com.google.code.findbugs/jsr305 "3.0.2"]
+                         ^{:required-by "postal"
+                           :antq/exclude "2"} [com.sun.mail/jakarta.mail "1.6.8"]
+                         ^{:required-by "luminus-jetty"} [info.sunng/ring-jetty9-adapter "0.40.4"]
+                         ^{:required-by "clj-time"} [joda-time "2.15.0"]
+                         ^{:required-by "ring-webjars"} [org.apache.commons/commons-lang3 "3.21.0"]
+                         ^{:required-by "clj-pdf"} [org.apache.xmlgraphics/xmlgraphics-commons "2.11"]
+                         ^{:required-by "buddy-core"} [org.bouncycastle/bcpkix-jdk18on "1.86"]
+                         ^{:required-by "buddy-core"} [org.bouncycastle/bcprov-jdk18on "1.86"]
+                         ^{:required-by "tempura"} [org.clojure/tools.reader "1.6.0"]
+                         ^{:required-by "tangle"} [org.flatland/ordered "1.15.12"]
+                         ^{:required-by "clj-pdf"} [org.jfree/jfreechart "1.5.6"]
+                         ^{:required-by "ring-swagger"} [org.mozilla/rhino "1.9.1"]
+                         ^{:required-by ["rems"
+                                         "peridot"
+                                         "ring-swagger"
+                                         "schema-refined"]} [prismatic/schema "1.4.2"]
+                         ^{:required-by "specter"} [riddley "0.2.2"]]
 
   :min-lein-version "2.9.8"
 
@@ -116,10 +137,10 @@
                                 [etaoin "1.1.43"]
                                 [ring/ring-mock "0.6.2" :exclusions [cheshire]]
                                 [se.haleby/stub-http "0.2.14"]
-                                [com.icegreen/greenmail "2.1.13"]
+                                [com.icegreen/greenmail "2.1.14"]
                                 [macroz/tangle "0.2.2"]]
 
-                 :plugins [[lein-ancient "0.6.15"]]
+                 :plugins [[lein-ancient "1.0.0"]]
 
                  :jvm-opts ["-Drems.config=dev-config.edn"
                             "-Djdk.attach.allowAttachSelf" ; needed by clj-memory-meter on Java 9+

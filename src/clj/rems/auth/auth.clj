@@ -14,6 +14,9 @@
 (defn get-api-key [request]
   (get-in request [:headers "x-rems-api-key"]))
 
+(defn get-api-userid [request]
+  (get-in request [:headers "x-rems-user-id"]))
+
 (defn get-api-user [request]
   (-> request
       (get-in [:headers "x-rems-user-id"])

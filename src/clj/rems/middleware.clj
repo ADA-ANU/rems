@@ -7,7 +7,9 @@
             [clojure.walk :refer [keywordize-keys]]
             [medley.core :refer [update-existing]]
             [mount.core :as mount]
+            [nano-id.core :as nano-id]
             [rems.auth.auth :as auth]
+            [rems.common.util :refer [assoc-some-in]]
             [rems.config :refer [env]]
             [rems.context :as context]
             [rems.db.applications :as applications]
@@ -26,20 +28,9 @@
             [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
             [ring.util.http-response :refer [unauthorized]]
             [ring.util.response :refer [bad-request redirect header]])
-  (:import [javax.servlet ServletContext]
-           [rems.auth ForbiddenException UnauthorizedException]))
+  (:import [rems.auth ForbiddenException UnauthorizedException]))
 
-(defn calculate-root-path [request]
-  (if-let [context (:servlet-context request)]
-    ;; If we're not inside a servlet environment
-    ;; (for example when using mock requests), then
-    ;; .getContextPath might not exist
-    (try (.getContextPath ^ServletContext context)
-         (catch IllegalArgumentException _ context))
-    ;; if the context is not specified in the request
-    ;; we check if one has been specified in the environment
-    ;; instead
-    (:app-context env)))
+(def nano-id (nano-id/custom "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" 8))
 
 (defn- csrf-error-handler
   "CSRF error is typical when the user session is timed out
@@ -66,7 +57,8 @@
 
 (defn wrap-context [handler]
   (fn [request]
-    (binding [context/*root-path* (calculate-root-path request)
+    (binding [context/*request* (assoc request :request-id (random-uuid))
+              context/*root-path* (:app-context env)
               context/*roles* (set/union
                                (when context/*user*
                                  (set/union (roles/get-roles (getx-user-id))
@@ -106,18 +98,19 @@
     (try
       (handler req)
       (catch clojure.lang.ExceptionInfo e
-        (if (auth/get-api-key req) ; not our web app
-          ;; straight error
-          (bad-request (.getMessage e))
-
-          ;; redirect browser to an error page
-          (let [data (ex-data e)
-                url (str "/error?key="
-                         (:key data)
-                         (apply str (for [arg (:args data)]
-                                      (str "&args[]=" arg))))]
-            (log/error e "Error" (with-out-str (some-> data pprint)))
-            (redirect url))))
+        (let [data (ex-data e)]
+          (if (auth/get-api-key req) ; not our web app, or test
+            ;; straight error
+            (do
+              (log/error e "bad-request" (with-out-str (some-> data pprint)))
+              (bad-request (.getMessage e)))
+            ;; redirect browser to an error page
+            (let [url (str "/error?key="
+                           (:key data)
+                           (apply str (for [arg (:args data)]
+                                        (str "&args[]=" arg))))]
+              (log/error e "Error" (with-out-str (some-> data pprint)))
+              (redirect url)))))
       (catch Throwable t
         (log/error t "Internal error" (with-out-str (when-let [data (ex-data t)]
                                                       (pprint data))))
@@ -127,10 +120,16 @@
   "Sets context/*lang*"
   [handler]
   (fn [request]
-    (binding [context/*lang* (or (when context/*user*
-                                   (:language (user-settings/get-user-settings (getx-user-id))))
-                                 (:default-language env))]
-      (handler request))))
+    (let [user-specified-language (or (some-> request :cookies (get "rems-user-preferred-language") :value keyword)
+                                      (when context/*user*
+                                        (:language (rems.db.user-settings/get-user-settings (getx-user-id)))))]
+      (binding [context/*lang* (or user-specified-language
+                                   (:default-language env))]
+        (let [response (handler request)]
+          ;; ensure the cookie is set for future requests
+          (if user-specified-language
+            (assoc-some-in response [:cookies "rems-user-preferred-language"] (some-> context/*lang* name))
+            response))))))
 
 (defn on-unauthorized-error [request]
   (error-page
@@ -158,7 +157,11 @@
 ;; This helps e.g. when debugging browser test failures.
 (def silence-logging-regex #"^/js/cljs-runtime/.*")
 
-(defn wrap-logging
+(defn wrap-context-logging
+  "Logs detailed information about a request just before
+  the main business code is run.
+
+  Here we have the most context about the user and request available."
   [handler]
   (fn [request]
     (let [uri (str (:uri request)
@@ -176,17 +179,61 @@
         (log/debug "session" (pr-str (:session request)))
         (when (seq (:form-params request))
           (log/debug "form params" (pr-str (:form-params request)))))
-      (let [response (handler request)]
-        (when log?
-          (log/info "<" (:request-method request) uri (:status response)
-                    (or (get-in response [:headers "Location"]) "")))
-        response))))
+
+      (handler request))))
+
+(def request-count (atom 0))
+
+(defn wrap-entry-logging
+  "Logs every request into an entry `req >` and exit `req <` log.
+
+  This happens in the very beginning of the request processing, so
+  not a lot of context is available yet.
+
+  This is important to show a request as soon as it's possible, so if it
+  starts to wait on middleware DB requests or such, it still appears
+  in the logs."
+  [handler]
+  (fn [request]
+    (let [uri (str (:uri request)
+                   (when-let [q (:query-string request)]
+                     (str "?" q)))
+          start (System/nanoTime)
+          log? (not (re-matches silence-logging-regex uri))
+          userid (or (get-in request [:session :identity :userid])
+                     (:userid context/*user*)
+                     (auth/get-api-userid request))]
+      (try
+        (swap! request-count inc)
+
+        (with-mdc {:userid userid}
+          (when log?
+            (with-mdc {:request-count @request-count}
+              (log/info "req >" (:request-method request) uri))
+            (when (seq (:form-params request))
+              (log/debug "form params" (pr-str (:form-params request)))))
+
+          ;; NB: No request-count set here.
+          ;; It should be dynamically counted which for each log entry and
+          ;; the MDC approach does not support this.
+          (let [response (handler request)]
+            (when log?
+              (with-mdc {:request-count @request-count}
+                (log/info "req <" (:request-method request) uri (:status response)
+                          (str (int (/ (- (System/nanoTime) start) 1000000)) "ms")
+                          (or (get-in response [:headers "Location"]) ""))))
+            response))
+        (finally
+          (swap! request-count dec))))))
 
 (defn- wrap-request-context [handler]
   (fn [request]
-    (with-mdc {:request-method (str/upper-case (name (:request-method request)))
-               :request-uri (:uri request)}
-      (handler request))))
+    (let [request-id (nano-id)] ; short id for separating requests
+      (binding [context/*request* (assoc request :request-id request-id)]
+        (with-mdc {:request-id request-id
+                   :request-method (str/upper-case (name (:request-method request)))
+                   :request-uri (:uri request)}
+          (handler request))))))
 
 (defn- unrelativize-url [url]
   (if (.startsWith url "/")
@@ -242,9 +289,11 @@
       (when response
         (header response "Cache-Control" (str "max-age=" (* 60 60 23)))))))
 
+;; NB: some of these have become defaults over time, but it's still good to pay attention when updating ring-defaults.
+;; e.g. (-> site-defaults :session :cookie-attrs :same-site) should be :lax, otherwise OIDC logins could stop working.
 (defn wrap-defaults-settings []
   (-> site-defaults
-      (dissoc :static) ;; we handle serving static resources in rems.handler
+      (dissoc :static) ; we handle serving static resources in rems.handler
       (assoc-in [:security :anti-forgery] false)
       (assoc-in [:session :store] session-store)
       (assoc-in [:session :flash] true)
@@ -258,13 +307,14 @@
       ((if (:dev env) wrap-dev identity))
       wrap-fix-location-header
       wrap-unauthorized-and-forbidden
-      wrap-logging
+      wrap-context-logging
       wrap-i18n
       wrap-role-headers
       wrap-context
       wrap-user
       wrap-api-key-or-csrf-token
       auth/wrap-auth
+      wrap-entry-logging
       (wrap-defaults (wrap-defaults-settings))
       wrap-cache-control
       wrap-internal-error
