@@ -80,21 +80,18 @@
       :body body})))
 
 (defmethod event-to-emails :application.event/approved [event application]
-  (with-language (:default-language env)
-    (fn []
-
-      (let [pdf-att (pdf-attachment application)
-            pdf-attachment-string (:data pdf-att)]
-        (concat (emails-to-recipients (application-util/applicant-and-members application)
-                                      event application
-                                      :t.email.application-approved/subject-to-applicant
-                                      :t.email.application-approved/message-to-applicant
-                                      pdf-attachment-string)
-                (emails-to-recipients (other-handlers event application)
-                                      event application
-                                      :t.email.application-approved/subject-to-handler
-                                      :t.email.application-approved/message-to-handler
-                                      nil))))))
+  (let [pdf-att (pdf-attachment application)
+        pdf-attachment-string (:data pdf-att)]
+    (concat (emails-to-recipients (application-util/applicant-and-members application)
+                                  event application
+                                  :t.email.application-approved/subject-to-applicant
+                                  :t.email.application-approved/message-to-applicant
+                                  pdf-attachment-string)
+            (emails-to-recipients (other-handlers event application)
+                                  event application
+                                  :t.email.application-approved/subject-to-handler
+                                  :t.email.application-approved/message-to-handler
+                                  nil))))
 
 (defmethod event-to-emails :application.event/rejected [event application]
   (concat (emails-to-recipients (application-util/applicant-and-members application)
