@@ -67,7 +67,7 @@
                  [ring/ring-servlet "1.15.5"]
                  [prismatic/schema "1.4.2"] ;; previsouly, plumatic/schema
                  [metosin/schema-tools "0.14.1"]]
-    :managed-dependencies [^{:required-by "clj-http"} [commons-codec "1.22.1"]
+  :managed-dependencies [^{:required-by "clj-http"} [commons-codec "1.22.1"]
                          ^{:required-by "clj-http"} [commons-io "2.22.0"]
                          ^{:required-by "ring-swagger"} [com.google.code.findbugs/jsr305 "3.0.2"]
                          ^{:required-by "postal"
