@@ -34,8 +34,8 @@
 
 (defn- decode-bytes [o]
   (cond
-    (and (map? o) (= byte-marker (first (keys o))))
-    (.decode (Base64/getDecoder) (o byte-marker))
+    (and (map? o) (contains? o :__bytes__))
+    (.decode (Base64/getDecoder) (o :__bytes__))
 
     (map? o)
     (into {} (map (fn [[k v]] [k (decode-bytes v)]) o))
