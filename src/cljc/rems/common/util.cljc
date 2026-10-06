@@ -180,7 +180,6 @@
   (is (= "fdce:de09:d25d:b23e:de8:d0e8:de8:de8"
          (first (re-matches +reserved-ipv6-range-regex+ "fdce:de09:d25d:b23e:de8:d0e8:de8:de8")))))
 
-;; TODO remove separate clj and cljs implementations of getx and getx-in
 (defn getx
   "Like `get` but throws an exception if the key is not found."
   [m k]
@@ -195,8 +194,24 @@
   (reduce getx m ks))
 
 (def conj-set (fnil conj #{}))
+(def disj-set (fnil disj #{}))
 
 (def conj-vec (fnil conj []))
+
+(def into-vec (fnil into []))
+
+(def conj-sorted-set (fnil conj (sorted-set)))
+(def disj-sorted-set (fnil disj (sorted-set)))
+(def to-sorted-set (fn [coll] (apply sorted-set coll)))
+
+(deftest test-sorted-set
+  (is (= (sorted-set 1) (conj-sorted-set nil 1)))
+  (is (= (sorted-set 1 2 3)
+         (apply conj-sorted-set nil [3 2 1])))
+  (is (= (sorted-set)
+         (disj-sorted-set nil 1)))
+  (is (= (sorted-set 1 2 3)
+         (to-sorted-set [3 2 1]))))
 
 (defn select-vals
   "Select values in map `m` specified by given keys `ks`.
@@ -255,6 +270,10 @@
                                          [{:a 1} {:b 2}])))
     (is (= {1 #{10 11} 2 #{10}}
            (build-index {:keys [:a] :value-fn :c :collect-fn set}
+                        [{:a 1 :c 10} {:a 1 :c 11} {:a 2 :c 10}])))
+
+    (is (= {1 (sorted-set 10 11) 2 (sorted-set 10)}
+           (build-index {:keys [:a] :value-fn :c :collect-fn to-sorted-set}
                         [{:a 1 :c 10} {:a 1 :c 11} {:a 2 :c 10}])))))
 
 (defn index-by
@@ -477,6 +496,21 @@
   (is (= #{[:a :b] [:a :c] [:a :d :e] [:a :d :f]}
          (recursive-keys {:a {:b 1 :c nil :d {:e "foo" :f [3]}}}))))
 
+(defn to-keyword [ks]
+  (case (count ks)
+    0 nil
+    1 (keyword (name (first ks)))
+    (let [kw-ns (->> (butlast ks)
+                     (map name)
+                     (str/join "."))]
+      (keyword kw-ns
+               (name (last ks))))))
+
+(deftest test-to-keyword
+  (is (= nil (to-keyword [])))
+  (is (= :test (to-keyword ["test"])))
+  (is (= :x.y.z/test (to-keyword ["x" "y" "z" "test"]))))
+
 (defn parse-int [s]
   #?(:clj (try
             (when s
@@ -536,6 +570,36 @@
 (deftest normalize-file-path-test
   (is (= "src/foo/bar.clj" (normalize-file-path "/home/john/rems/src/foo/bar.clj")))
   (is (= "src/foo/bar.clj" (normalize-file-path "C:\\Users\\john\\rems\\src\\foo/bar.clj"))))
+
+(defn add-postfix [filename postfix]
+  (if-let [i (str/last-index-of filename \.)]
+    (str (subs filename 0 i) postfix (subs filename i))
+    (str filename postfix)))
+
+(deftest test-add-postfix
+  (is (= "foo (1).txt"
+         (add-postfix "foo.txt" " (1)")))
+  (is (= "foo_bar_quux (1)"
+         (add-postfix "foo_bar_quux" " (1)")))
+  (is (= "foo.bar!.quux"
+         (add-postfix "foo.bar.quux" "!")))
+  (is (= "!"
+         (add-postfix "" "!"))))
+
+(defn fix-filename [filename existing-filenames]
+  (let [exists? (set existing-filenames)
+        versions (cons filename
+                       (map #(add-postfix filename (str " (" (inc %) ")"))
+                            (range)))]
+    (first (remove exists? versions))))
+
+(deftest test-fix-filename
+  (is (= "file.txt"
+         (fix-filename "file.txt" ["file.pdf" "picture.gif"])))
+  (is (= "file (1).txt"
+         (fix-filename "file.txt" ["file.txt" "boing.txt"])))
+  (is (= "file (2).txt"
+         (fix-filename "file.txt" ["file.txt" "file (1).txt" "file (3).txt"]))))
 
 (defn assoc-some-in
   "Like `clojure.core/assoc-in`, but only associates value `v` in key path
@@ -640,3 +704,29 @@
   (is (= [] (keep-keys {} [])))
   (is (= [{:b 1}] (keep-keys {:a :b} [{:a 1}])))
   (is (= [{:b 1} {:c 2}] (keep-keys {:a :b :b :c} [{:a 1} {:b 2}]))))
+
+(defn contains-all-kv-pairs? [supermap map]
+  (set/superset? (set supermap) (set map)))
+
+(defn apply-filters
+  ([filters] (let [filters (or filters {})]
+               (filter #(contains-all-kv-pairs? % filters))))
+  ([filters coll] (let [filters (or filters {})]
+                    (filter #(contains-all-kv-pairs? % filters) coll))))
+
+(defn not-blank
+  "Like `clojure.core/not-empty`, but for strings. Checks string emptiness with `clojure.string/blank?`"
+  [s]
+  (when-not (str/blank? s)
+    s))
+
+(defn range-1
+  "Like `clojure.core/range`, but starts from 1 and `end` is inclusive."
+  [end]
+  (range 1 (inc end)))
+
+(defn rand-nth*
+  "As (rand-nth), but returns nil if (seq coll) is nil."
+  [coll]
+  (some-> (seq coll)
+          (rand-nth)))
