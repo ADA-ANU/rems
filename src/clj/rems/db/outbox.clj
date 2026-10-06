@@ -16,7 +16,8 @@
 (def ^:private byte-marker "__bytes__")
 
 (defn- byte-array? [o]
-  (= "[B" (-> o class .getName)))
+  (and (not (nil? o))
+       (= "[B" (-> o class .getName))))
 
 (defn- encode-bytes [o]
   (cond
