@@ -46,20 +46,28 @@
                      (remove nil?))]
     (enqueue-email! email)))
 
+(defn- unread-for-user? [comment user-id]
+  (when-not (empty? (:readby comment))
+    (not-any? #(= (:userid %) user-id) (:readby comment))))
+
 (defn generate-comment-reminder-emails! []
-  (when-let [unread-comments (db/get-unread-addressed-comments {})]
-    (let [by-recipient (group-by :addressed_to unread-comments)]
-      (doseq [email (->> by-recipient
-                         (map (fn [[recipient-id comments]]
-                                (let [lang (:language (user-settings/get-user-settings recipient-id))
-                                      recipient (users/get-user recipient-id)
-                                      apps (->> comments
-                                                (map :appid)
-                                                distinct
-                                                (map applications/get-application))]
-                                  (template/comment-reminder-email lang recipient comments apps))))
-                         (remove nil?))]
-        (enqueue-email! email)))))
+  (doseq [email (->> (users/get-all-users)
+                     (keep (fn [recipient]
+                             (when-let [user-id (:userid recipient)]
+                               (let [all-comments (comments/get-every-app-comments user-id)
+                                     unread (remove nil? (map (fn [c]
+                                                                (when (unread-for-user? c user-id)
+                                                                  c))
+                                                              (:comments all-comments)))]
+                                 (when (not (empty? unread))
+                                   (let [lang (:language (user-settings/get-user-settings user-id))
+                                         apps (->> unread
+                                                   (map :appid)
+                                                   distinct
+                                                   (map applications/get-application))]
+                                     (template/comment-reminder-email lang recipient unread apps))))))
+                           (remove nil?)))]
+    (enqueue-email! email)))
 
 (defn generate-reviewer-reminder-emails! []
   (doseq [email (->> (applications/get-users-with-role :reviewer)
