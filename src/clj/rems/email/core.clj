@@ -65,8 +65,8 @@
                                                    (map :appid)
                                                    distinct
                                                    (map applications/get-application))]
-                                     (template/comment-reminder-email lang recipient unread apps))))))
-                           (remove nil?)))]
+                                     (template/comment-reminder-email lang recipient unread apps)))))))
+                     (remove nil?))]
     (enqueue-email! email)))
 
 (defn generate-reviewer-reminder-emails! []
