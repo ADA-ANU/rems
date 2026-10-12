@@ -47,8 +47,8 @@
     (enqueue-email! email)))
 
 (defn- unread-for-user? [comment user-id]
-  (when-not (empty? (:readby comment))
-    (not-any? #(= (:userid %) user-id) (:readby comment))))
+  (or (empty? (:readby comment))
+      (not-any? #(= (:userid %) user-id) (:readby comment))))
 
 (defn generate-comment-reminder-emails! []
   (doseq [email (->> (users/get-all-users)
