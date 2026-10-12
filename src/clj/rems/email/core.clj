@@ -3,6 +3,7 @@
   (:require [clj-time.core :as time]
             [clojure.test :refer :all]
             [clojure.tools.logging :as log]
+            [clojure.string :as str]
             [mount.core :as mount]
             [postal.core :as postal]
             [rems.db.cadredb.applications :as applications]
@@ -50,24 +51,52 @@
   (or (empty? (:readby comment))
       (not-any? #(= (:userid %) user-id) (:readby comment))))
 
+
 (defn generate-comment-reminder-emails! []
-  (doseq [email (->> (users/get-all-users)
-                     (keep (fn [recipient]
-                             (when-let [user-id (:userid recipient)]
-                               (let [all-comments (comments/get-every-app-comments user-id)
-                                     unread (remove nil? (map (fn [c]
-                                                                (when (unread-for-user? c user-id)
-                                                                  c))
-                                                              (:comments all-comments)))]
-                                 (when (not (empty? unread))
-                                   (let [lang (:language (user-settings/get-user-settings user-id))
-                                         apps (->> unread
-                                                   (map :appid)
-                                                   distinct
-                                                   (map applications/get-application))]
-                                     (template/comment-reminder-email lang recipient unread apps)))))))
-                     (remove nil?))]
-    (enqueue-email! email)))
+  (println "==> START generate-comment-reminder-emails!")
+  (let [all-users (users/get-all-users)]
+    (println (str "    total users fetched: " (count all-users)))
+    (doseq [email (->> all-users
+                       (keep (fn [recipient]
+                               (let [user-id (:userid recipient)]
+                                 (if (nil? user-id)
+                                   (do (println "  - skipping user (no :userid): " (pr-str recipient))
+                                       nil)
+                                   (do
+                                     (println (str "  - examining user-id: " user-id))
+                                     (let [all-comments (comments/get-every-app-comments user-id)
+                                           all-comment-list (:comments all-comments)]
+                                       (println (str "      total comments: " (count all-comment-list)))
+                                       (let [unread (remove nil?
+                                                            (map (fn [c]
+                                                                   (if (unread-for-user? c user-id)
+                                                                     (do (println (str "        ✓ UNREAD comment: " (pr-str c)))
+                                                                         c)
+                                                                     nil))
+                                                                 all-comment-list))]
+                                         (println (str "      unread comments: " (count unread)))
+                                         (if (empty? unread)
+                                           (do (println "      >> EXCLUDING (no unread comments)")
+                                               nil)
+                                           (let [lang (:language (user-settings/get-user-settings user-id))
+                                                 app-ids (->> unread
+                                                              (map :appid)
+                                                              distinct
+                                                              (map pr-str)
+                                                              (str/join ", "))
+                                                 apps (->> unread
+                                                           (map :appid)
+                                                           distinct
+                                                           (map applications/get-application))
+                                                 email (template/comment-reminder-email lang recipient unread apps)]
+                                             (println (str "      >> INCLUDING user: " user-id))
+                                             (println (str "         language:  " lang))
+                                             (println (str "         app-ids:   [" app-ids "]"))
+                                             (println (str "         email:     " (pr-str email)))
+                                             email)))))))))
+                       (remove nil?))]
+      (println "==> END generate-comment-reminder-emails!"))))
+
 
 (defn generate-reviewer-reminder-emails! []
   (doseq [email (->> (applications/get-users-with-role :reviewer)
