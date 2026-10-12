@@ -95,6 +95,7 @@
                                              (println (str "         email:     " (pr-str email)))
                                              email)))))))))
                        (remove nil?))]
+      (enqueue-email! email)
       (println "==> END generate-comment-reminder-emails!"))))
 
 
