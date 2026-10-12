@@ -29,9 +29,10 @@
                               (applications/get-application app-id))))
 
 (defn- enqueue-email! [email]
-  (outbox/put! {:outbox/type :email
-                :outbox/email email
-                :outbox/deadline (-> (time/now) (.plus ^Period (:email-retry-period env)))}))
+  (when-let [email (if (fn? email) (email) email)]
+    (outbox/put! {:outbox/type :email
+                  :outbox/email email
+                  :outbox/deadline (-> (time/now) (.plus ^Period (:email-retry-period env)))})))
 
 (defn generate-event-emails! [new-events]
   (doseq [event new-events
