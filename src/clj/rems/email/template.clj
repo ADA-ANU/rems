@@ -326,7 +326,7 @@
            :body (text-format :t.email.handler-reminder/message
                               (application-util/get-member-name handler)
                               list
-                              (str (:public-url env) "actions"))})))))
+                              (str (:cadre-url env) "review-queue"))})))))
 
 (defn reviewer-reminder-email [lang reviewer applications]
   (with-language lang
@@ -343,7 +343,7 @@
            :body (text-format :t.email.reviewer-reminder/message
                               (application-util/get-member-name reviewer)
                               list
-                              (str (:public-url env) "actions"))})))))
+                              (str (:cadre-url env) "review-queue"))})))))
 
 (defn workflow-handler-invitation-email [lang invitation workflow]
   (with-language lang
@@ -414,7 +414,7 @@
                                                      (format-application-for-email app)
                                                      (application-util/get-applicant-name app))))
                                  (str/join "\n"))
-                            (str (:public-url env) "actions"))}))))
+                            (str (:cadre-url env) "profile"))}))))
 
 (defn project-decline-email [lang invitation project]
   (with-language lang
