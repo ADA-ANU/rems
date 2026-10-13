@@ -414,8 +414,7 @@
                                                      (format-application-for-email app)
                                                      (application-util/get-applicant-name app))))
                                  (str/join "\n"))
-                            (str (:public-url env) "actions"))
-         :comment-reminder-apps apps}))))
+                            (str (:public-url env) "actions"))}))))
 
 (defn project-decline-email [lang invitation project]
   (with-language lang
