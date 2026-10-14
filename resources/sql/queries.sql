@@ -1235,7 +1235,7 @@ WHERE 1 = 1
   AND r.enabled = :enabled
 /*~ ) ~*/
 /*~ (when (:userid params) */
-  AND r.orgId IN (
+  AND (r.orgId IN (
     SELECT
       DISTINCT org.id
     FROM
@@ -1257,6 +1257,10 @@ WHERE 1 = 1
       AND w.organization = org.id
       AND w.enabled = true
       AND w.archived = false
+  ) OR 
+    a.appid IN (SELECT appid from application_event as ae, LATERAL jsonb_array_elements(ae.eventdata->'application/reviewers') as reviewers WHERE ae.eventdata->>'event/type' LIKE 'application.event/review-requested' AND replace(reviewers::text,'"','') = :userid)
+   OR 
+    a.appid IN (SELECT appid from application_event as ae, LATERAL jsonb_array_elements(ae.eventdata->'application/deciders') as reviewers WHERE ae.eventdata->>'event/type' LIKE 'application.event/decision-requested' AND replace(reviewers::text,'"','') = :userid)
   )
 /*~ ) ~*/
 ORDER BY r.id ASC;
