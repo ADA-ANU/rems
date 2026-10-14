@@ -78,7 +78,7 @@
 
     (GET "/" []
       :summary "Get canned responses"
-      :roles +admin-read-roles+
+      :roles #{:handler :reviewer :decider}
       :query-params [{appid :- (describe s/Int "Limit to canned responses for this application id") nil}
                      {orgid :- (describe s/Str "Limit to canned responses for this organisation id") nil}
                      {tagid :- (describe s/Int "Limit to canned responses for this tag id") nil}
