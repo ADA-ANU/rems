@@ -1234,7 +1234,7 @@ WHERE 1 = 1
 /*~ (when-not (nil? (:enabled params)) */
   AND r.enabled = :enabled
 /*~ ) ~*/
-/*~ (when (:userid params) */
+/*~ (when (and (:userid params) (some? (:appid params))) */
   AND (r.orgId IN (
     SELECT
       DISTINCT org.id
@@ -1261,6 +1261,30 @@ WHERE 1 = 1
     a.appid IN (SELECT appid from application_event as ae, LATERAL jsonb_array_elements(ae.eventdata->'application/reviewers') as reviewers WHERE ae.eventdata->>'event/type' LIKE 'application.event/review-requested' AND replace(reviewers::text,'"','') = :userid)
    OR 
     a.appid IN (SELECT appid from application_event as ae, LATERAL jsonb_array_elements(ae.eventdata->'application/deciders') as reviewers WHERE ae.eventdata->>'event/type' LIKE 'application.event/decision-requested' AND replace(reviewers::text,'"','') = :userid)
+  )
+/*~ ) ~*//*~ (when (and (:userid params) (nil? (:appid params))) */
+  AND r.orgId IN (
+    SELECT
+      DISTINCT org.id
+    FROM
+      organization org,
+      LATERAL jsonb_array_elements(org.data->'organization/owners') AS owners
+    WHERE
+      owners->>'userid' = :userid
+
+    UNION ALL
+
+    SELECT
+      DISTINCT org.id
+    FROM
+      workflow w,
+      organization org,
+      LATERAL jsonb_array_elements_text(w.workflowbody->'handlers') AS handlers
+    WHERE
+      handlers::text = :userid
+      AND w.organization = org.id
+      AND w.enabled = true
+      AND w.archived = false
   )
 /*~ ) ~*/
 ORDER BY r.id ASC;
