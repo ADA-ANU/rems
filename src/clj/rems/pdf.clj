@@ -17,6 +17,18 @@
 (def field-heading-style {:spacing-before 8 :style :bold})
 (def field-style {:spacing-before 8})
 
+
+(defn unescape-html
+  "Converts entity characters to HTML equivalents."
+  [s]
+  (when s
+    (-> s
+        (replace "&amp;"  "&")
+        (replace "&nbsp;"  " ")
+        (replace "&lt;" "<")
+        (replace "&gt;" ">")
+        (replace "&quot;" "\""))))
+
 (defn- render-header [application]
   (let [state (getx application :application/state)]
     (list
@@ -227,7 +239,7 @@
              (when-some [comment (not-empty (:application/comment event))]
                (str "\n" (text-format :t.label/default
                                       (text :t.form/comment)
-                                      (strc/strip-tags comment))))
+                                      (unescape-html (strc/strip-tags comment)))))
              (when-some [attachments (seq (:event/attachments event))]
                (str "\n" (text-format :t.label/default
                                       (text :t.form/attachments)
