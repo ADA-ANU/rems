@@ -23,11 +23,11 @@
   [s]
   (when s
     (-> s
-        (replace "&amp;"  "&")
-        (replace "&nbsp;"  " ")
-        (replace "&lt;" "<")
-        (replace "&gt;" ">")
-        (replace "&quot;" "\""))))
+        (strc/replace "&amp;"  "&")
+        (strc/replace "&nbsp;"  " ")
+        (strc/replace "&lt;" "<")
+        (strc/replace "&gt;" ">")
+        (strc/replace "&quot;" "\""))))
 
 (defn- render-header [application]
   (let [state (getx application :application/state)]
