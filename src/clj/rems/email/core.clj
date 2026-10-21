@@ -36,8 +36,9 @@
 
 (defn generate-event-emails! [new-events]
   (doseq [event new-events
-          email (event-to-emails event)]
-    (enqueue-email! email)))
+          :let [emails-fn (event-to-emails event)]]
+    (doseq [email (if (fn? emails-fn) (emails-fn) emails-fn)]
+      (enqueue-email! email))))
 
 (defn generate-handler-reminder-emails! []
   (doseq [email (->> (workflow/get-handlers)
