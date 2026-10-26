@@ -323,6 +323,7 @@
     {:permission :application.command/redact-attachments}
     {:permission :application.command/remark}
     {:permission :application.command/remove-member}
+    {:permission :application.command/remove-reviewer}
     {:permission :application.command/request-decision}
     {:permission :application.command/request-review}
     {:permission :application.command/return}
