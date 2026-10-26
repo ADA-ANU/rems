@@ -107,7 +107,7 @@
   (->> (get-projects-raw)
        (mapv #(update % :project/owners (partial mapv (comp users/get-user :userid))))
        (mapv #(update % :project/collaborators (partial mapv (comp users/get-user :userid))))
-       (mapv #(update % :project/applications (partial mapv (comp applications/get-application :id))))
+       (mapv #(update % :project/applications (partial mapv #(dissoc (applications/get-application (:id %)) :application/reviewers))))
        (mapv coerce-project-full)))
 
 (defn get-projects-by-application [id]
