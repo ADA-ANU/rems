@@ -167,6 +167,7 @@
   [application event]
   (-> application
       (update ::latest-review-request-by-user dissoc (get-in event [:application/reviewer :userid]))
+      (update :application/reviewers disj (:application/reviewer event))
       (update-todo-for-requests)))
 
 (defmethod application-base-view :application.event/submitted
