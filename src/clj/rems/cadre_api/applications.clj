@@ -333,6 +333,7 @@
     (command-endpoint :application.command/reject commands/RejectCommand)
     (command-endpoint :application.command/remark commands/RemarkCommand)
     (command-endpoint :application.command/remove-member commands/RemoveMemberCommand)
+    (command-endpoint :application.command/remove-reviewer commands/RemoveReviewerCommand)
     (command-endpoint :application.command/request-decision commands/RequestDecisionCommand)
     (command-endpoint :application.command/request-review commands/RequestReviewCommand)
     (command-endpoint :application.command/return commands/ReturnCommand)

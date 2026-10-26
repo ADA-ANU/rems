@@ -52,6 +52,7 @@
             :remark "Remark"
             :remark-public "Show to applicant"
             :remove-member "Remove member"
+            :remove-reviewer "Remove reviewer"
             :request-decision "Request decision"
             :request-decision-dropdown "Request decision"
             :request-decision-dropdown-from-user "from existing user..."
@@ -225,6 +226,7 @@
                           ;; %2 - name & email of reviewer
                           :reviewer-invited "%1 invited %2 to review the application."
                           :reviewer-joined "%1 accepted the invitation to review."
+                          :reviewer-removed "%1 removed %2 from the application."
                           :revoked "%1 revoked the entitlement."
                           :submitted "%1 submitted the application for review."
                           :unknown "Unknown"}

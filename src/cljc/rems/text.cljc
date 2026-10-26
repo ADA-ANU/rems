@@ -219,6 +219,7 @@
    :application.event/reviewed :t.applications.events/reviewed
    :application.event/reviewer-invited :t.applications.events/reviewer-invited
    :application.event/reviewer-joined :t.applications.events/reviewer-joined
+   :application.event/reviewer-removed :t.applications.events/reviewer-removed
    :application.event/revoked :t.applications.events/revoked
    :application.event/submitted :t.applications.events/submitted
    :application.event/voted :t.applications.events/voted})
@@ -260,6 +261,7 @@
                                                                        (map (comp localized :catalogue-item/title))
                                                                        (str/join ", "))}
     :application.event/reviewer-invited         {:invited-user (localize-invitation (:application/reviewer event))}
+    :application.event/reviewer-removed         {:removed-user (localize-user (:application/reviewer event))}
     :application.event/review-requested         {:requested-users (->> (:application/reviewers event)
                                                                        (map localize-user)
                                                                        (str/join ", "))}
@@ -347,6 +349,7 @@
    :application.command/reject :t.commands/reject
    :application.command/remark :t.commands/remark
    :application.command/remove-member :t.commands/remove-member
+   :application.command/remove-reviewer :t.commands/remove-reviewer
    :application.command/request-decision :t.commands/request-decision
    :application.command/request-review :t.commands/request-review
    :application.command/return :t.commands/return

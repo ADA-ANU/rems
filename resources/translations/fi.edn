@@ -50,6 +50,7 @@
             :remark "Kirjaa huomio"
             :remark-public "Näytä huomio hakijalle"
             :remove-member "Poista jäsen"
+            :remove-reviewer "Poista arvioija"
             :request-decision "Pyydä päätöstä"
             :request-decision-dropdown "Pyydä päätöstä"
             :request-decision-dropdown-from-user "olemassaolevalta käyttäjältä..."
@@ -209,6 +210,7 @@
                           :reviewed "%1 katselmoi hakemuksen."
                           :reviewer-invited "%1 kutsui käyttäjän %2 katselmoijaksi."
                           :reviewer-joined "%1 hyväksyi kutsun katselmoijaksi."
+                          :reviewer-removed "%1 poisti käyttäjän %2 hakemuksesta."
                           :revoked "%1 perui käyttöoikeuden."
                           :submitted "%1 lähetti hakemuksen käsiteltäväksi."
                           :unknown "Tuntematon"}

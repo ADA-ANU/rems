@@ -166,6 +166,12 @@
       (assoc-in [::latest-review-request-by-user (:event/actor event)] (:application/request-id event))
       (update-todo-for-requests)))
 
+(defmethod application-base-view :application.event/reviewer-removed
+  [application event]
+  (-> application
+      (update ::latest-review-request-by-user dissoc (get-in event [:application/reviewer :userid]))
+      (update-todo-for-requests)))
+
 (defmethod application-base-view :application.event/submitted
   [application event]
   (-> application
@@ -589,6 +595,9 @@
               :application.event/member-removed)
              {:application/member (get-user (:userid (:application/member event)))}
 
+             :application.event/reviewer-removed
+             {:application/reviewer (get-user (:userid (:application/reviewer event)))}
+
              :application.event/applicant-changed
              {:application/applicant (get-user (:userid (:application/applicant event)))}
 
@@ -754,6 +763,7 @@
 (def ^:private sensitive-events #{:application.event/reviewed
                                   :application.event/reviewer-invited
                                   :application.event/reviewer-joined
+                                  :application.event/reviewer-removed
                                   :application.event/decided
                                   :application.event/decider-invited
                                   :application.event/decider-joined
@@ -803,6 +813,7 @@
   (-> event
       (update-existing :event/actor-attributes censor-user)
       (update-existing :application/member censor-user)
+      (update-existing :application/reviewer censor-user)
       ;; deciders and reviewers occur only in events removed by
       ;; hide-sensitive-events, but keeping the code here for
       ;; completeness

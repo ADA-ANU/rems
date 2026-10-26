@@ -144,6 +144,10 @@
          :event/type (s/enum :application.event/reviewer-joined)
          :application/request-id s/Uuid
          :invitation/token s/Str))
+(s/defschema ReviewerRemovedEvent
+  (assoc EventWithComment
+         :event/type (s/enum :application.event/reviewer-removed)
+         :application/reviewer schema-base/User))
 (s/defschema DeciderInvitedEvent
   (assoc EventWithComment
          :event/type (s/enum :application.event/decider-invited)
@@ -212,6 +216,7 @@
    :application.event/returned ReturnedEvent
    :application.event/reviewer-invited ReviewerInvitedEvent
    :application.event/reviewer-joined ReviewerJoinedEvent
+   :application.event/reviewer-removed ReviewerRemovedEvent
    :application.event/revoked RevokedEvent
    :application.event/submitted SubmittedEvent})
 

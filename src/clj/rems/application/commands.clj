@@ -92,6 +92,9 @@
 (s/defschema RemoveMemberCommand
   (assoc CommandWithComment
          :member schema-base/User))
+(s/defschema RemoveReviewerCommand
+  (assoc CommandWithComment
+         :reviewer schema-base/User))
 (s/defschema RequestReviewCommand
   (assoc CommandWithComment
          :reviewers [schema-base/UserId]))
@@ -145,6 +148,7 @@
    :application.command/reject RejectCommand
    :application.command/remark RemarkCommand
    :application.command/remove-member RemoveMemberCommand
+   :application.command/remove-reviewer RemoveReviewerCommand
    :application.command/request-decision RequestDecisionCommand
    :application.command/request-review RequestReviewCommand
    :application.command/return ReturnCommand
@@ -284,6 +288,10 @@
 (defn- member? [userid application]
   (some #(= userid (:userid %))
         (application-util/applicant-and-members application)))
+
+(defn- reviewer? [userid application]
+  (contains? (get application :rems.application.cadre.model/latest-review-request-by-user)
+             userid))
 
 (defn already-member-error [application userid]
   (when (member? userid application)
@@ -648,6 +656,14 @@
                                    {:event/type :application.event/member-removed
                                     :application/member (:member cmd)})))
 
+(defmethod command-handler :application.command/remove-reviewer
+  [cmd application injections]
+  (or (when-not (reviewer? (:userid (:reviewer cmd)) application)
+        {:errors [{:type :user-not-reviewer :user (:reviewer cmd)}]})
+      (add-comment-and-attachments cmd application injections
+                                   {:event/type :application.event/reviewer-removed
+                                    :application/reviewer (:reviewer cmd)})))
+
 (defmethod command-handler :application.command/uninvite-member
   [cmd application injections]
   (or (when-not (contains? (set (map :application/member
@@ -760,6 +776,9 @@
   (case (:type cmd)
     (:application.command/add-member :application.command/remove-member :application.command/change-applicant)
     (update-in cmd [:member :userid] (getx injections :find-userid))
+
+    :application.command/remove-reviewer
+    (update-in cmd [:reviewer :userid] (getx injections :find-userid))
 
     :application.command/request-review
     (update cmd :reviewers #(mapv (getx injections :find-userid) %))

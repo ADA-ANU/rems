@@ -50,6 +50,7 @@
             :remark "Gör anteckning"
             :remark-public "Visa anteckning för sökande"
             :remove-member "Ta bort deltagare"
+            :remove-reviewer "Ta bort granskare"
             :request-decision "Begär beslut"
             :request-decision-dropdown "Begär beslut"
             :request-decision-dropdown-from-user "från existerande användare..." ; TODO check
@@ -209,6 +210,7 @@
                           :reviewed "%1 granskade ansökan."
                           :reviewer-invited "%1 bjöd in %2 som granskare." ; TODO check
                           :reviewer-joined "%1 blev granskare." ; TODO check
+                          :reviewer-removed "%1 tog bort %2 från ansökan."
                           :revoked "%1 återkallade rättigheter."
                           :submitted "%1 lämnade in ansökan."
                           :unknown "Okänd"}

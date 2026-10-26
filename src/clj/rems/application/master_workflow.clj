@@ -50,6 +50,7 @@
     :application.command/change-resources
     :application.command/redact-attachments
     :application.command/remove-member
+    :application.command/remove-reviewer
     :application.command/invite-decider
     :application.command/invite-member
     :application.command/invite-reviewer
@@ -215,6 +216,11 @@
   [application event]
   (-> application
       (permissions/give-role-to-users :reviewer [(:event/actor event)])))
+
+(defmethod application-permissions-view :application.event/reviewer-removed
+  [application event]
+  (-> application
+      (permissions/remove-role-from-user :reviewer (get-in event [:application/reviewer :userid]))))
 
 (defmethod application-permissions-view :application.event/reviewed
   [application event]
