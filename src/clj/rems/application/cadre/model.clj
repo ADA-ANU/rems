@@ -650,13 +650,20 @@
   (assoc application :application/blacklist (get-blacklist application blacklisted?)))
 
 (defn- enrich-reviewers [application get-user]
-  (->> (:application/events application)
-       (filter #(= :application.event/review-requested (:event/type %)))
-       (mapcat #(->> (:application/reviewers %) (map :userid) (mapv get-user)))
-       distinct
-       (sort-by :userid)
-       (vec)
-       (assoc application :application/reviewers)))
+  (let [removed-reviewers (->> (:application/events application)
+                               (filter #(= :application.event/reviewer-removed (:event/type %)))
+                               (map #(get-in % [:application/reviewer :userid]))
+                               set)]
+    (->> (:application/events application)
+         (filter #(= :application.event/review-requested (:event/type %)))
+         (mapcat #(->> (:application/reviewers %)
+                       (map :userid)
+                       (remove removed-reviewers)
+                       (mapv get-user)))
+         distinct
+         (sort-by :userid)
+         (vec)
+         (assoc application :application/reviewers))))
 
 (defn- enrich-user-attributes [application get-user]
   (letfn [(enrich-members [members]
